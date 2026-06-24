@@ -1,0 +1,1202 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #030508;
+  color: #e8ecf4;
+}
+
+.app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  z-index: 0;
+}
+
+.ui-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.ui-panel {
+  pointer-events: auto;
+}
+
+.hud {
+  position: relative;
+  flex-shrink: 0;
+  min-width: 220px;
+  padding: 14px 16px;
+  background: rgba(8, 12, 20, 0.82);
+  border: 1px solid rgba(120, 140, 180, 0.25);
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.hud-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a8b8e8;
+  margin-bottom: 10px;
+}
+
+.hud-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.hud-label {
+  color: #8899b0;
+}
+
+.hud-value {
+  font-weight: 500;
+  color: #f0f4ff;
+}
+
+.hud-muted {
+  font-size: 12px;
+  color: #7a8aa0;
+}
+
+.hud-warning {
+  margin-top: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(180, 120, 40, 0.2);
+  border: 1px solid rgba(220, 160, 60, 0.35);
+  color: #f0c878;
+  font-size: 11px;
+}
+
+.hud-warning-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.hud-warning-btn:hover {
+  background: rgba(180, 120, 40, 0.35);
+}
+
+.hud-debug {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #6688aa;
+}
+
+.spatial-slider {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 12px 14px;
+  background: rgba(8, 12, 20, 0.82);
+  border: 1px solid rgba(120, 140, 180, 0.25);
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+  font-size: 12px;
+  min-width: 200px;
+}
+
+.spatial-slider label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #a8b8d0;
+}
+
+.spatial-slider input[type='range'] {
+  width: 100%;
+  accent-color: #6a8cff;
+}
+
+.spatial-hint {
+  display: block;
+  margin-top: 6px;
+  color: #667788;
+  font-size: 11px;
+}
+
+.timeline-current {
+  position: absolute;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  background: rgba(8, 12, 20, 0.88);
+  border: 1px solid rgba(120, 140, 180, 0.3);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #d0dcff;
+}
+
+.time-controls {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  padding: 14px 16px;
+  background: rgba(8, 12, 20, 0.88);
+  border: 1px solid rgba(120, 140, 180, 0.25);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  z-index: 10;
+}
+
+.time-controls-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #b0c0e0;
+}
+
+.depth-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.depth-toggle-label {
+  font-size: 10px;
+  color: #7788aa;
+  font-weight: 500;
+}
+
+.depth-toggle-options {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  background: rgba(30, 40, 60, 0.6);
+  border: 1px solid rgba(120, 140, 180, 0.25);
+}
+
+.depth-toggle-btn {
+  padding: 3px 8px;
+  font-size: 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #8899b0;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.depth-toggle-btn.active {
+  background: rgba(80, 110, 180, 0.4);
+  color: #e8eeff;
+}
+
+.depth-toggle-btn--full.active {
+  background: rgba(120, 80, 180, 0.45);
+  box-shadow: 0 0 8px rgba(180, 140, 255, 0.3);
+}
+
+.depth-toggle--disabled {
+  opacity: 0.7;
+}
+
+.depth-toggle-hint {
+  font-size: 10px;
+  color: #7788aa;
+  white-space: nowrap;
+}
+
+.time-hint {
+  font-size: 11px;
+  color: #667788;
+  font-weight: 400;
+}
+
+.scrubber-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.scrubber-rail-label {
+  flex-shrink: 0;
+  width: 52px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #667788;
+}
+
+.scrubber-end-label {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: #667788;
+  width: 56px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scrubber-end-label:last-child {
+  text-align: right;
+}
+
+.scrubber-track {
+  position: relative;
+  flex: 1;
+  height: 28px;
+  padding: 10px 0;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.scrubber-track::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 10px;
+  margin-top: -5px;
+  background: rgba(60, 80, 110, 0.5);
+  border-radius: 5px;
+}
+
+.scrubber-fill {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: 10px;
+  margin-top: -5px;
+  background: linear-gradient(90deg, #3a5080, #6a8cff);
+  border-radius: 5px;
+  pointer-events: none;
+}
+
+.scrubber-thumb {
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  margin-top: -9px;
+  background: #e8eeff;
+  border: 2px solid #6a8cff;
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow: 0 0 10px rgba(106, 140, 255, 0.55);
+}
+
+.time-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.temporal-zoom-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: #8899b0;
+}
+
+.temporal-zoom-label input[type='range'] {
+  width: 140px;
+  accent-color: #6a8cff;
+}
+
+.playback-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.playback-controls button {
+  min-width: 36px;
+  padding: 6px 10px;
+  border: 1px solid rgba(120, 140, 180, 0.35);
+  border-radius: 6px;
+  background: rgba(30, 40, 60, 0.8);
+  color: #c8d4f0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.playback-controls button:hover {
+  background: rgba(50, 70, 110, 0.9);
+  border-color: rgba(140, 170, 220, 0.5);
+}
+
+.playback-controls button.active {
+  background: rgba(80, 110, 180, 0.5);
+  border-color: #6a8cff;
+  color: #fff;
+}
+
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  opacity: 1;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s linear;
+}
+
+.intro-void {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.intro-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #111;
+  box-shadow: 0 0 0 0 rgba(255, 200, 120, 0);
+  animation: intro-wait 2.5s ease-in-out infinite;
+}
+
+@keyframes intro-wait {
+  0%,
+  80% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 180, 80, 0);
+  }
+  90% {
+    transform: scale(1.8);
+    box-shadow: 0 0 30px 8px rgba(255, 140, 40, 0.35);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 180, 80, 0);
+  }
+}
+
+.intro-caption {
+  position: absolute;
+  bottom: 18%;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 220, 180, 0.75);
+  text-shadow: 0 0 24px rgba(255, 120, 40, 0.6);
+  animation: intro-caption-in 1.2s ease-out;
+}
+
+@keyframes intro-caption-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.intro-skip {
+  position: absolute;
+  bottom: 24px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.06em;
+}
+
+.error-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
+  text-align: center;
+  color: #e8ecf4;
+  background: #0a0e18;
+}
+
+.error-fallback h1 {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.error-fallback p {
+  color: #8899b0;
+  margin-bottom: 1.5rem;
+  max-width: 32rem;
+}
+
+.error-fallback button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #6a8cff;
+  background: rgba(80, 110, 180, 0.35);
+  color: #fff;
+  cursor: pointer;
+}
+
+
+.scrubber-track-outer {
+  position: relative;
+  flex: 1;
+}
+
+.scrubber-track-outer--dual {
+  padding-top: 52px;
+}
+
+.scrubber-track-outer--dual .scrubber-track {
+  margin-top: 4px;
+}
+
+.timeline-ticks {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 28px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.timeline-tick {
+  position: absolute;
+  top: 2px;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--tick-color, #6a8cff);
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 0.75;
+  transition: transform 0.15s, opacity 0.15s, box-shadow 0.15s;
+}
+
+.timeline-tick:hover {
+  opacity: 1;
+  transform: scale(1.35);
+  box-shadow: 0 0 8px var(--tick-color);
+}
+
+.timeline-tick--selected {
+  opacity: 1;
+  transform: scale(1.5);
+  box-shadow: 0 0 12px var(--tick-color);
+  z-index: 3;
+}
+
+.spiritual-timeline-ticks {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 28px;
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 0.25s;
+}
+
+.spiritual-timeline-ticks--full {
+  filter: drop-shadow(0 0 4px rgba(180, 140, 255, 0.25));
+}
+
+.spiritual-timeline-tick {
+  position: absolute;
+  top: 2px;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--tick-color, #d4a843);
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 0.55;
+  transition: transform 0.15s, opacity 0.15s, box-shadow 0.15s;
+}
+
+.spiritual-timeline-tick--esoteric {
+  opacity: 0.85;
+  box-shadow: 0 0 4px var(--tick-color);
+}
+
+.spiritual-timeline-ticks--full .spiritual-timeline-tick--esoteric {
+  animation: esoteric-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes esoteric-pulse {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; box-shadow: 0 0 8px var(--tick-color); }
+}
+
+.spiritual-timeline-tick:hover {
+  opacity: 1;
+  transform: scale(1.4);
+  box-shadow: 0 0 8px var(--tick-color);
+}
+
+.spiritual-timeline-tick--selected {
+  opacity: 1;
+  transform: scale(1.6);
+  box-shadow: 0 0 10px var(--tick-color);
+  z-index: 3;
+}
+
+.time-controls--locked {
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.app--flying {
+  cursor: wait;
+}
+
+.ui-overlay--flying .ui-panel:not(.time-controls) {
+  pointer-events: none;
+}
+
+.ui-sidebar-left {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 268px;
+  bottom: 210px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 15;
+  pointer-events: auto;
+}
+
+.event-list {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.event-list-section {
+  margin-bottom: 10px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.event-list-section--spiritual {
+  border-top: 1px solid rgba(120, 140, 180, 0.2);
+  padding-top: 8px;
+}
+
+.event-list-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #8899b0;
+  margin-bottom: 6px;
+}
+
+.event-list-section--spiritual .event-list-section-title {
+  color: #c8b8e8;
+}
+
+.event-list-esoteric-hint {
+  font-size: 10px;
+  color: #a898d8;
+  margin: 0 0 6px;
+  font-style: italic;
+}
+
+.event-list-spiritual-guide {
+  font-size: 11px;
+  line-height: 1.45;
+  color: #8899b0;
+  margin: 0 0 8px;
+}
+
+.event-list-spiritual-guide strong {
+  color: #c8b8e8;
+  font-weight: 600;
+}
+
+.event-tradition-chips {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+  flex-wrap: nowrap;
+  scrollbar-width: thin;
+}
+
+.event-tradition-chip {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  font-size: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(120, 140, 180, 0.35);
+  background: rgba(30, 40, 60, 0.6);
+  color: #8899b0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.event-tradition-chip:hover {
+  background: rgba(50, 60, 90, 0.7);
+  color: #c8d4f0;
+}
+
+.event-tradition-chip.active {
+  border-color: rgba(180, 140, 255, 0.55);
+  color: #e8dcff;
+  background: rgba(100, 70, 150, 0.35);
+}
+
+.event-list-reveal-btn {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  font-size: 11px;
+  border-radius: 8px;
+  border: 1px solid rgba(180, 140, 255, 0.4);
+  background: rgba(100, 70, 150, 0.25);
+  color: #d8c8ff;
+  cursor: pointer;
+}
+
+.event-list-reveal-btn:hover {
+  background: rgba(120, 80, 180, 0.35);
+}
+
+.event-list-items--spiritual {
+  max-height: 160px;
+}
+
+.event-list-tradition {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.event-list-tradition--kabbalah { background: #d4a843; }
+.event-list-tradition--platonism { background: #e8e0d0; }
+.event-list-tradition--neoplatonism { background: #c8b8e8; }
+.event-list-tradition--hermetic { background: #4ecdc4; }
+.event-list-tradition--gnosticism { background: #b088f0; }
+.event-list-tradition--christian_mysticism { background: #e8c878; }
+.event-list-tradition--sufism { background: #78c8a0; }
+.event-list-tradition--buddhist_mysticism { background: #a878c8; }
+.event-list-tradition--hindu_mysticism { background: #f08858; }
+.event-list-tradition--alchemy { background: #c87848; }
+.event-list-tradition--theosophy { background: #88a8f0; }
+.event-list-tradition--general { background: #a0a8b8; }
+
+.event-list-item--spiritual.selected {
+  border-color: rgba(180, 140, 255, 0.45);
+  background: rgba(100, 70, 150, 0.2);
+}
+
+.event-list-visibility {
+  color: #a898d8;
+}
+
+.event-list-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.event-list-header {
+  font-size: 13px;
+  font-weight: 600;
+  color: #b0c0e0;
+  margin-bottom: 0;
+}
+
+.history-track-toggle {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  background: rgba(30, 40, 60, 0.6);
+  border: 1px solid rgba(120, 140, 180, 0.25);
+}
+
+.history-track-btn {
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #8899b0;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.history-track-btn.active {
+  color: #e8eeff;
+  background: rgba(80, 110, 180, 0.4);
+}
+
+.history-track-btn--spiritual.active {
+  background: rgba(100, 70, 150, 0.45);
+  color: #e8dcff;
+}
+
+.event-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.event-filter-chip {
+  padding: 3px 8px;
+  font-size: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(120, 140, 180, 0.35);
+  background: rgba(30, 40, 60, 0.6);
+  color: #8899b0;
+  cursor: pointer;
+}
+
+.event-filter-chip.active {
+  border-color: #6a8cff;
+  color: #e8eeff;
+  background: rgba(80, 110, 180, 0.35);
+}
+
+.event-filter-chip--cosmic.active { border-color: #6a9cff; }
+.event-filter-chip--geologic.active { border-color: #e8a84a; }
+.event-filter-chip--biologic.active { border-color: #5ecf8a; }
+.event-filter-chip--human.active { border-color: #e87a9a; }
+
+.event-list-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+  max-height: 180px;
+}
+
+.event-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 4px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #c8d4f0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.event-list-item:hover {
+  background: rgba(50, 70, 110, 0.35);
+}
+
+.event-list-item.selected {
+  border-color: rgba(106, 140, 255, 0.5);
+  background: rgba(80, 110, 180, 0.25);
+}
+
+.event-list-domain {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.event-list-domain--cosmic { background: #6a9cff; }
+.event-list-domain--geologic { background: #e8a84a; }
+.event-list-domain--biologic { background: #5ecf8a; }
+.event-list-domain--human { background: #e87a9a; }
+
+.event-list-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.event-list-item-title {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.event-list-item-time {
+  font-size: 10px;
+  color: #667788;
+}
+
+.event-list-empty {
+  font-size: 11px;
+  color: #667788;
+  padding: 8px;
+}
+
+.event-list-footer {
+  font-size: 10px;
+  color: #556677;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(120, 140, 180, 0.2);
+}
+
+.event-detail {
+  position: absolute;
+  top: 120px;
+  right: 16px;
+  width: 280px;
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.event-detail-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  border: none;
+  background: transparent;
+  color: #8899b0;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.event-domain {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.event-domain--cosmic { background: rgba(106, 156, 255, 0.2); color: #8ab4ff; }
+.event-domain--geologic { background: rgba(232, 168, 74, 0.2); color: #f0c070; }
+.event-domain--biologic { background: rgba(94, 207, 138, 0.2); color: #7ee0a0; }
+.event-domain--human { background: rgba(232, 122, 154, 0.2); color: #f0a0b8; }
+
+.event-detail-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 6px;
+  color: #f0f4ff;
+  padding-right: 20px;
+}
+
+.event-detail-time {
+  font-size: 11px;
+  color: #8899b0;
+  margin: 0 0 10px;
+}
+
+.event-detail-scale-hint {
+  font-size: 11px;
+  color: #f0c878;
+  background: rgba(180, 120, 40, 0.15);
+  border: 1px solid rgba(220, 160, 60, 0.3);
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin: 0 0 10px;
+}
+
+.event-detail-summary {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #b8c8e0;
+  margin: 0 0 12px;
+}
+
+.event-detail-source {
+  font-size: 12px;
+  color: #6a8cff;
+  text-decoration: none;
+}
+
+.event-detail-source:hover {
+  text-decoration: underline;
+}
+
+.event-detail-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.event-tradition {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.event-tradition--kabbalah { background: rgba(212, 168, 67, 0.2); color: #e8c878; }
+.event-tradition--platonism { background: rgba(232, 224, 208, 0.15); color: #e8e0d0; }
+.event-tradition--neoplatonism { background: rgba(200, 184, 232, 0.2); color: #c8b8e8; }
+.event-tradition--hermetic { background: rgba(78, 205, 196, 0.2); color: #6ee0d8; }
+.event-tradition--gnosticism { background: rgba(176, 136, 240, 0.2); color: #c8a8ff; }
+.event-tradition--christian_mysticism { background: rgba(232, 200, 120, 0.2); color: #f0d890; }
+.event-tradition--sufism { background: rgba(120, 200, 160, 0.2); color: #90e0b8; }
+.event-tradition--buddhist_mysticism { background: rgba(168, 120, 200, 0.2); color: #c8a0e8; }
+.event-tradition--hindu_mysticism { background: rgba(240, 136, 88, 0.2); color: #f0a878; }
+.event-tradition--alchemy { background: rgba(200, 120, 72, 0.2); color: #e0a878; }
+.event-tradition--theosophy { background: rgba(136, 168, 240, 0.2); color: #a8c0ff; }
+.event-tradition--general { background: rgba(160, 168, 184, 0.2); color: #b8c0d0; }
+
+.event-visibility {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.event-visibility--exoteric {
+  background: rgba(100, 140, 200, 0.2);
+  color: #a0c0f0;
+}
+
+.event-visibility--esoteric {
+  background: rgba(140, 100, 200, 0.25);
+  color: #c8a8ff;
+}
+
+.event-detail-body {
+  font-size: 12px;
+  line-height: 1.55;
+  color: #98a8c8;
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border-left: 2px solid rgba(180, 140, 255, 0.4);
+  background: rgba(60, 50, 90, 0.2);
+  border-radius: 0 6px 6px 0;
+}
+
+.event-detail-crosslinks {
+  margin-bottom: 12px;
+}
+
+.event-detail-crosslinks-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #7788aa;
+  margin-bottom: 6px;
+}
+
+.event-detail-crosslinks-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.event-crosslink {
+  padding: 4px 10px;
+  font-size: 11px;
+  border-radius: 12px;
+  border: 1px solid rgba(120, 140, 180, 0.35);
+  background: rgba(40, 50, 70, 0.6);
+  color: #c8d4f0;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.event-crosslink:hover {
+  background: rgba(60, 80, 120, 0.5);
+  border-color: rgba(140, 160, 200, 0.5);
+}
+
+.event-crosslink--locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.event-crosslink--material.event-crosslink--cosmic { border-color: rgba(106, 156, 255, 0.4); }
+.event-crosslink--material.event-crosslink--human { border-color: rgba(232, 122, 154, 0.4); }
+
+.event-crosslink--spiritual {
+  border-color: rgba(180, 140, 255, 0.35);
+}
+
+.event-detail-esoteric-hint {
+  font-size: 11px;
+  color: #a898d8;
+  font-style: italic;
+  margin: 0 0 10px;
+}
+
+.hud--embodied {
+  border-color: rgba(120, 180, 140, 0.35);
+}
+
+.hud-walking {
+  color: #90e0b0;
+}
+
+.embodiment-banner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 12px 24px;
+  background: rgba(8, 20, 16, 0.88);
+  border: 1px solid rgba(120, 200, 160, 0.4);
+  border-radius: 10px;
+  color: #b8f0d0;
+  font-size: 14px;
+  font-weight: 500;
+  pointer-events: none;
+  z-index: 20;
+  animation: embodiment-fade 0.8s ease-out forwards;
+}
+
+@keyframes embodiment-fade {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.96); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.embodied-overlay {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 220px;
+  padding: 12px 14px;
+  z-index: 14;
+}
+
+.embodied-overlay-hint {
+  font-size: 11px;
+  line-height: 1.45;
+  color: #8899b0;
+  margin-bottom: 10px;
+}
+
+.embodied-exit-btn {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(120, 180, 140, 0.4);
+  background: rgba(40, 80, 60, 0.35);
+  color: #b8f0d0;
+  cursor: pointer;
+}
+
+.embodied-exit-btn:hover {
+  background: rgba(50, 100, 70, 0.5);
+}
+
+.embodied-prompt {
+  position: absolute;
+  bottom: 220px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #e8f0ff;
+  z-index: 14;
+}
+
+.embodied-prompt-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(180, 200, 255, 0.4);
+  background: rgba(60, 80, 120, 0.5);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .spatial-slider {
+    top: auto;
+    bottom: 200px;
+    right: 16px;
+    left: 16px;
+  }
+
+  .time-hint {
+    display: none;
+  }
+}

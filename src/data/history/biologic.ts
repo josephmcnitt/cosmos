@@ -1,0 +1,152 @@
+import type { MaterialEvent } from './types';
+import { yearsAgo } from './time';
+
+export const BIOLOGIC_EVENTS: MaterialEvent[] = [
+  {
+    id: 'first-life',
+    simTimeSeconds: yearsAgo(3.8e9),
+    domain: 'biologic',
+    track: 'material',
+    title: 'First life',
+    summary:
+      'Self-replicating molecules or simple cells appear in Earth\'s oceans — whether arising locally or from space, biology begins its long experiment.',
+    spatialBand: 'planetary',
+    spatialExponent: 14,
+    show3DMarker: true,
+    sourceUrl: 'https://en.wikipedia.org/wiki/Abiogenesis',
+  },
+  {
+    id: 'photosynthesis',
+    simTimeSeconds: yearsAgo(2.7e9),
+    domain: 'biologic',
+    track: 'material',
+    title: 'Photosynthesis evolves',
+    summary:
+      'Microbes harness sunlight to split water, releasing oxygen as a byproduct — eventually transforming the entire atmosphere.',
+    spatialBand: 'planetary',
+    spatialExponent: 13,
+    sourceUrl: 'https://en.wikipedia.org/wiki/Photosynthesis',
+  },
+  {
+    id: 'oxygenation',
+    simTimeSeconds: yearsAgo(2.4e9),
+    domain: 'biologic',
+    track: 'material',
+    title: 'Great Oxygenation Event',
+    summary:
+      'Cyanobacteria flood the atmosphere with oxygen, triggering mass extinctions of anaerobic life and enabling the evolution of complex multicellular organisms.',
+    spatialBand: 'planetary',
+    spatialExponent: 13,
+    sourceUrl: 'https://en.wikipedia.org/wiki/Great_Oxygenation_Event',
+  },
+  {
+    id: 'eukaryotes',
+    simTimeSeconds: yearsAgo(2.0e9),
+    domain: 'biologic',
+    track: 'material',
+    title: 'Eukaryotic cells',
+    summary:
+      'Cells with nuclei and organelles arise — likely through symbiosis — laying the foundation for all plants, fungi, and animals.',
+    spatialBand: 'planetary',
+    spatialExponent: 12,
+    sourceUrl: 'https://en.wikipedia.org/wiki/Eukaryote',
+  },
+  {
+    id: 'multicellular',
+    simTimeSeconds: yearsAgo(1.5e9),
+    domain: 'biologic',
+    track: 'material',
+    title: 'Multicellular life',
+    summary:
+      'Life transitions from single cells to coordinated colonies and organisms, opening niches for size, specialization, and complexity.',
+    spatialBand: 'terrestrial',
+    spatialExponent: 10,
+    sourceUrl: 'https://en.wikipedia.org/wiki/Multicellular_organism',
+  },
+  {
+    id: 'cambrian',
+    simTimeSeconds: yearsAgo(541e6),
+    domain: 'biologic',
+    track: 'material',
+    title: 'Cambrian explosion',
+    summary:
+      'In a geologically brief interval, most major animal body plans appear in the fossil record — an adaptive radiation that reshaped the oceans.',
+    spatialBand: 'terrestrial',
+    spatialExponent: 9,
+    show3DMarker: true,
+    sourceUrl: 'https://en.wikipedia.org/wiki/Cambrian_explosion',
+  },
+  {
+    id: 'plants-land',
+    simTimeSeconds: yearsAgo(470e6),
+    domain: 'biologic',
+    track: 'material',
+    title: 'Life colonizes land',
+    summary:
+      'Plants move from water to shore, followed by arthropods and later vertebrates — transforming barren continents into green ecosystems.',
+    spatialBand: 'terrestrial',
+    spatialExponent: 9,
+    sourceUrl: 'https://en.wikipedia.org/wiki/Colonization_of_land',
+  },
+  {
+    id: 'dinosaurs',
+    simTimeSeconds: yearsAgo(230e6),
+    domain: 'biologic',
+    track: 'material',
+    title: 'Age of dinosaurs',
+    summary:
+      'Dinosaurs dominate Mesozoic ecosystems for over 160 million years, evolving into giants, flyers, and diverse forms across every continent.',
+    spatialBand: 'terrestrial',
+    spatialExponent: 8,
+    sourceUrl: 'https://en.wikipedia.org/wiki/Dinosaur',
+  },
+  {
+    id: 'dino-extinction',
+    simTimeSeconds: yearsAgo(66e6),
+    domain: 'biologic',
+    track: 'material',
+    title: 'Age of dinosaurs ends',
+    summary:
+      'The Cretaceous–Paleogene extinction wipes out non-avian dinosaurs and clears ecological space for mammals — and eventually us — to rise.',
+    spatialBand: 'terrestrial',
+    spatialExponent: 8,
+    sourceUrl: 'https://en.wikipedia.org/wiki/Cretaceous%E2%80%93Paleogene_extinction_event',
+  },
+  {
+    id: 'primates',
+    simTimeSeconds: yearsAgo(60e6),
+    domain: 'biologic',
+    track: 'material',
+    title: 'Primates diversify',
+    summary:
+      'After the extinction, mammals radiate; primates evolve grasping hands, forward-facing eyes, and larger brains in the trees.',
+    spatialBand: 'terrestrial',
+    spatialExponent: 7,
+    sourceUrl: 'https://en.wikipedia.org/wiki/Primate',
+  },
+  {
+    id: 'homo-sapiens',
+    simTimeSeconds: yearsAgo(300e3),
+    domain: 'biologic',
+    track: 'material',
+    title: 'Homo sapiens emerges',
+    summary:
+      'Anatomically modern humans appear in Africa, carrying language-ready brains and tools that will let them outcompete every other hominin species.',
+    spatialBand: 'human',
+    spatialExponent: 2,
+    show3DMarker: true,
+    sourceUrl: 'https://en.wikipedia.org/wiki/Homo_sapiens',
+  },
+  {
+    id: 'out-of-africa',
+    simTimeSeconds: yearsAgo(70e3),
+    domain: 'biologic',
+    track: 'material',
+    title: 'Out of Africa',
+    summary:
+      'Modern humans migrate from Africa across the globe, encountering Neanderthals and Denisovans and adapting to every climate on Earth.',
+    spatialBand: 'human',
+    spatialExponent: 2,
+    sourceUrl: 'https://en.wikipedia.org/wiki/Recent_African_origin_of_modern_humans',
+  },
+];

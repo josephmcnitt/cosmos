@@ -52,7 +52,7 @@ export function EmbodiedControls() {
       if (keys.has('a') || keys.has('arrowleft')) turn += 1;
       if (keys.has('d') || keys.has('arrowright')) turn -= 1;
 
-      if (forward !== 0 || turn !== 0) {
+      if (forward !== 0) {
         const practice = usePracticeStore.getState();
         practice.setAvatarMoving(true);
         if (practice.activePractice) {
@@ -63,10 +63,8 @@ export function EmbodiedControls() {
         let yaw = state.avatarYaw + turn * AVATAR_TURN_SPEED * dt;
 
         const pos = state.avatarPosition.clone();
-        if (forward !== 0) {
-          pos.x += Math.sin(yaw) * forward * AVATAR_WALK_SPEED * dt;
-          pos.z += Math.cos(yaw) * forward * AVATAR_WALK_SPEED * dt;
-        }
+        pos.x += Math.sin(yaw) * forward * AVATAR_WALK_SPEED * dt;
+        pos.z += Math.cos(yaw) * forward * AVATAR_WALK_SPEED * dt;
 
         const clamped = clampAvatarToSite(pos.x, pos.z);
         pos.x = clamped.x;
@@ -74,6 +72,11 @@ export function EmbodiedControls() {
         pos.y = sampleTerrainHeight(clamped.x, clamped.z);
 
         useObserverStore.setState({ avatarPosition: pos, avatarYaw: yaw });
+      } else if (turn !== 0) {
+        const state = useObserverStore.getState();
+        const yaw = state.avatarYaw + turn * AVATAR_TURN_SPEED * dt;
+        useObserverStore.setState({ avatarYaw: yaw });
+        usePracticeStore.getState().setAvatarMoving(false);
       } else {
         usePracticeStore.getState().setAvatarMoving(false);
       }

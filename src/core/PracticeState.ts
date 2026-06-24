@@ -29,6 +29,8 @@ interface PracticeState {
   sustainElapsedSec: number;
   avatarMoving: boolean;
   nearbyEventId: string | null;
+  lastCompletedAt: number;
+  sessionsCompleted: number;
 
   markDiscovered: (eventId: string) => void;
   isDiscovered: (eventId: string) => boolean;
@@ -56,6 +58,8 @@ const INITIAL: Pick<
   | 'sustainElapsedSec'
   | 'avatarMoving'
   | 'nearbyEventId'
+  | 'lastCompletedAt'
+  | 'sessionsCompleted'
 > = {
   resonance: {},
   spiritualDepth: 0,
@@ -66,6 +70,8 @@ const INITIAL: Pick<
   sustainElapsedSec: 0,
   avatarMoving: false,
   nearbyEventId: null,
+  lastCompletedAt: 0,
+  sessionsCompleted: 0,
 };
 
 function syncDepth(state: Pick<PracticeState, 'resonance'>) {
@@ -90,7 +96,8 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
 
   setAvatarMoving: (moving) => set({ avatarMoving: moving }),
 
-  setNearbyEventId: (eventId) => set({ nearbyEventId: eventId }),
+  setNearbyEventId: (eventId) =>
+    set((s) => (s.nearbyEventId === eventId ? s : { nearbyEventId: eventId })),
 
   startPractice: (eventId) => {
     const tradition = traditionForMarker(eventId);
@@ -138,6 +145,8 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
     set({
       activePractice: null,
       resonance: nextResonance,
+      lastCompletedAt: performance.now(),
+      sessionsCompleted: get().sessionsCompleted + 1,
       ...syncDepth({ resonance: nextResonance }),
     });
   },

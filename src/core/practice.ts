@@ -5,19 +5,21 @@ import type { SiteMarker } from '../data/embodied/siteMarkers';
 import type { ObserverMode } from './ObserverState';
 import type { RealmPhase } from './PracticeState';
 
-export const PRACTICE_DURATION_SEC = 20;
-export const RESONANCE_GAIN = 0.15;
+export const PRACTICE_DURATION_SEC = 12;
+export const RESONANCE_GAIN = 0.18;
 export const DISCOVERED_BONUS = 0.05;
 
-export const LIMINAL_THRESHOLD = 0.25;
-export const SPIRITUAL_THRESHOLD = 0.65;
-export const SPIRITUAL_SUSTAIN_SEC = 8;
+export const LIMINAL_THRESHOLD = 0.2;
+export const SPIRITUAL_THRESHOLD = 0.6;
+export const SPIRITUAL_SUSTAIN_SEC = 5;
 
 export const DECAY_PER_SEC_EMBODIED = 0.02 / 60;
 export const DECAY_PER_SEC_COSMIC = 0.08 / 60;
 
-export const LIMINAL_EXIT_THRESHOLD = 0.2;
-export const SPIRITUAL_EXIT_THRESHOLD = 0.55;
+export const LIMINAL_EXIT_THRESHOLD = 0.15;
+export const SPIRITUAL_EXIT_THRESHOLD = 0.5;
+
+export const PRACTICE_CHAIN_COOLDOWN_SEC = 0.6;
 
 export function clampResonance(value: number): number {
   return Math.max(0, Math.min(1, value));

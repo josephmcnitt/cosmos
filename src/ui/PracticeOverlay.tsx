@@ -38,7 +38,7 @@ export function PracticeOverlay() {
             />
           </svg>
         </div>
-        <p className="practice-hint">Hold still · hold Q</p>
+        <p className="practice-hint">Hold Q the full session · stay off W/S</p>
       </div>
     </div>
   );

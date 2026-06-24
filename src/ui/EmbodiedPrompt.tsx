@@ -11,7 +11,6 @@ export function EmbodiedPrompt() {
   const avatarPosition = useObserverStore((s) => s.avatarPosition);
   const introActive = useIntroActive();
   const activePractice = usePracticeStore((s) => s.activePractice);
-  const isDiscovered = usePracticeStore((s) => s.isDiscovered);
   const [nearbyId, setNearbyId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -46,20 +45,16 @@ export function EmbodiedPrompt() {
   const event = getEventById(nearbyId);
   if (!event) return null;
 
-  const discovered = isDiscovered(nearbyId);
-
   return (
     <div className="embodied-prompt ui-panel">
       <div className="embodied-prompt-row">
         <span className="embodied-prompt-key">E</span>
         <span>Discover: {event.title}</span>
       </div>
-      {discovered && (
-        <div className="embodied-prompt-row embodied-prompt-row--secondary">
-          <span className="embodied-prompt-key">Q</span>
-          <span>Hold to practice</span>
-        </div>
-      )}
+      <div className="embodied-prompt-row embodied-prompt-row--secondary">
+        <span className="embodied-prompt-key">Q</span>
+        <span>Hold still · hold Q to practice (~12s)</span>
+      </div>
     </div>
   );
 }

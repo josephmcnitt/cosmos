@@ -54,10 +54,12 @@ export function getSiteMarkerByEventId(eventId: string): SiteMarker | undefined 
   return SITE_MARKERS.find((m) => m.eventId === eventId);
 }
 
+export const MARKER_PRACTICE_RADIUS = 3.5;
+
 export function getNearestSiteMarker(
   x: number,
   z: number,
-  maxDistance = 2.2,
+  maxDistance = MARKER_PRACTICE_RADIUS,
 ): SiteMarker | undefined {
   let best: SiteMarker | undefined;
   let bestDist = maxDistance;

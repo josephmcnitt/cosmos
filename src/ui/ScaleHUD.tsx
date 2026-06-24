@@ -3,10 +3,8 @@ import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
 import { formatSimTime, formatSimTimeShort } from '../core/TimeSpace';
 import { getSpatialBand, metersFromExponent } from '../core/ScaleSpace';
-import {
-  isHumanSpatialBand,
-  isInHumanEra,
-} from '../core/spatialTimeCoupling';
+import { isHumanSpatialBand, isInHumanEra } from '../core/spatialTimeCoupling';
+import { usePracticeStore } from '../core/PracticeState';
 
 export function ScaleHUD() {
   const mode = useObserverStore((s) => s.mode);
@@ -19,6 +17,9 @@ export function ScaleHUD() {
   const depthOfView = useHistoryStore((s) => s.depthOfView);
   const selectedEventId = useHistoryStore((s) => s.selectedEventId);
   const isFlying = useHistoryStore((s) => s.isFlying);
+  const spiritualDepth = usePracticeStore((s) => s.spiritualDepth);
+  const realmPhase = usePracticeStore((s) => s.realmPhase);
+  const sessionsCompleted = usePracticeStore((s) => s.sessionsCompleted);
 
   const nearest = getNearestEventForBand(simTimeSeconds, spatialExponent);
   const nearLabel =
@@ -56,6 +57,14 @@ export function ScaleHUD() {
           <div className="hud-row hud-muted">
             <span className="hud-label">Discovered</span>
             <span>{discovered.title}</span>
+          </div>
+        )}
+        {showDebugGrid && (
+          <div className="hud-row hud-debug">
+            <span className="hud-label">Depth</span>
+            <span>
+              {spiritualDepth.toFixed(2)} · {realmPhase} · {sessionsCompleted} sessions
+            </span>
           </div>
         )}
       </div>

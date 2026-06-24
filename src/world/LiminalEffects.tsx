@@ -39,8 +39,8 @@ export function LiminalEffects() {
 
     const intensity =
       realmPhase === 'spiritual'
-        ? 0.35 + spiritualDepth * 0.45
-        : 0.15 + spiritualDepth * 0.35;
+        ? 0.55 + spiritualDepth * 0.4
+        : 0.35 + spiritualDepth * 0.45;
 
     targetFog.current.copy(MATERIAL_FOG).lerp(traditionColor, intensity);
     scene.fog.color.lerp(targetFog.current, Math.min(1, delta * 2));
@@ -49,14 +49,14 @@ export function LiminalEffects() {
   if (realmPhase === 'material') return null;
 
   const particleOpacity =
-    realmPhase === 'spiritual' ? 0.35 + spiritualDepth * 0.3 : 0.12 + spiritualDepth * 0.2;
+    realmPhase === 'spiritual' ? 0.55 + spiritualDepth * 0.35 : 0.28 + spiritualDepth * 0.35;
 
   return (
     <>
       <pointLight
         position={[0, 6, 0]}
         color={traditionColor}
-        intensity={0.4 + spiritualDepth * 0.8}
+        intensity={0.8 + spiritualDepth * 1.2}
         distance={40}
       />
       <pointLight

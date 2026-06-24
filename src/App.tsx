@@ -114,9 +114,12 @@ function SpatialSlider() {
 export default function App() {
   const introComplete = useIntroStore((s) => s.phase === 'complete');
   const isFlying = useHistoryStore((s) => s.isFlying);
+  const realmPhase = usePracticeStore((s) => s.realmPhase);
 
   return (
-    <div className={`app${isFlying ? ' app--flying' : ''}`}>
+    <div
+      className={`app${isFlying ? ' app--flying' : ''} app--realm-${realmPhase}`}
+    >
       <IntroSkipHandler />
       <EmbodimentSync />
       <PracticeSync />

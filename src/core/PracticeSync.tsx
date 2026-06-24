@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type MutableRefObject } from 'react';
 import { getNearestSiteMarker } from '../data/embodied/siteMarkers';
 import {
   applyResonanceDecay,
@@ -9,6 +9,35 @@ import {
 } from './practice';
 import { usePracticeStore } from './PracticeState';
 import { useObserverStore } from './ObserverState';
+
+function syncRealmPhase(
+  embodied: boolean,
+  marker: ReturnType<typeof getNearestSiteMarker>,
+  sustainRef: MutableRefObject<number>,
+) {
+  const practice = usePracticeStore.getState();
+  const depth = practice.spiritualDepth;
+  const atStone = isAtStoneWithHighDepth(depth, marker);
+
+  if (atStone && embodied) {
+    sustainRef.current = practice.sustainElapsedSec;
+  } else {
+    sustainRef.current = 0;
+  }
+
+  const nextPhase = computeNextRealmPhase(
+    practice.realmPhase,
+    depth,
+    sustainRef.current,
+    atStone && embodied,
+  );
+
+  usePracticeStore.setState({
+    dominantTradition: dominantTradition(practice.resonance),
+    realmPhase: embodied ? nextPhase : 'material',
+    sustainElapsedSec: sustainRef.current,
+  });
+}
 
 export function PracticeSync() {
   const mode = useObserverStore((s) => s.mode);
@@ -41,8 +70,12 @@ export function PracticeSync() {
       practice.setNearbyEventId(marker?.eventId ?? null);
 
       if (practice.activePractice) {
+        const hadActive = true;
         practice.tickPractice(now);
-      } else if (!embodied || dtSec > 0) {
+        if (hadActive && !usePracticeStore.getState().activePractice) {
+          syncRealmPhase(embodied, marker, sustainRef);
+        }
+      } else {
         const decayed = applyResonanceDecay(practice.resonance, dtSec, embodied);
         const depth = computeSpiritualDepth(decayed);
         const atStone = isAtStoneWithHighDepth(depth, marker);

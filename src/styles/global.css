@@ -22,6 +22,27 @@ body,
   height: 100%;
 }
 
+.app::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+  box-shadow: inset 0 0 160px 60px rgba(80, 40, 140, 0);
+}
+
+.app--realm-liminal::after {
+  opacity: 1;
+  box-shadow: inset 0 0 160px 70px rgba(100, 60, 180, 0.35);
+}
+
+.app--realm-spiritual::after {
+  opacity: 1;
+  box-shadow: inset 0 0 200px 90px rgba(140, 90, 220, 0.45);
+}
+
 .canvas {
   position: absolute;
   inset: 0;

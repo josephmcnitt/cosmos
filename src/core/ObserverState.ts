@@ -7,6 +7,7 @@ import {
   EMBODIED_ENTER_EXPONENT,
   getEmbodimentContext,
   prepareEmbodiedDiscovery,
+  resetEmbodiedPractice,
   shouldEnterEmbodied,
   shouldExitEmbodiedFromSpatial,
   shouldExitEmbodiedFromTime,
@@ -44,8 +45,6 @@ export interface ObserverState {
   cameraDistance: number;
   preEmbodimentExponent: number;
   embodimentTransition: 'none' | 'entering' | 'exiting';
-  // Phase 5: spiritualDepth: number;  // 0–1, drives realm rendering
-  // Phase 5: resonance: Record<string, number>;
 }
 
 export interface ObserverActions {
@@ -112,6 +111,7 @@ function applyEmbodimentAfterUpdate(
 
   if (shouldExitEmbodiedFromTime(merged) || shouldExitEmbodiedFromSpatial(merged)) {
     if (merged.mode === 'embodied') {
+      resetEmbodiedPractice();
       return {
         ...partial,
         mode: 'cosmic',
@@ -256,6 +256,7 @@ export const useObserverStore = create<ObserverState & ObserverActions>((set, ge
   exitEmbodied: () => {
     const state = get();
     if (state.mode !== 'embodied') return;
+    resetEmbodiedPractice();
     set({
       mode: 'cosmic',
       spatialExponent: state.preEmbodimentExponent,

@@ -3,15 +3,19 @@ import { Suspense, useEffect } from 'react';
 import { EmbodiedCamera } from './camera/EmbodiedCamera';
 import { LogarithmicCamera } from './camera/LogarithmicCamera';
 import { EmbodimentSync } from './core/EmbodimentSync';
+import { PracticeSync } from './core/PracticeSync';
 import { IntroSkipHandler, useIntroActive } from './core/IntroSkipHandler';
 import { SimulationLoop } from './core/SimulationLoop';
 import { useIntroStore } from './core/IntroState';
 import { useHistoryStore } from './core/HistoryState';
 import { useObserverStore } from './core/ObserverState';
+import { usePracticeStore } from './core/PracticeState';
 import { SPATIAL_MAX, SPATIAL_MIN } from './core/ScaleSpace';
 import { EmbodiedControls } from './input/EmbodiedControls';
+import { PracticeControls } from './input/PracticeControls';
 import { EmbodiedOverlay } from './ui/EmbodiedOverlay';
 import { EmbodiedPrompt } from './ui/EmbodiedPrompt';
+import { PracticeOverlay } from './ui/PracticeOverlay';
 import { EmbodimentBanner } from './ui/EmbodimentBanner';
 import { EventDetailPanel } from './ui/EventDetailPanel';
 import { EventListPanel } from './ui/EventListPanel';
@@ -23,6 +27,8 @@ import { ZoomControls } from './ui/ZoomControls';
 import { BigBangEffect } from './world/BigBangEffect';
 import { DebugGrid } from './world/DebugGrid';
 import { EmbodiedSite } from './world/EmbodiedSite';
+import { LiminalEffects } from './world/LiminalEffects';
+import { SpiritualRealm } from './world/SpiritualRealm';
 import { HistoryMarkers } from './world/HistoryMarkers';
 import { PlayerAvatar } from './world/PlayerAvatar';
 import { WorldRoot } from './world/WorldRoot';
@@ -30,8 +36,10 @@ import { WorldRoot } from './world/WorldRoot';
 function Scene() {
   const introPhase = useIntroStore((s) => s.phase);
   const mode = useObserverStore((s) => s.mode);
+  const realmPhase = usePracticeStore((s) => s.realmPhase);
   const showWorld = introPhase === 'expansion' || introPhase === 'reveal' || introPhase === 'complete';
   const embodied = mode === 'embodied' && showWorld;
+  const showLiminal = embodied && (realmPhase === 'liminal' || realmPhase === 'spiritual');
 
   return (
     <>
@@ -46,6 +54,8 @@ function Scene() {
           <directionalLight position={[8, 16, 6]} intensity={1.1} castShadow />
           <EmbodiedSite />
           <PlayerAvatar />
+          {showLiminal && <LiminalEffects />}
+          {realmPhase === 'spiritual' && <SpiritualRealm />}
         </>
       ) : (
         showWorld && (
@@ -109,7 +119,9 @@ export default function App() {
     <div className={`app${isFlying ? ' app--flying' : ''}`}>
       <IntroSkipHandler />
       <EmbodimentSync />
+      <PracticeSync />
       <EmbodiedControls />
+      <PracticeControls />
       <KeyboardShortcuts />
       <ZoomControls />
 
@@ -139,6 +151,7 @@ export default function App() {
           <SpatialSlider />
           <EmbodiedOverlay />
           <EmbodiedPrompt />
+          <PracticeOverlay />
           <EventDetailPanel />
           <TimelineLabel />
           <TimeControls />

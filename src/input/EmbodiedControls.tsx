@@ -8,6 +8,7 @@ import {
 import { useIntroActive } from '../core/IntroSkipHandler';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
+import { usePracticeStore } from '../core/PracticeState';
 
 export function EmbodiedControls() {
   const introActive = useIntroActive();
@@ -52,6 +53,12 @@ export function EmbodiedControls() {
       if (keys.has('d') || keys.has('arrowright')) turn -= 1;
 
       if (forward !== 0 || turn !== 0) {
+        const practice = usePracticeStore.getState();
+        practice.setAvatarMoving(true);
+        if (practice.activePractice) {
+          practice.cancelPractice();
+        }
+
         const state = useObserverStore.getState();
         let yaw = state.avatarYaw + turn * AVATAR_TURN_SPEED * dt;
 
@@ -67,6 +74,8 @@ export function EmbodiedControls() {
         pos.y = sampleTerrainHeight(clamped.x, clamped.z);
 
         useObserverStore.setState({ avatarPosition: pos, avatarYaw: yaw });
+      } else {
+        usePracticeStore.getState().setAvatarMoving(false);
       }
 
       raf = requestAnimationFrame(tick);

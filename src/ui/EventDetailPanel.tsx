@@ -8,6 +8,7 @@ import {
 import { flyToEvent } from '../core/flyToEvent';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
+import { usePracticeStore } from '../core/PracticeState';
 import { SPATIAL_BANDS } from '../core/ScaleSpace';
 import { formatSimTime } from '../core/TimeSpace';
 
@@ -16,6 +17,8 @@ export function EventDetailPanel() {
   const selectEvent = useHistoryStore((s) => s.selectEvent);
   const depthOfView = useHistoryStore((s) => s.depthOfView);
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
+  const mode = useObserverStore((s) => s.mode);
+  const nearbyEventId = usePracticeStore((s) => s.nearbyEventId);
 
   if (!selectedEventId) return null;
 
@@ -31,6 +34,12 @@ export function EventDetailPanel() {
     depthOfView !== 'full'
       ? crossLinks.spiritual.filter((e) => e.visibility === 'esoteric')
       : [];
+
+  const showPracticeNudge =
+    mode === 'embodied' &&
+    isSpiritualEvent(event) &&
+    event.visibility === 'esoteric' &&
+    nearbyEventId === selectedEventId;
 
   return (
     <div className="event-detail ui-panel">
@@ -75,6 +84,12 @@ export function EventDetailPanel() {
 
       {isSpiritualEvent(event) && event.body && (
         <p className="event-detail-body">{event.body}</p>
+      )}
+
+      {showPracticeNudge && (
+        <p className="event-detail-practice-hint">
+          Return to the stone and hold Q to practice.
+        </p>
       )}
 
       {crossLinks.material.length > 0 && (

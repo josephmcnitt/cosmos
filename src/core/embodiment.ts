@@ -1,5 +1,6 @@
 import { useIntroStore } from './IntroState';
 import { useHistoryStore } from './HistoryState';
+import { usePracticeStore } from './PracticeState';
 import type { ObserverMode, ObserverState } from './ObserverState';
 import { isInHumanEra } from './spatialTimeCoupling';
 
@@ -77,4 +78,9 @@ export function sampleTerrainHeight(x: number, z: number): number {
 
 export function isEmbodiedMode(mode: ObserverMode): boolean {
   return mode === 'embodied';
+}
+
+/** Clears session practice / realm state when leaving walk mode. */
+export function resetEmbodiedPractice(): void {
+  usePracticeStore.getState().resetPractice();
 }

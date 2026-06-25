@@ -7,7 +7,7 @@ import {
   normalizedFromSimTimeWindow,
   storedTimeWindowOptions,
 } from './spatialTimeCoupling';
-import { TEMPORAL_MAX } from './TimeSpace';
+import { TEMPORAL_MAX, formatPlayheadTime } from './TimeSpace';
 
 const SPATIAL = 25;
 const PLAYHEAD = 1197;
@@ -166,5 +166,24 @@ describe('time zoom behavior (observer store)', () => {
     setZoom(TEMPORAL_MAX * 0.78);
     const fractionTight = playheadFraction();
     expect(fractionTight).toBeCloseTo(fractionBefore, 2);
+  });
+
+  it('playhead label changes when scrubbing wide cosmic timeline', () => {
+    resetStore({
+      spatialExponent: 25,
+      simTimeSeconds: 0.001,
+      temporalExponent: 0,
+      timeViewMinLog: null,
+      timeViewMaxLog: null,
+    });
+    const span = storeWindow().viewMaxLog - storeWindow().viewMinLog;
+    const labelStart = formatPlayheadTime(0.001, span, false);
+
+    scrubTo(0.75);
+    const midTime = useObserverStore.getState().simTimeSeconds;
+    const labelMid = formatPlayheadTime(midTime, span, false);
+
+    expect(midTime).toBeGreaterThan(1);
+    expect(labelMid).not.toBe(labelStart);
   });
 });

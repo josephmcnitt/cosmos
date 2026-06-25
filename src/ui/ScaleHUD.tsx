@@ -1,7 +1,7 @@
 import { getEventById, getNearestEventForBand } from '../data/history/index';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
-import { formatSimTime, formatSimTimeAbsoluteShort, formatSimTimeShort, formatTimelineHeader } from '../core/TimeSpace';
+import { formatPlayheadTime, formatSimTimeShort, formatTimelineHeader } from '../core/TimeSpace';
 import { getSpatialBand, metersFromExponent } from '../core/ScaleSpace';
 import {
   bandLogSpan,
@@ -65,9 +65,8 @@ export function ScaleHUD() {
     viewLogSpan,
     fullLogSpan,
   );
-  const timeLabel = timeNarrowed
-    ? `${formatSimTimeAbsoluteShort(simTimeSeconds, viewLogSpan)} · ${windowLabel}`
-    : formatSimTime(simTimeSeconds);
+  const playheadLabel = formatPlayheadTime(simTimeSeconds, viewLogSpan, inHumanEra);
+  const timeLabel = timeNarrowed ? `${playheadLabel} · ${windowLabel}` : playheadLabel;
 
   if (mode === 'embodied') {
     const discovered = selectedEventId ? getEventById(selectedEventId) : null;
@@ -160,9 +159,20 @@ export function ScaleHUD() {
 
 export function TimelineLabel() {
   const simTimeSeconds = useObserverStore((s) => s.simTimeSeconds);
+  const spatialExponent = useObserverStore((s) => s.spatialExponent);
+  const temporalExponent = useObserverStore((s) => s.temporalExponent);
+  const timeViewMinLog = useObserverStore((s) => s.timeViewMinLog);
+  const timeViewMaxLog = useObserverStore((s) => s.timeViewMaxLog);
+  const timeWindow = computeEffectiveTimeWindow(
+    spatialExponent,
+    simTimeSeconds,
+    temporalExponent,
+    storedTimeWindowOptions(timeViewMinLog, timeViewMaxLog),
+  );
+  const viewLogSpan = timeWindow.viewMaxLog - timeWindow.viewMinLog;
   return (
-    <div className="timeline-current ui-panel">
-      {formatSimTimeShort(simTimeSeconds)}
+    <div className="timeline-current ui-panel" data-testid="timeline-current">
+      {formatPlayheadTime(simTimeSeconds, viewLogSpan, isInHumanEra(simTimeSeconds))}
     </div>
   );
 }

@@ -76,6 +76,22 @@ test.describe('Time zoom and timeline scrubbing', () => {
     expect(tight.max - tight.min).toBeLessThan(mid.max - mid.min);
   });
 
+  test('HUD and rail playhead label update when scrubbing wide cosmic timeline', async ({ page }) => {
+    await clickTimelineAt(page, 0.05);
+    await page.waitForTimeout(100);
+    const hudEarly = await page.getByTestId('hud-time').textContent();
+    const railEarly = await page.getByTestId('timeline-playhead-label').textContent();
+
+    await clickTimelineAt(page, 0.72);
+    await page.waitForTimeout(100);
+    const hudLater = await page.getByTestId('hud-time').textContent();
+    const railLater = await page.getByTestId('timeline-playhead-label').textContent();
+
+    expect(hudLater).not.toBe(hudEarly);
+    expect(railLater).not.toBe(railEarly);
+    expect(hudLater).toBe(railLater);
+  });
+
   test('canvas scroll does not change timeline bounds when zoomed', async ({ page }) => {
     await page.getByTestId('temporal-zoom').fill(String(13));
     await page.waitForTimeout(150);

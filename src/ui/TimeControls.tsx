@@ -7,15 +7,17 @@ import {
   computeEffectiveTimeWindow,
   isEffectiveWindowNarrowed,
   isHumanSpatialBand,
+  isInHumanEra,
   normalizedFromSimTimeWindow,
   storedTimeWindowOptions,
 } from '../core/spatialTimeCoupling';
 import {
-  TEMPORAL_MAX,
-  TEMPORAL_MIN,
+  formatPlayheadTime,
   formatSimTimeWindowEdge,
   formatTimelineHeader,
   getTemporalBand,
+  TEMPORAL_MAX,
+  TEMPORAL_MIN,
 } from '../core/TimeSpace';
 import { TimelineEventTicks } from './TimelineEventTicks';
 import { SpiritualTimelineTicks } from './SpiritualTimelineTicks';
@@ -70,6 +72,11 @@ export function TimeControls() {
   );
   const atHumanScale = isHumanSpatialBand(spatialExponent);
   const showSpiritual = historyTrack === 'spiritual' && atHumanScale;
+  const playheadLabel = formatPlayheadTime(
+    simTimeSeconds,
+    viewLogSpan,
+    isInHumanEra(simTimeSeconds),
+  );
 
   const handleScrub = useCallback(
     (clientX: number, rect: DOMRect) => {
@@ -115,8 +122,8 @@ export function TimeControls() {
       </div>
 
       <div className="scrubber-wrap">
-        <span className="scrubber-rail-label">
-          {showSpiritual ? 'Spiritual' : 'Material'}
+        <span className="scrubber-rail-label" data-testid="timeline-playhead-label">
+          {showSpiritual ? 'Spiritual' : playheadLabel}
         </span>
         <span className="scrubber-end-label" title={viewMinLabel} data-testid="timeline-min" data-seconds={timeWindow.viewMinSeconds}>
           {viewMinLabel}

@@ -152,6 +152,16 @@ export function formatSimTimeAbsoluteShort(
   return `${ga.toFixed(decimals)} Ga`;
 }
 
+/** Human-readable playhead label — absolute since BB in deep time, calendar/years-ago in human era. */
+export function formatPlayheadTime(
+  simTimeSeconds: number,
+  viewLogSpan: number,
+  inHumanEra: boolean,
+): string {
+  if (inHumanEra) return formatSimTimeShort(simTimeSeconds);
+  return formatSimTimeAbsoluteShort(simTimeSeconds, viewLogSpan);
+}
+
 /** Scrubber endpoint label — adapts precision/units to the visible log-time span. */
 export function formatSimTimeWindowEdge(
   simTimeSeconds: number,
@@ -159,7 +169,8 @@ export function formatSimTimeWindowEdge(
   bandLogSpan: number,
 ): string {
   const narrowed = viewLogSpan < bandLogSpan * 0.95;
-  if (narrowed) {
+  const deepLogScale = bandLogSpan > 2;
+  if (narrowed || deepLogScale) {
     return formatSimTimeAbsoluteShort(simTimeSeconds, viewLogSpan);
   }
   return formatSimTimeShort(simTimeSeconds);

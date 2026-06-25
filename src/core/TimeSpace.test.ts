@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TEMPORAL_MAX, formatSimTimeWindowEdge, formatTimelineHeader } from './TimeSpace';
+import { TEMPORAL_MAX, formatPlayheadTime, formatSimTimeWindowEdge, formatTimelineHeader } from './TimeSpace';
 import { computeEffectiveTimeWindow } from './spatialTimeCoupling';
 
 describe('formatSimTimeWindowEdge', () => {
@@ -25,11 +25,22 @@ describe('formatSimTimeWindowEdge', () => {
     expect(maxLabel).not.toBe('13.8 Gya');
   });
 
-  it('falls back to short labels for a wide view', () => {
+  it('uses absolute labels on wide deep-time scrubber edges', () => {
     const window = computeEffectiveTimeWindow(25, 1, 0);
     const span = window.viewMaxLog - window.viewMinLog;
     const bandSpan = window.maxLog - window.minLog;
-    expect(formatSimTimeWindowEdge(window.viewMinSeconds, span, bandSpan)).toBe('13.8 Gya');
+    const minLabel = formatSimTimeWindowEdge(window.viewMinSeconds, span, bandSpan);
+    expect(minLabel).not.toBe('13.8 Gya');
+    expect(minLabel).toMatch(/s|yr|Ma|Ga/);
+  });
+
+  it('playhead labels differ across log-scale scrub positions in deep time', () => {
+    const wide = computeEffectiveTimeWindow(25, 0.001, 0);
+    const span = wide.viewMaxLog - wide.viewMinLog;
+    const atStart = formatPlayheadTime(0.001, span, false);
+    const midSeconds = Math.pow(10, wide.viewMinLog + span * 0.75);
+    const atMid = formatPlayheadTime(midSeconds, span, false);
+    expect(atMid).not.toBe(atStart);
   });
 
   it('timeline header changes when time zoom narrows', () => {

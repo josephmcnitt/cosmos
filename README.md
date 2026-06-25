@@ -73,7 +73,7 @@ By default, Playwright starts `vite preview` when `COSMOS_E2E_URL` is unset ([pl
 
 First-time Playwright setup: `npx playwright install chromium`
 
-**Next:** Phase 8.1 — ephemeris and richer sky replay. See [FUTURE_IDEAS.md](FUTURE_IDEAS.md).
+**Next:** Phase 8.1b — scrubbable Big Bang replay. See [FUTURE_IDEAS.md](FUTURE_IDEAS.md).
 
 ## Phase 8 — material heavens
 
@@ -83,9 +83,16 @@ Cosmic view sky responds to **timeline scrubbing** via `simTimeSeconds`:
 - **First light → reionization**: starfield and galaxy bands ramp up
 - **Post-reionization**: full starfield brightness; spatial zoom still cross-fades bands
 
-**Manual check:** skip intro → scrub timeline far left (early cosmic) → mid-bar. HUD heaven phase (`data-testid="heaven-phase"`) moves from `darkAges` to `reionized`; sky should brighten.
+## Phase 8.1 — sky wiring + ephemeris
 
-**Tests:** `src/core/materialHeavens.test.ts` (phase mapping); `tests/e2e/material-heavens.spec.ts` (phase indicator on scrub).
+- **`CosmicStarfield`** — drei `Stars` opacity follows `computeHeavenVisuals().starfieldOpacity` (floor keeps canvas non-black at dark ages)
+- **`CosmicSkySync`** — fog **color** and ambient intensity lerp from heaven visuals; optional CMB background tint; **does not** change `fog.far`
+- **`EphemerisSky`** — fixed-noon Sun/Moon snapshot at Athens on 2026-06-21 solstice; visible at human-era present when `6 ≤ spatialExponent < 22`
+- **Gates** — `src/core/heavenVisibility.ts` shared by band meshes, ephemeris, and indicators
+
+**Manual check:** skip intro → scrub far left → present; center canvas should dim but not black out. Jump to present → spatial zoom ~12 → ephemeris indicator active; zoom to 25 → inactive.
+
+**Tests:** `materialHeavens.test.ts`, `heavenVisibility.test.ts`, `ephemeris.test.ts`; `tests/e2e/material-heavens.spec.ts` (phase, brightness, ephemeris gates).
 
 ## Video export (backburner)
 

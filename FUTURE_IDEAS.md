@@ -116,24 +116,32 @@ Cosmos can treat knowing as four quadrants (communicable × verifiable):
 
 ## Astrology and correspondence sky (Phase 8 / 10)
 
-**Status:** Phase 8 MVP shipped (2026-06-25). Time-driven fog/ambient/band modifiers in cosmic view. Ephemeris and correspondence lens still deferred.
-
 **Idea:** After meaningful practice at a stone (liminal → spiritual), zoom back out from walk mode and the **same** simulated sky can re-render as an **interpretive / astrological** view — zodiac band, planetary rulers, tradition-specific correspondences — while the material track still shows historical astronomy.
 
-**Phase 8 MVP (first slice — not started):**
+**Status:** Phase 8 MVP + **8.1 shipped** (2026-06-25). Time-driven starfield/fog/ambient in cosmic view; fixed-noon Sun/Moon ephemeris at Earth-scale present. Correspondence lens still deferred.
 
-1. **`MaterialHeavens` component** — new file under `src/world/`, mounted from cosmic branch in `App.tsx`.
-2. **Time phases from** `src/data/history/cosmic.ts` — map `simTimeSeconds` to visual states (pre–first-stars dim/foggy, post-reionization starfield brightens, galaxy/stellar bands with time-driven opacity).
-3. **Shared clock** — subscribe to `useObserverStore` `simTimeSeconds`; no new simulation state.
-4. **Tests** — Vitest for `simTime → heavenPhase` mapping; one Playwright smoke that scrubs timeline and asserts sky-related DOM/testid if exposed.
+**Phase 8.1 (shipped):**
 
-**Deferred to Phase 8.1:** simple ephemeris (Sun/Moon at human-era present), scrubbable Big Bang replay (today intro-only in `BigBangEffect.tsx`).
+1. **`CosmicStarfield` / `CosmicSkySync`** — wire `computeHeavenVisuals()` to drei stars, fog color, ambient (no `fog.far` mutation).
+2. **`EphemerisSky`** — Athens observer, 2026-06-21 noon UTC snapshot; gated by `heavenVisibility.isEphemerisBand`.
+3. **Tests** — `heavenVisibility`, `ephemeris`, extended `material-heavens` E2E.
+
+**Deferred to Phase 8.1b:** scrubbable Big Bang replay (today intro-only in `BigBangEffect.tsx`).
+
+**Phase 8 MVP (shipped):**
+
+1. **`MaterialHeavens` component** — band meshes from `WorldRoot` when `spatialExponent < 22`.
+2. **Time phases from** `src/data/history/cosmic.ts` — map `simTimeSeconds` to visual states.
+3. **Shared clock** — subscribe to `useObserverStore` `simTimeSeconds`.
+4. **Tests** — Vitest for phase mapping; Playwright heaven phase indicator.
 
 **Phase split:**
 
 | Phase | Scope |
 |-------|--------|
-| **8 — Material cosmos** | Animated heavens tied to `simTimeSeconds` (structure formation, simple ephemeris). Stays scientific; shared clock for everything else. |
+| **8 — Material cosmos** | Animated heavens tied to `simTimeSeconds` (structure formation, band meshes). Stays scientific; shared clock for everything else. |
+| **8.1 — Sky polish + ephemeris** | Starfield/fog/ambient wiring; fixed-noon Sun/Moon at Earth-scale present (**shipped**). |
+| **8.1b — Big Bang replay** | Scrubbable intro effect driven by `simTimeSeconds` (not wall-clock). |
 | **8b / early 10 — Correspondence lens** | Unlock astrological sky **after** spiritual depth at a stone; geometric style preserved (glyphs, orbits, color — not horoscope UI chrome). |
 | **10 — Tradition-accurate ritual gates** | Per-tradition rules only — not one global zodiac gate. Hermetic/Neoplatonic: planetary hours, elections. Kabbalah: sefirot/time cycles. Gnostic: inner gnosis, not natal chart. Platonic: Timaeus cosmology over horoscope. |
 
@@ -168,4 +176,5 @@ Cosmos can treat knowing as four quadrants (communicable × verifiable):
 | 2026-06-24 | **Four modes of knowledge** (rational / faith / experience / gnosis) → distinct unlock paths; E = rational esoteric text; Q + spiritual realm = experience → gnosis (floating forms). Documented for Phase 9+ before implementation. |
 | 2026-06-25 | **Years-ago log timeline shipped:** scrub/zoom use log₁₀ years ago (left = Big Bang, right = present) so recent history gets more bar space and mid-timeline labels move with the playhead. |
 | 2026-06-25 | **E2E CI runs against local preview** (`vite preview` on port 4173); production smoke optional via `COSMOS_E2E_URL`. Vercel deploy stays build-only (`npm run build`). |
-| 2026-06-25 | **Phase 8 MVP shipped:** `MaterialHeavens` maps `simTimeSeconds` to cosmic sky phases (dark ages → first light → reionized); fog/ambient/band opacity multipliers on existing `WorldRoot`. Ephemeris and correspondence lens still deferred to 8.1 / 8b. |
+| 2026-06-25 | **Phase 8.1 shipped:** `CosmicStarfield`, `CosmicSkySync`, `EphemerisSky`, `heavenVisibility` gates; fixed-noon Sun/Moon at Athens. Big Bang scrub replay → 8.1b. |
+| 2026-06-25 | **Phase 8 MVP shipped:** `MaterialHeavens` maps `simTimeSeconds` to cosmic sky phases (dark ages → first light → reionized); fog/ambient/band opacity multipliers on existing `WorldRoot`. |

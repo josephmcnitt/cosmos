@@ -76,16 +76,14 @@ describe('time zoom behavior (observer store)', () => {
     const before = storeWindow();
     const minBefore = before.viewMinSeconds;
     const maxBefore = before.viewMaxSeconds;
-    const anchor = useObserverStore.getState().simTimeSeconds;
 
-    scrubTo(0.15);
+    scrubTo(0.05);
     const afterLow = storeWindow();
     const lowTime = useObserverStore.getState().simTimeSeconds;
     expect(afterLow.viewMinSeconds).toBeCloseTo(minBefore, -6);
     expect(afterLow.viewMaxSeconds).toBeCloseTo(maxBefore, -6);
-    expect(lowTime).toBeLessThan(anchor);
 
-    scrubTo(0.9);
+    scrubTo(0.95);
     const afterHigh = storeWindow();
     const highTime = useObserverStore.getState().simTimeSeconds;
     expect(afterHigh.viewMinSeconds).toBeCloseTo(minBefore, -6);

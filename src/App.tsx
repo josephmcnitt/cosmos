@@ -1,5 +1,4 @@
 import { Canvas } from '@react-three/fiber';
-import { Stars } from '@react-three/drei';
 import { Suspense, useEffect } from 'react';
 import * as THREE from 'three';
 import { EmbodiedCamera } from './camera/EmbodiedCamera';
@@ -28,6 +27,8 @@ import { IntroOverlay } from './ui/IntroOverlay';
 import { ScaleHUD, TimelineLabel } from './ui/ScaleHUD';
 import { TimeControls } from './ui/TimeControls';
 import { HeavenPhaseIndicator } from './ui/HeavenPhaseIndicator';
+import { EphemerisIndicator } from './ui/EphemerisIndicator';
+import { StarfieldIndicator } from './ui/StarfieldIndicator';
 import { ZoomControls } from './ui/ZoomControls';
 import { BigBangEffect } from './world/BigBangEffect';
 import { DebugGrid } from './world/DebugGrid';
@@ -37,6 +38,9 @@ import { SpiritualRealm } from './world/SpiritualRealm';
 import { PlayerAvatar } from './world/PlayerAvatar';
 import { HistoryMarkers } from './world/HistoryMarkers';
 import { MaterialHeavens } from './world/MaterialHeavens';
+import { CosmicSkySync } from './world/CosmicSkySync';
+import { CosmicStarfield } from './world/CosmicStarfield';
+import { EphemerisSky } from './world/EphemerisSky';
 import { FlightStarfield } from './world/FlightStarfield';
 import { WorldRoot } from './world/WorldRoot';
 import { onRangeInputWheel } from './ui/rangeInputWheelGuard';
@@ -70,17 +74,11 @@ function Scene() {
         </>
       ) : (
         <>
-          <Stars
-            radius={320}
-            depth={120}
-            count={9000}
-            factor={5}
-            saturation={0.15}
-            fade={false}
-            speed={0}
-          />
+          <CosmicSkySync />
+          <CosmicStarfield />
           <FlightStarfield />
           {introComplete ? <MaterialHeavens /> : introPhase === 'expansion' || introPhase === 'reveal' ? <WorldRoot /> : null}
+          {introComplete && <EphemerisSky />}
           {introComplete && <HistoryMarkers />}
         </>
       )}
@@ -176,6 +174,8 @@ export default function App() {
       {introComplete && (
         <div className={`ui-overlay${isFlying ? ' ui-overlay--flying' : ''}`}>
           <HeavenPhaseIndicator />
+          <StarfieldIndicator />
+          <EphemerisIndicator />
           <HistoryKeyboard />
           <EmbodimentBanner />
           <div className="ui-sidebar-left">

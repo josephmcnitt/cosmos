@@ -1,3 +1,4 @@
+import { isBandMeshBand } from '../core/heavenVisibility';
 import { useMemo } from 'react';
 import { computeHeavenVisuals } from '../core/materialHeavens';
 import { useObserverStore } from '../core/ObserverState';
@@ -7,7 +8,7 @@ export function MaterialHeavens() {
   const simTimeSeconds = useObserverStore((s) => s.simTimeSeconds);
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
   const visuals = useMemo(() => computeHeavenVisuals(simTimeSeconds), [simTimeSeconds]);
-  const showBandMeshes = spatialExponent < 22;
+  const showBandMeshes = isBandMeshBand(spatialExponent);
 
   if (!showBandMeshes) return null;
 

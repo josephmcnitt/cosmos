@@ -89,9 +89,28 @@ export async function clickTimelineAt(page: Page, fraction: number): Promise<voi
   await track.waitFor({ state: 'visible' });
   const box = await track.boundingBox();
   if (!box) throw new Error('Scrubber track not found');
-  const x = box.x + box.width * Math.max(0.001, Math.min(0.98, fraction));
+  const frac = Math.max(0, Math.min(0.98, fraction));
+  const x = frac <= 0 ? box.x : box.x + box.width * frac;
   const y = box.y + box.height / 2;
   await page.mouse.click(x, y);
+}
+
+/** Rightmost scrub — present end of the log timeline. */
+export async function clickTimelineRightEdge(page: Page): Promise<void> {
+  const track = page.getByTestId('scrubber-track');
+  await track.waitFor({ state: 'visible' });
+  const box = await track.boundingBox();
+  if (!box) throw new Error('Scrubber track not found');
+  await page.mouse.click(box.x + box.width - 0.5, box.y + box.height / 2);
+}
+
+/** Leftmost scrub — must hit rect.left (t=0); log timeline jumps era within ~0.001 width. */
+export async function clickTimelineLeftEdge(page: Page): Promise<void> {
+  const track = page.getByTestId('scrubber-track');
+  await track.waitFor({ state: 'visible' });
+  const box = await track.boundingBox();
+  if (!box) throw new Error('Scrubber track not found');
+  await page.mouse.click(box.x, box.y + box.height / 2);
 }
 
 /** Leftmost pixel — needed for pre-stellar eras on the years-ago log timeline. */
@@ -149,6 +168,40 @@ async function sampleCanvasCenterPeak(page: Page): Promise<number> {
   return peakCenterFromPng(png);
 }
 
+function meanCenterFromPng(png: PNG): number {
+  const x0 = Math.floor(png.width * 0.35);
+  const y0 = Math.floor(png.height * 0.18);
+  const rw = Math.floor(png.width * 0.3);
+  const rh = Math.floor(png.height * 0.42);
+  let sum = 0;
+  let count = 0;
+  for (let y = y0; y < y0 + rh; y += 2) {
+    for (let x = x0; x < x0 + rw; x += 2) {
+      const i = (png.width * y + x) << 2;
+      sum += (png.data[i]! + png.data[i + 1]! + png.data[i + 2]!) / 3;
+      count += 1;
+    }
+  }
+  return count > 0 ? sum / count : 0;
+}
+
+/** Sample max RGB once after frames settle (avoids maxing over scrub transition frames). */
+export async function canvasCenterBrightnessOnce(page: Page, settleMs = 1200): Promise<number> {
+  await page.waitForTimeout(settleMs);
+  await waitForCanvasFrame(page, 8);
+  return sampleCanvasCenterPeak(page);
+}
+
+/** Mean center luminance once after settle — smoother than peak for era comparisons. */
+export async function canvasCenterMeanOnce(page: Page, settleMs = 1200): Promise<number> {
+  await page.waitForTimeout(settleMs);
+  await waitForCanvasFrame(page, 8);
+  const canvas = page.locator('.canvas canvas');
+  const shot = await canvas.screenshot({ type: 'png' });
+  const png = PNG.sync.read(shot);
+  return meanCenterFromPng(png);
+}
+
 /** Sample max RGB from the rendered WebGL canvas (requires preserveDrawingBuffer). */
 export async function canvasMaxBrightness(page: Page): Promise<number> {
   const canvas = page.locator('.canvas canvas');
@@ -178,13 +231,4 @@ export const MIN_CANVAS_BRIGHTNESS = 24;
 export function buffersDiffer(a: Buffer, b: Buffer): boolean {
   if (a.length !== b.length) return true;
   return !a.equals(b);
-}
-
-/** Leftmost pixel — needed for pre-stellar eras on the years-ago log timeline. */
-export async function clickTimelineLeftEdge(page: Page): Promise<void> {
-  const track = page.getByTestId('scrubber-track');
-  await track.waitFor({ state: 'visible' });
-  const box = await track.boundingBox();
-  if (!box) throw new Error('Scrubber track not found');
-  await page.mouse.click(box.x + 2, box.y + box.height / 2);
 }

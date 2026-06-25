@@ -116,9 +116,18 @@ Cosmos can treat knowing as four quadrants (communicable × verifiable):
 
 ## Astrology and correspondence sky (Phase 8 / 10)
 
-**Status:** Not built. Discussed 2026-06-24 as a **perceptual layer**, not a second physics engine.
+**Status:** Not built. Discussed 2026-06-24 as a **perceptual layer**, not a second physics engine. **Next feature phase** after Phase 7.5 (CI/docs) — see MVP scope below.
 
 **Idea:** After meaningful practice at a stone (liminal → spiritual), zoom back out from walk mode and the **same** simulated sky can re-render as an **interpretive / astrological** view — zodiac band, planetary rulers, tradition-specific correspondences — while the material track still shows historical astronomy.
+
+**Phase 8 MVP (first slice — not started):**
+
+1. **`MaterialHeavens` component** — new file under `src/world/`, mounted from cosmic branch in `App.tsx`.
+2. **Time phases from** `src/data/history/cosmic.ts` — map `simTimeSeconds` to visual states (pre–first-stars dim/foggy, post-reionization starfield brightens, galaxy/stellar bands with time-driven opacity).
+3. **Shared clock** — subscribe to `useObserverStore` `simTimeSeconds`; no new simulation state.
+4. **Tests** — Vitest for `simTime → heavenPhase` mapping; one Playwright smoke that scrubs timeline and asserts sky-related DOM/testid if exposed.
+
+**Deferred to Phase 8.1:** simple ephemeris (Sun/Moon at human-era present), scrubbable Big Bang replay (today intro-only in `BigBangEffect.tsx`).
 
 **Phase split:**
 
@@ -154,6 +163,9 @@ Cosmos can treat knowing as four quadrants (communicable × verifiable):
 | Date | Decision |
 |------|----------|
 | 2026-06-24 | Keep geometric style; no explicit in-app videos. Generated/embedded video, voices, music, rich graphics → this backburner list. Phase 6 code remains but is not the near-term focus. |
-| 2026-06-24 | **Phase 7 shipped:** Vitest unit tests, Playwright smoke vs production, realm transition coordinator, UI polish (era hints, export de-emphasized), richer esoteric copy on five walk stones. E2E validates deploy URL; preview URL for PR gates later. |
+| 2026-06-24 | **Phase 7 shipped:** Vitest unit tests, Playwright E2E, realm transition coordinator, UI polish (era hints, export de-emphasized), richer esoteric copy on five walk stones. |
 | 2026-06-24 | **Astrology / correspondence sky** → Phase 8 material heavens first, then interpretive astrological lens after spiritual practice (Phase 8b/10), with per-tradition ritual gates in Phase 10 — not a universal zodiac requirement. |
 | 2026-06-24 | **Four modes of knowledge** (rational / faith / experience / gnosis) → distinct unlock paths; E = rational esoteric text; Q + spiritual realm = experience → gnosis (floating forms). Documented for Phase 9+ before implementation. |
+| 2026-06-25 | **Years-ago log timeline shipped:** scrub/zoom use log₁₀ years ago (left = Big Bang, right = present) so recent history gets more bar space and mid-timeline labels move with the playhead. |
+| 2026-06-25 | **E2E CI runs against local preview** (`vite preview` on port 4173); production smoke optional via `COSMOS_E2E_URL`. Vercel deploy stays build-only (`npm run build`). |
+| 2026-06-25 | **Phase 8 (material heavens) is next feature phase** — time-driven cosmic sky from `simTimeSeconds` + cosmic event thresholds; ephemeris and correspondence lens deferred to 8.1 / 8b. |

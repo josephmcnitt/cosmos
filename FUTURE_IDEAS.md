@@ -116,7 +116,7 @@ Cosmos can treat knowing as four quadrants (communicable × verifiable):
 
 ## Astrology and correspondence sky (Phase 8 / 10)
 
-**Status:** Not built. Discussed 2026-06-24 as a **perceptual layer**, not a second physics engine. **Next feature phase** after Phase 7.5 (CI/docs) — see MVP scope below.
+**Status:** Phase 8 MVP shipped (2026-06-25). Time-driven fog/ambient/band modifiers in cosmic view. Ephemeris and correspondence lens still deferred.
 
 **Idea:** After meaningful practice at a stone (liminal → spiritual), zoom back out from walk mode and the **same** simulated sky can re-render as an **interpretive / astrological** view — zodiac band, planetary rulers, tradition-specific correspondences — while the material track still shows historical astronomy.
 
@@ -168,4 +168,4 @@ Cosmos can treat knowing as four quadrants (communicable × verifiable):
 | 2026-06-24 | **Four modes of knowledge** (rational / faith / experience / gnosis) → distinct unlock paths; E = rational esoteric text; Q + spiritual realm = experience → gnosis (floating forms). Documented for Phase 9+ before implementation. |
 | 2026-06-25 | **Years-ago log timeline shipped:** scrub/zoom use log₁₀ years ago (left = Big Bang, right = present) so recent history gets more bar space and mid-timeline labels move with the playhead. |
 | 2026-06-25 | **E2E CI runs against local preview** (`vite preview` on port 4173); production smoke optional via `COSMOS_E2E_URL`. Vercel deploy stays build-only (`npm run build`). |
-| 2026-06-25 | **Phase 8 (material heavens) is next feature phase** — time-driven cosmic sky from `simTimeSeconds` + cosmic event thresholds; ephemeris and correspondence lens deferred to 8.1 / 8b. |
+| 2026-06-25 | **Phase 8 MVP shipped:** `MaterialHeavens` maps `simTimeSeconds` to cosmic sky phases (dark ages → first light → reionized); fog/ambient/band opacity multipliers on existing `WorldRoot`. Ephemeris and correspondence lens still deferred to 8.1 / 8b. |

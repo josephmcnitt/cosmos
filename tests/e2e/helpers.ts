@@ -84,7 +84,16 @@ export async function clickTimelineAt(page: Page, fraction: number): Promise<voi
   await track.waitFor({ state: 'visible' });
   const box = await track.boundingBox();
   if (!box) throw new Error('Scrubber track not found');
-  const x = box.x + box.width * Math.max(0.02, Math.min(0.98, fraction));
+  const x = box.x + box.width * Math.max(0.001, Math.min(0.98, fraction));
   const y = box.y + box.height / 2;
   await page.mouse.click(x, y);
+}
+
+/** Leftmost pixel — needed for pre-stellar eras on the years-ago log timeline. */
+export async function clickTimelineLeftEdge(page: Page): Promise<void> {
+  const track = page.getByTestId('scrubber-track');
+  await track.waitFor({ state: 'visible' });
+  const box = await track.boundingBox();
+  if (!box) throw new Error('Scrubber track not found');
+  await page.mouse.click(box.x + 2, box.y + box.height / 2);
 }

@@ -73,7 +73,19 @@ By default, Playwright starts `vite preview` when `COSMOS_E2E_URL` is unset ([pl
 
 First-time Playwright setup: `npx playwright install chromium`
 
-**Next:** Phase 8 — material heavens (time-driven cosmic sky). See [FUTURE_IDEAS.md](FUTURE_IDEAS.md).
+**Next:** Phase 8.1 — ephemeris and richer sky replay. See [FUTURE_IDEAS.md](FUTURE_IDEAS.md).
+
+## Phase 8 — material heavens
+
+Cosmic view sky responds to **timeline scrubbing** via `simTimeSeconds`:
+
+- **Dark ages** (before first stars): dim ambient, heavy fog, sparse starfield
+- **First light → reionization**: starfield and galaxy bands ramp up
+- **Post-reionization**: full starfield brightness; spatial zoom still cross-fades bands
+
+**Manual check:** skip intro → scrub timeline far left (early cosmic) → mid-bar. HUD heaven phase (`data-testid="heaven-phase"`) moves from `darkAges` to `reionized`; sky should brighten.
+
+**Tests:** `src/core/materialHeavens.test.ts` (phase mapping); `tests/e2e/material-heavens.spec.ts` (phase indicator on scrub).
 
 ## Video export (backburner)
 

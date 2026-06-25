@@ -26,14 +26,14 @@ export function StarBillboards({ positions, color, opacity, pixelSize }: StarBil
         map: texture,
         color,
         transparent: true,
-        opacity,
+        opacity: 1,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
         toneMapped: false,
         fog: false,
         side: THREE.DoubleSide,
       }),
-    [texture, color, opacity],
+    [texture, color],
   );
   const { camera, size } = useThree();
 

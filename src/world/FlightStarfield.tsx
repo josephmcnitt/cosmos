@@ -47,7 +47,7 @@ function respawnStar(layer: StarLayer, i: number): void {
 /** Stronger near universe/galaxy zoom; fades inside planetary band meshes. */
 function parallaxWeight(spatialExponent: number): number {
   const lo = 12;
-  const hi = 21;
+  const hi = 18;
   if (spatialExponent <= lo) return 0;
   if (spatialExponent >= hi) return 1;
   return (spatialExponent - lo) / (hi - lo);

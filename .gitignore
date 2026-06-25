@@ -27,3 +27,6 @@ Thumbs.db
 test-results/
 playwright-report/
 tests/e2e/screenshots/
+
+# Bug catcher sessions
+bug-sessions/

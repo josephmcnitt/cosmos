@@ -33,6 +33,7 @@ import { BigBangReplayIndicator } from './ui/BigBangReplayIndicator';
 import { CorrespondenceIndicator } from './ui/CorrespondenceIndicator';
 import { KnowledgeModeIndicator } from './ui/KnowledgeModeIndicator';
 import { ZoomControls } from './ui/ZoomControls';
+import { WalkApproachPrompt } from './ui/WalkApproachPrompt';
 import { BigBangEffect } from './world/BigBangEffect';
 import { DebugGrid } from './world/DebugGrid';
 import { EmbodiedSite } from './world/EmbodiedSite';
@@ -46,17 +47,21 @@ import { CosmicStarfield } from './world/CosmicStarfield';
 import { EphemerisSky } from './world/EphemerisSky';
 import { CorrespondenceSky } from './world/CorrespondenceSky';
 import { FlightStarfield } from './world/FlightStarfield';
+import { EmbodimentApproachPreview } from './world/EmbodimentApproachPreview';
+import { embodimentApproachWeight } from './core/embodiment';
 import { WorldRoot } from './world/WorldRoot';
 import { onRangeInputWheel } from './ui/rangeInputWheelGuard';
 
 function Scene() {
   const introPhase = useIntroStore((s) => s.phase);
   const mode = useObserverStore((s) => s.mode);
+  const spatialExponent = useObserverStore((s) => s.spatialExponent);
   const liminalWeight = useRealmDisplayStore((s) => s.liminalWeight);
   const spiritualWeight = useRealmDisplayStore((s) => s.spiritualWeight);
   const introComplete = introPhase === 'complete';
   const showWorld = introPhase === 'expansion' || introPhase === 'reveal' || introComplete;
   const embodied = mode === 'embodied' && showWorld;
+  const approachWeight = embodimentApproachWeight(spatialExponent);
   const realmActive = liminalWeight > 0.02 || spiritualWeight > 0.02;
   const fog = fogDistances(embodied, liminalWeight, spiritualWeight);
 
@@ -82,6 +87,9 @@ function Scene() {
           <CosmicStarfield />
           <FlightStarfield />
           {introComplete ? <MaterialHeavens /> : introPhase === 'expansion' || introPhase === 'reveal' ? <WorldRoot /> : null}
+          {introComplete && approachWeight > 0.02 && (
+            <EmbodimentApproachPreview weight={approachWeight} />
+          )}
           {introComplete && <EphemerisSky />}
           {introComplete && <CorrespondenceSky />}
           {introComplete && <HistoryMarkers />}
@@ -192,6 +200,7 @@ export default function App() {
           </div>
           <SpatialSlider />
           <EmbodiedOverlay />
+          <WalkApproachPrompt />
           <EmbodiedPrompt />
           <PracticeOverlay />
           <EventDetailPanel />

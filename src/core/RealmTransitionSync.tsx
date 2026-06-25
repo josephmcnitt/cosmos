@@ -10,6 +10,7 @@ import {
   weightsFromDisplay,
 } from './realmTransition';
 import { useRealmDisplayStore } from './RealmDisplayState';
+import { embodimentApproachWeight } from './embodiment';
 
 export function RealmTransitionSync() {
   const realmPhase = usePracticeStore((s) => s.realmPhase);
@@ -52,12 +53,17 @@ export function RealmTransitionSync() {
 
       let overlay = 0;
       if (embodimentTransition !== 'none') {
-        const elapsed = now - embodimentStartRef.current;
-        const half = EMBODIMENT_TRANSITION_MS / 2;
-        if (elapsed < half) {
-          overlay = elapsed / half;
-        } else if (elapsed < EMBODIMENT_TRANSITION_MS) {
-          overlay = 1 - (elapsed - half) / half;
+        const exp = useObserverStore.getState().spatialExponent;
+        const seamlessEnter =
+          embodimentTransition === 'entering' && embodimentApproachWeight(exp) >= 0.85;
+        if (!seamlessEnter) {
+          const elapsed = now - embodimentStartRef.current;
+          const half = EMBODIMENT_TRANSITION_MS / 2;
+          if (elapsed < half) {
+            overlay = elapsed / half;
+          } else if (elapsed < EMBODIMENT_TRANSITION_MS) {
+            overlay = 1 - (elapsed - half) / half;
+          }
         }
       }
       overlayRef.current = overlay;

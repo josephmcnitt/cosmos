@@ -6,6 +6,8 @@ import { isHumanSpatialBand, isInHumanEra } from './spatialTimeCoupling';
 
 export const EMBODIED_ENTER_EXPONENT = 4.0;
 export const EMBODIED_EXIT_EXPONENT = 3.5;
+export const EMBODIED_APPROACH_START = 12;
+export const EMBODIED_APPROACH_END = 4.5;
 
 export const EMBODIED_CAMERA_MIN = 2.5;
 export const EMBODIED_CAMERA_MAX = 8;
@@ -37,6 +39,12 @@ export function getEmbodimentContext(): EmbodimentContext {
   };
 }
 
+export function embodimentApproachWeight(exponent: number): number {
+  if (exponent >= EMBODIED_APPROACH_START) return 0;
+  if (exponent <= EMBODIED_APPROACH_END) return 1;
+  return (EMBODIED_APPROACH_START - exponent) / (EMBODIED_APPROACH_START - EMBODIED_APPROACH_END);
+}
+
 export function shouldEnterEmbodied(
   state: Pick<ObserverState, 'mode' | 'spatialExponent' | 'simTimeSeconds'>,
   ctx: EmbodimentContext,
@@ -44,6 +52,7 @@ export function shouldEnterEmbodied(
   if (state.mode === 'embodied') return false;
   if (!ctx.introComplete || ctx.isFlying) return false;
   if (!isInHumanEra(state.simTimeSeconds)) return false;
+  if (embodimentApproachWeight(state.spatialExponent) < 1) return false;
   return (
     isHumanSpatialBand(state.spatialExponent) &&
     state.spatialExponent >= EMBODIED_ENTER_EXPONENT

@@ -1,6 +1,11 @@
 import { useMemo, type ComponentType } from 'react';
 import * as THREE from 'three';
-import { getBandOpacity, sceneDistanceFromExponent, SPATIAL_BANDS } from '../core/ScaleSpace';
+import {
+  bandEnterScale,
+  getBandOpacity,
+  sceneDistanceFromExponent,
+  SPATIAL_BANDS,
+} from '../core/ScaleSpace';
 import { sampleTerrainHeight } from '../core/embodiment';
 import { useObserverStore } from '../core/ObserverState';
 
@@ -9,11 +14,11 @@ function UniverseBand({ opacity }: { opacity: number; starSize?: number }) {
   return null;
 }
 
-function GalaxyBand({ opacity }: { opacity: number; starSize?: number }) {
+function GalaxyBand({ opacity, scale = 1 }: { opacity: number; starSize?: number; scale?: number }) {
   if (opacity <= 0.01) return null;
 
   return (
-    <group>
+    <group scale={scale}>
       <mesh rotation={[Math.PI / 2, 0, 0]}>
         <ringGeometry args={[3, 22, 64]} />
         <meshBasicMaterial
@@ -87,7 +92,7 @@ function PlanetaryBand({ opacity, scale = 1 }: { opacity: number; scale?: number
   );
 }
 
-function TerrestrialBand({ opacity }: { opacity: number }) {
+function TerrestrialBand({ opacity, scale = 1 }: { opacity: number; scale?: number }) {
   const geometry = useMemo(() => {
     const size = 48;
     const segments = 40;
@@ -106,23 +111,25 @@ function TerrestrialBand({ opacity }: { opacity: number }) {
   if (opacity <= 0.01) return null;
 
   return (
-    <mesh geometry={geometry}>
-      <meshStandardMaterial
-        color="#2d5a3d"
-        roughness={0.95}
-        transparent
-        opacity={opacity}
-        fog={false}
-      />
-    </mesh>
+    <group scale={scale}>
+      <mesh geometry={geometry}>
+        <meshStandardMaterial
+          color="#2d5a3d"
+          roughness={0.95}
+          transparent
+          opacity={opacity}
+          fog={false}
+        />
+      </mesh>
+    </group>
   );
 }
 
-function HumanBand({ opacity }: { opacity: number }) {
+function HumanBand({ opacity, scale = 1 }: { opacity: number; scale?: number }) {
   if (opacity <= 0.01) return null;
 
   return (
-    <group position={[0, 0.9, 0]}>
+    <group scale={scale} position={[0, 0.9, 0]}>
       <mesh>
         <capsuleGeometry args={[0.25, 0.8, 8, 16]} />
         <meshStandardMaterial
@@ -176,11 +183,19 @@ export function WorldRoot({ modifiers }: { modifiers?: HeavenModifiers }) {
         const Component = BAND_COMPONENTS[band.id];
         if (!Component) return null;
         const base = getBandOpacity(band, spatialExponent);
-        const scale = modifiers?.bandScale?.[band.id] ?? 1;
-        const opacity = base * scale;
-        const extra =
-          band.id === 'stellar' || band.id === 'planetary' ? { scale: bodyScale } : {};
-        return <Component key={band.id} opacity={opacity} {...extra} />;
+        const heavenScale = modifiers?.bandScale?.[band.id] ?? 1;
+        const opacity = base * heavenScale;
+        if (opacity <= 0.01) return null;
+
+        const enterScale = bandEnterScale(band, spatialExponent);
+        let meshScale = enterScale;
+        if (band.id === 'stellar' || band.id === 'planetary') {
+          meshScale = bodyScale * enterScale;
+        } else if (band.id === 'terrestrial') {
+          meshScale = Math.max(1, camDist / 12) * enterScale;
+        }
+
+        return <Component key={band.id} opacity={opacity} scale={meshScale} />;
       })}
     </>
   );

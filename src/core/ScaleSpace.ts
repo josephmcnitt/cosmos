@@ -18,7 +18,7 @@ export const SPATIAL_BANDS: ScaleBand[] = [
 export const SPATIAL_MIN = -2;
 export const SPATIAL_MAX = 26;
 
-const FADE_WIDTH = 0.85;
+const FADE_WIDTH = 0.4;
 
 export function clampSpatialExponent(exponent: number): number {
   return Math.max(SPATIAL_MIN, Math.min(SPATIAL_MAX, exponent));
@@ -66,6 +66,20 @@ export function getBandOpacity(band: ScaleBand, exponent: number): number {
     return (exp - (band.minExponent - FADE_WIDTH)) / (innerMin - (band.minExponent - FADE_WIDTH));
   }
   return (band.maxExponent + FADE_WIDTH - exp) / (band.maxExponent + FADE_WIDTH - innerMax);
+}
+
+function smoothstep(edge0: number, edge1: number, x: number): number {
+  if (edge0 === edge1) return x >= edge1 ? 1 : 0;
+  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
+}
+
+/** Scale ramp within a band — zoom-in feel instead of pure opacity fade. */
+export function bandEnterScale(band: ScaleBand, exponent: number): number {
+  const span = band.maxExponent - band.minExponent;
+  if (span <= 0) return 1;
+  const t = (clampSpatialExponent(exponent) - band.minExponent) / span;
+  return 0.05 + smoothstep(0, 0.35, t) * 0.95;
 }
 
 export function getDominantSpatialBand(exponent: number): ScaleBand {

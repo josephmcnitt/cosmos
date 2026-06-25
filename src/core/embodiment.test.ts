@@ -4,6 +4,7 @@ import {
   clampAvatarToSite,
   EMBODIED_ENTER_EXPONENT,
   EMBODIED_EXIT_EXPONENT,
+  embodimentApproachWeight,
   shouldEnterEmbodied,
   shouldExitEmbodiedFromSpatial,
   shouldExitEmbodiedFromTime,
@@ -57,6 +58,22 @@ describe('shouldEnterEmbodied', () => {
         { introComplete: false, isFlying: false },
       ),
     ).toBe(false);
+  });
+  it('requires approach complete before entering walk', () => {
+    expect(
+      shouldEnterEmbodied(
+        { mode: 'cosmic', spatialExponent: 5, simTimeSeconds: UNIVERSE_AGE_SECONDS },
+        introComplete,
+      ),
+    ).toBe(false);
+  });
+});
+
+describe('embodimentApproachWeight', () => {
+  it('ramps from terrestrial zoom toward human band', () => {
+    expect(embodimentApproachWeight(12)).toBe(0);
+    expect(embodimentApproachWeight(11)).toBeGreaterThan(0);
+    expect(embodimentApproachWeight(4.5)).toBe(1);
   });
 });
 

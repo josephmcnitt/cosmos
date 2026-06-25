@@ -8,35 +8,34 @@ import { useObserverStore } from '../core/ObserverState';
 
 /** Universe-scale starfield with time-driven brightness from computeHeavenVisuals. */
 export function CosmicStarfield() {
-  const simTimeSeconds = useObserverStore((s) => s.simTimeSeconds);
+  const spatialExponent = useObserverStore((s) => s.spatialExponent);
+  const simTime = useObserverStore((s) => s.simTimeSeconds);
   const pointsRef = useRef<Points>(null);
 
   const brightness = useMemo(() => {
-    const { starfieldOpacity } = computeHeavenVisuals(simTimeSeconds);
+    const { starfieldOpacity } = computeHeavenVisuals(simTime);
     return starfieldBrightness(starfieldOpacity);
-  }, [simTimeSeconds]);
-
-  const starFactor = useMemo(() => 0.4 + brightness * 6.6, [brightness]);
-  const starCount = useMemo(() => Math.round(1200 + brightness * 7800), [brightness]);
+  }, [simTime]);
 
   useFrame(() => {
     const mat = pointsRef.current?.material as Material | undefined;
     if (!mat) return;
+    const universeFade =
+      spatialExponent > 22 ? Math.max(0, 1 - (spatialExponent - 22) / 3) : 1;
     mat.transparent = true;
-    mat.opacity = brightness;
+    mat.opacity = brightness * universeFade;
     mat.depthWrite = false;
   });
 
   return (
     <Stars
-      key={`${starFactor.toFixed(1)}-${starCount}`}
       ref={pointsRef}
-      radius={320}
-      depth={120}
-      count={starCount}
-      factor={starFactor}
-      saturation={0.15}
-      fade={false}
+      radius={480}
+      depth={200}
+      count={5000}
+      factor={4}
+      saturation={0.12}
+      fade
       speed={0}
     />
   );

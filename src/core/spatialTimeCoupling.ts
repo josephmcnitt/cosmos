@@ -5,8 +5,11 @@ import type { HistoryDomain, HistoryEvent } from '../data/history/types';
 import {
   clampSimTime,
   formatSimTimeShort,
+  logYearsAgoFromSimTime,
+  simTimeFromLogYearsAgo,
   TEMPORAL_MAX,
   UNIVERSE_AGE_SECONDS,
+  yearsAgoLogSpan,
 } from './TimeSpace';
 
 const LOG_PAD = 0.12;
@@ -132,29 +135,59 @@ export function storedTimeWindowOptions(
 }
 
 function layoutTimeViewBounds(
-  playheadLog: number,
+  playheadSeconds: number,
   fraction: number,
-  viewSpan: number,
-  bandWindow: Pick<SpatialTimeWindow, 'minLog' | 'maxLog'>,
+  viewSpanAgo: number,
+  bandWindow: Pick<SpatialTimeWindow, 'minSeconds' | 'maxSeconds'>,
 ): { viewMinLog: number; viewMaxLog: number } {
   const f = Math.max(0, Math.min(1, fraction));
-  let viewMinLog = playheadLog - f * viewSpan;
-  let viewMaxLog = playheadLog + (1 - f) * viewSpan;
+  const playheadAgo = logYearsAgoFromSimTime(playheadSeconds);
+  let logAgoHigh = playheadAgo + f * viewSpanAgo;
+  let logAgoLow = logAgoHigh - viewSpanAgo;
 
-  if (viewMinLog < bandWindow.minLog) {
-    const shift = bandWindow.minLog - viewMinLog;
-    viewMinLog += shift;
-    viewMaxLog += shift;
+  const bandAgoHigh = logYearsAgoFromSimTime(bandWindow.minSeconds);
+  const bandAgoLow = logYearsAgoFromSimTime(bandWindow.maxSeconds);
+
+  if (logAgoHigh > bandAgoHigh) {
+    const shift = logAgoHigh - bandAgoHigh;
+    logAgoHigh -= shift;
+    logAgoLow -= shift;
   }
-  if (viewMaxLog > bandWindow.maxLog) {
-    const shift = viewMaxLog - bandWindow.maxLog;
-    viewMinLog -= shift;
-    viewMaxLog -= shift;
+  if (logAgoLow < bandAgoLow) {
+    const shift = bandAgoLow - logAgoLow;
+    logAgoHigh += shift;
+    logAgoLow += shift;
   }
 
-  viewMinLog = Math.max(bandWindow.minLog, viewMinLog);
-  viewMaxLog = Math.min(bandWindow.maxLog, viewMaxLog);
-  return { viewMinLog, viewMaxLog };
+  logAgoHigh = Math.min(logAgoHigh, bandAgoHigh);
+  logAgoLow = Math.max(logAgoLow, bandAgoLow);
+
+  const viewMinSeconds =
+    f <= 1e-12 ? playheadSeconds : simTimeFromLogYearsAgo(logAgoHigh);
+  const viewMaxSeconds =
+    f >= 1 - 1e-12 ? playheadSeconds : simTimeFromLogYearsAgo(logAgoLow);
+
+  return {
+    viewMinLog: logYearsAgoFromSimTime(viewMinSeconds),
+    viewMaxLog: logYearsAgoFromSimTime(viewMaxSeconds),
+  };
+}
+
+function secondsFromAgoLogs(viewMinAgoLog: number, viewMaxAgoLog: number): {
+  viewMinSeconds: number;
+  viewMaxSeconds: number;
+} {
+  let bbAgoLog = viewMinAgoLog;
+  let presentAgoLog = viewMaxAgoLog;
+  if (bbAgoLog < presentAgoLog) {
+    [bbAgoLog, presentAgoLog] = [presentAgoLog, bbAgoLog];
+  }
+  const viewMinSeconds = simTimeFromLogYearsAgo(bbAgoLog);
+  const viewMaxSeconds = simTimeFromLogYearsAgo(presentAgoLog);
+  return {
+    viewMinSeconds: Math.min(viewMinSeconds, viewMaxSeconds),
+    viewMaxSeconds: Math.max(viewMinSeconds, viewMaxSeconds),
+  };
 }
 
 export function computeViewLogSpan(
@@ -162,7 +195,7 @@ export function computeViewLogSpan(
   temporalExponent: number,
 ): number {
   const bandWindow = computeSpatialTimeWindow(spatialExponent);
-  const bandSpan = bandWindow.maxLog - bandWindow.minLog;
+  const bandSpan = yearsAgoLogSpan(bandWindow.minSeconds, bandWindow.maxSeconds);
   const t = Math.max(0, Math.min(1, temporalExponent / TEMPORAL_MAX));
   const zoom = 1 - Math.pow(1 - t, 2);
   return Math.max(MIN_VIEW_LOG_SPAN, bandSpan * (1 - zoom));
@@ -179,10 +212,9 @@ export function computeEffectiveTimeWindow(
   options?: TimeWindowOptions,
 ): EffectiveTimeWindow {
   const bandWindow = computeSpatialTimeWindow(spatialExponent);
-  const bandSpan = bandWindow.maxLog - bandWindow.minLog;
+  const bandSpan = yearsAgoLogSpan(bandWindow.minSeconds, bandWindow.maxSeconds);
   const viewSpan = computeViewLogSpan(spatialExponent, temporalExponent);
 
-  const playheadLog = Math.log10(Math.max(simTimeSeconds, 1));
   const narrowed = viewSpan < bandSpan * 0.95;
 
   let viewMinLog: number;
@@ -203,65 +235,87 @@ export function computeEffectiveTimeWindow(
     );
     const fraction = normalizedFromSimTimeWindow(simTimeSeconds, wideWindow);
     ({ viewMinLog, viewMaxLog } = layoutTimeViewBounds(
-      playheadLog,
+      simTimeSeconds,
       fraction,
       viewSpan,
       bandWindow,
     ));
   } else {
-    viewMinLog = playheadLog - viewSpan / 2;
-    viewMaxLog = playheadLog + viewSpan / 2;
+    ({ viewMinLog, viewMaxLog } = layoutTimeViewBounds(
+      simTimeSeconds,
+      0.5,
+      viewSpan,
+      bandWindow,
+    ));
   }
+
+  const viewMinSeconds = secondsFromAgoLogs(viewMinLog, viewMaxLog).viewMinSeconds;
+  const viewMaxSeconds = secondsFromAgoLogs(viewMinLog, viewMaxLog).viewMaxSeconds;
+  const viewAgoSpan = yearsAgoLogSpan(viewMinSeconds, viewMaxSeconds);
 
   if (!narrowed || options?.viewMinLog == null) {
-    if (viewMaxLog - viewMinLog >= bandSpan) {
-      viewMinLog = bandWindow.minLog;
-      viewMaxLog = bandWindow.maxLog;
+    if (viewAgoSpan >= bandSpan) {
+      viewMinLog = logYearsAgoFromSimTime(bandWindow.minSeconds);
+      viewMaxLog = logYearsAgoFromSimTime(bandWindow.maxSeconds);
     } else {
-      if (viewMinLog < bandWindow.minLog) {
-        viewMaxLog += bandWindow.minLog - viewMinLog;
-        viewMinLog = bandWindow.minLog;
-      }
-      if (viewMaxLog > bandWindow.maxLog) {
-        viewMinLog -= viewMaxLog - bandWindow.maxLog;
-        viewMaxLog = bandWindow.maxLog;
-      }
-      viewMinLog = Math.max(bandWindow.minLog, viewMinLog);
-      viewMaxLog = Math.min(bandWindow.maxLog, viewMaxLog);
+      ({ viewMinLog, viewMaxLog } = layoutTimeViewBounds(
+        simTimeSeconds,
+        normalizedFromSimTimeWindow(simTimeSeconds, {
+          ...bandWindow,
+          viewMinLog,
+          viewMaxLog,
+          viewMinSeconds,
+          viewMaxSeconds,
+        }),
+        viewSpan,
+        bandWindow,
+      ));
     }
-  } else {
-    viewMinLog = Math.max(bandWindow.minLog, viewMinLog);
-    viewMaxLog = Math.min(bandWindow.maxLog, viewMaxLog);
   }
 
+  const resolved = secondsFromAgoLogs(viewMinLog, viewMaxLog);
   return {
     ...bandWindow,
     viewMinLog,
     viewMaxLog,
-    viewMinSeconds: clampSimTime(Math.pow(10, viewMinLog)),
-    viewMaxSeconds: clampSimTime(Math.pow(10, viewMaxLog)),
+    viewMinSeconds: resolved.viewMinSeconds,
+    viewMaxSeconds: resolved.viewMaxSeconds,
   };
 }
 
-/** Map scrubber [0,1] → sim time (log-linear within effective window). */
+function agoLogsFromWindow(window: Pick<EffectiveTimeWindow, 'viewMinSeconds' | 'viewMaxSeconds'>): {
+  bbAgoLog: number;
+  presentAgoLog: number;
+} {
+  let bbAgoLog = logYearsAgoFromSimTime(window.viewMinSeconds);
+  let presentAgoLog = logYearsAgoFromSimTime(window.viewMaxSeconds);
+  if (bbAgoLog < presentAgoLog) {
+    [bbAgoLog, presentAgoLog] = [presentAgoLog, bbAgoLog];
+  }
+  return { bbAgoLog, presentAgoLog };
+}
+
+/** Map scrubber [0,1] → sim time (log-linear in years ago within effective window). */
 export function simTimeFromWindowNormalized(
   normalized: number,
   window: EffectiveTimeWindow,
 ): number {
   const t = Math.max(0, Math.min(1, normalized));
-  const logTime = window.viewMinLog + t * (window.viewMaxLog - window.viewMinLog);
-  return clampSimTime(Math.pow(10, logTime));
+  const { bbAgoLog, presentAgoLog } = agoLogsFromWindow(window);
+  const logAgo = bbAgoLog + t * (presentAgoLog - bbAgoLog);
+  return simTimeFromLogYearsAgo(logAgo);
 }
 
-/** Map sim time → scrubber [0,1] (log-linear within effective window). */
+/** Map sim time → scrubber [0,1] (log-linear in years ago within effective window). */
 export function normalizedFromSimTimeWindow(
   simTimeSeconds: number,
   window: EffectiveTimeWindow,
 ): number {
-  const logTime = Math.log10(Math.max(simTimeSeconds, 1));
-  const span = window.viewMaxLog - window.viewMinLog;
-  if (span <= 0) return 0;
-  return Math.max(0, Math.min(1, (logTime - window.viewMinLog) / span));
+  const { bbAgoLog, presentAgoLog } = agoLogsFromWindow(window);
+  const logAgo = logYearsAgoFromSimTime(simTimeSeconds);
+  const span = presentAgoLog - bbAgoLog;
+  if (span === 0) return 0;
+  return Math.max(0, Math.min(1, (logAgo - bbAgoLog) / span));
 }
 
 /** Position an event tick on the scrubber for the current effective window. */
@@ -269,8 +323,9 @@ export function tickPositionInWindow(
   simTimeSeconds: number,
   window: EffectiveTimeWindow,
 ): number | null {
-  const logTime = Math.log10(Math.max(simTimeSeconds, 1));
-  if (logTime < window.viewMinLog - 0.01 || logTime > window.viewMaxLog + 0.01) {
+  const { bbAgoLog, presentAgoLog } = agoLogsFromWindow(window);
+  const logAgo = logYearsAgoFromSimTime(simTimeSeconds);
+  if (logAgo > bbAgoLog + 0.01 || logAgo < presentAgoLog - 0.01) {
     return null;
   }
   return normalizedFromSimTimeWindow(simTimeSeconds, window);
@@ -284,21 +339,21 @@ export function clampSimTimeToSpatialBand(
   return clampSimTime(Math.max(minSeconds, Math.min(maxSeconds, simTimeSeconds)));
 }
 
-export function bandLogSpan(window: Pick<SpatialTimeWindow, 'minLog' | 'maxLog'>): number {
-  return window.maxLog - window.minLog;
+export function bandLogSpan(window: Pick<SpatialTimeWindow, 'minSeconds' | 'maxSeconds'>): number {
+  return yearsAgoLogSpan(window.minSeconds, window.maxSeconds);
 }
 
 export function isEffectiveWindowNarrowed(
-  window: Pick<EffectiveTimeWindow, 'viewMinLog' | 'viewMaxLog' | 'minLog' | 'maxLog'>,
+  window: Pick<EffectiveTimeWindow, 'viewMinSeconds' | 'viewMaxSeconds' | 'minSeconds' | 'maxSeconds'>,
 ): boolean {
-  const viewSpan = window.viewMaxLog - window.viewMinLog;
-  const fullSpan = window.maxLog - window.minLog;
+  const viewSpan = yearsAgoLogSpan(window.viewMinSeconds, window.viewMaxSeconds);
+  const fullSpan = yearsAgoLogSpan(window.minSeconds, window.maxSeconds);
   return viewSpan < fullSpan * 0.95;
 }
 
-/** Log10 playhead position for time-window layout. */
+/** Log10 years-ago for time-window layout. */
 export function playheadLogFromSimTime(simTimeSeconds: number): number {
-  return Math.log10(Math.max(simTimeSeconds, 1));
+  return logYearsAgoFromSimTime(simTimeSeconds);
 }
 
 /** Recompute narrowed view bounds zooming around the playhead. */
@@ -309,24 +364,25 @@ export function recomputeTimeViewBounds(
   priorWindow?: Pick<EffectiveTimeWindow, 'viewMinLog' | 'viewMaxLog' | 'minLog' | 'maxLog'>,
 ): { viewMinLog: number; viewMaxLog: number } | null {
   const bandWindow = computeSpatialTimeWindow(spatialExponent);
-  const bandSpan = bandWindow.maxLog - bandWindow.minLog;
+  const bandSpan = yearsAgoLogSpan(bandWindow.minSeconds, bandWindow.maxSeconds);
   const viewSpan = computeViewLogSpan(spatialExponent, temporalExponent);
   if (viewSpan >= bandSpan * 0.95) return null;
 
-  const playheadLog = playheadLogFromSimTime(simTimeSeconds);
   let fraction = 0.5;
-  if (priorWindow && isEffectiveWindowNarrowed(priorWindow)) {
+  if (priorWindow && isEffectiveWindowNarrowed(priorWindow as EffectiveTimeWindow)) {
     fraction = normalizedFromSimTimeWindow(simTimeSeconds, priorWindow as EffectiveTimeWindow);
   } else {
     const wideWindow = computeEffectiveTimeWindow(
       spatialExponent,
       simTimeSeconds,
-      temporalExponent,
+      0,
     );
     fraction = normalizedFromSimTimeWindow(simTimeSeconds, wideWindow);
   }
+  if (fraction < 1e-9) fraction = 0;
+  if (fraction > 1 - 1e-9) fraction = 1;
 
-  return layoutTimeViewBounds(playheadLog, fraction, viewSpan, bandWindow);
+  return layoutTimeViewBounds(simTimeSeconds, fraction, viewSpan, bandWindow);
 }
 
 /** Translate stored view bounds for panning, clamped to the spatial band. */
@@ -334,22 +390,30 @@ export function translateTimeViewBounds(
   viewMinLog: number,
   viewMaxLog: number,
   deltaLog: number,
-  bandWindow: Pick<SpatialTimeWindow, 'minLog' | 'maxLog'>,
+  bandWindow: Pick<SpatialTimeWindow, 'minSeconds' | 'maxSeconds'>,
 ): { viewMinLog: number; viewMaxLog: number } {
-  let nextMin = viewMinLog + deltaLog;
-  let nextMax = viewMaxLog + deltaLog;
-  if (nextMin < bandWindow.minLog) {
-    const shift = bandWindow.minLog - nextMin;
-    nextMin += shift;
-    nextMax += shift;
+  let logAgoHigh = viewMinLog;
+  let logAgoLow = viewMaxLog;
+
+  logAgoHigh -= deltaLog;
+  logAgoLow -= deltaLog;
+
+  const bandAgoHigh = logYearsAgoFromSimTime(bandWindow.minSeconds);
+  const bandAgoLow = logYearsAgoFromSimTime(bandWindow.maxSeconds);
+
+  if (logAgoHigh > bandAgoHigh) {
+    const shift = logAgoHigh - bandAgoHigh;
+    logAgoHigh -= shift;
+    logAgoLow -= shift;
   }
-  if (nextMax > bandWindow.maxLog) {
-    const shift = nextMax - bandWindow.maxLog;
-    nextMin -= shift;
-    nextMax -= shift;
+  if (logAgoLow < bandAgoLow) {
+    const shift = bandAgoLow - logAgoLow;
+    logAgoHigh += shift;
+    logAgoLow += shift;
   }
+
   return {
-    viewMinLog: Math.max(bandWindow.minLog, nextMin),
-    viewMaxLog: Math.min(bandWindow.maxLog, nextMax),
+    viewMinLog: Math.min(logAgoHigh, bandAgoHigh),
+    viewMaxLog: Math.max(logAgoLow, bandAgoLow),
   };
 }

@@ -1,7 +1,7 @@
 import { getEventById, getNearestEventForBand } from '../data/history/index';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
-import { formatPlayheadTime, formatSimTimeShort, formatTimelineHeader } from '../core/TimeSpace';
+import { formatPlayheadTime, formatSimTimeShort, formatTimelineHeader, yearsAgoLogSpan } from '../core/TimeSpace';
 import { getSpatialBand, metersFromExponent } from '../core/ScaleSpace';
 import {
   bandLogSpan,
@@ -56,7 +56,7 @@ export function ScaleHUD() {
     temporalExponent,
     storedTimeWindowOptions(timeViewMinLog, timeViewMaxLog),
   );
-  const viewLogSpan = timeWindow.viewMaxLog - timeWindow.viewMinLog;
+  const viewLogSpan = yearsAgoLogSpan(timeWindow.viewMinSeconds, timeWindow.viewMaxSeconds);
   const fullLogSpan = bandLogSpan(timeWindow);
   const timeNarrowed = isEffectiveWindowNarrowed(timeWindow);
   const windowLabel = formatTimelineHeader(
@@ -169,7 +169,7 @@ export function TimelineLabel() {
     temporalExponent,
     storedTimeWindowOptions(timeViewMinLog, timeViewMaxLog),
   );
-  const viewLogSpan = timeWindow.viewMaxLog - timeWindow.viewMinLog;
+  const viewLogSpan = yearsAgoLogSpan(timeWindow.viewMinSeconds, timeWindow.viewMaxSeconds);
   return (
     <div className="timeline-current ui-panel" data-testid="timeline-current">
       {formatPlayheadTime(simTimeSeconds, viewLogSpan, isInHumanEra(simTimeSeconds))}

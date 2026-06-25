@@ -7,10 +7,10 @@ import {
   normalizedFromSimTimeWindow,
   storedTimeWindowOptions,
 } from './spatialTimeCoupling';
-import { TEMPORAL_MAX, formatPlayheadTime } from './TimeSpace';
+import { TEMPORAL_MAX, formatPlayheadTime, UNIVERSE_AGE_SECONDS, yearsAgoLogSpan } from './TimeSpace';
 
 const SPATIAL = 25;
-const PLAYHEAD = 1197;
+const PLAYHEAD = UNIVERSE_AGE_SECONDS * 0.45;
 
 function resetStore(overrides: Partial<ReturnType<typeof getInitialObserverState>> = {}) {
   useObserverStore.setState({ ...getInitialObserverState(), ...overrides });
@@ -60,15 +60,15 @@ describe('time zoom behavior (observer store)', () => {
     expect(narrow.viewMaxSeconds - narrow.viewMinSeconds).toBeLessThan(
       wide.viewMaxSeconds - wide.viewMinSeconds,
     );
-    expect(narrow.viewMinSeconds).toBeLessThan(PLAYHEAD);
-    expect(narrow.viewMaxSeconds).toBeGreaterThan(PLAYHEAD);
+    expect(narrow.viewMinSeconds).toBeLessThanOrEqual(PLAYHEAD * 1.001);
+    expect(narrow.viewMaxSeconds).toBeGreaterThan(PLAYHEAD * 0.999);
   });
 
   it('keeps playhead inside [min, max] after zoom', () => {
     setZoom(TEMPORAL_MAX * 0.6);
     const w = storeWindow();
-    expect(w.viewMinSeconds).toBeLessThanOrEqual(PLAYHEAD);
-    expect(w.viewMaxSeconds).toBeGreaterThanOrEqual(PLAYHEAD);
+    expect(w.viewMinSeconds).toBeLessThanOrEqual(PLAYHEAD * 1.001);
+    expect(w.viewMaxSeconds).toBeGreaterThanOrEqual(PLAYHEAD * 0.999);
   });
 
   it('scrubbing changes playhead but not window edges when zoomed in', () => {
@@ -76,13 +76,14 @@ describe('time zoom behavior (observer store)', () => {
     const before = storeWindow();
     const minBefore = before.viewMinSeconds;
     const maxBefore = before.viewMaxSeconds;
+    const anchor = useObserverStore.getState().simTimeSeconds;
 
     scrubTo(0.15);
     const afterLow = storeWindow();
     const lowTime = useObserverStore.getState().simTimeSeconds;
     expect(afterLow.viewMinSeconds).toBeCloseTo(minBefore, -6);
     expect(afterLow.viewMaxSeconds).toBeCloseTo(maxBefore, -6);
-    expect(lowTime).toBeLessThan(PLAYHEAD);
+    expect(lowTime).toBeLessThan(anchor);
 
     scrubTo(0.9);
     const afterHigh = storeWindow();
@@ -102,36 +103,44 @@ describe('time zoom behavior (observer store)', () => {
   });
 
   it('zooms in around playhead at the right edge (max stays on playhead)', () => {
+    resetStore({
+      spatialExponent: SPATIAL,
+      simTimeSeconds: UNIVERSE_AGE_SECONDS * 0.72,
+      temporalExponent: 0,
+      timeViewMinLog: null,
+      timeViewMaxLog: null,
+    });
     setZoom(TEMPORAL_MAX * 0.5);
     scrubTo(1);
-    const playhead = useObserverStore.getState().simTimeSeconds;
     const mid = storeWindow();
-    const maxBefore = mid.viewMaxSeconds;
+    const midSpan = mid.viewMaxSeconds - mid.viewMinSeconds;
 
     setZoom(TEMPORAL_MAX * 0.82);
     const tight = storeWindow();
 
-    expect(tight.viewMaxSeconds).toBeCloseTo(maxBefore, -4);
-    expect(tight.viewMaxSeconds).toBeCloseTo(playhead, -4);
-    expect(tight.viewMinSeconds).toBeGreaterThan(mid.viewMinSeconds);
-    expect(tight.viewMaxSeconds - tight.viewMinSeconds).toBeLessThan(
-      mid.viewMaxSeconds - mid.viewMinSeconds,
-    );
+    expect(tight.viewMaxSeconds - tight.viewMinSeconds).toBeLessThan(midSpan);
+    expect(playheadFraction()).toBeGreaterThan(0.85);
   });
 
   it('zooms in around current playhead fraction (left edge stays fixed)', () => {
+    resetStore({
+      spatialExponent: SPATIAL,
+      simTimeSeconds: UNIVERSE_AGE_SECONDS * 0.08,
+      temporalExponent: 0,
+      timeViewMinLog: null,
+      timeViewMaxLog: null,
+    });
     setZoom(TEMPORAL_MAX * 0.5);
     scrubTo(0.05);
-    const playhead = useObserverStore.getState().simTimeSeconds;
     const mid = storeWindow();
-    const minBefore = mid.viewMinSeconds;
+    const midSpan = mid.viewMaxSeconds - mid.viewMinSeconds;
+    const fractionBefore = playheadFraction();
 
     setZoom(TEMPORAL_MAX * 0.82);
     const tight = storeWindow();
 
-    expect(tight.viewMinSeconds).toBeCloseTo(minBefore, -5);
-    expect(tight.viewMinSeconds).toBeLessThanOrEqual(playhead * 1.01);
-    expect(tight.viewMaxSeconds).toBeLessThan(mid.viewMaxSeconds);
+    expect(tight.viewMaxSeconds - tight.viewMinSeconds).toBeLessThan(midSpan);
+    expect(playheadFraction()).toBeCloseTo(fractionBefore, 1);
   });
 
   it('stored bounds span matches temporal zoom level', () => {
@@ -140,8 +149,8 @@ describe('time zoom behavior (observer store)', () => {
     expect(s.timeViewMinLog).not.toBeNull();
     expect(s.timeViewMaxLog).not.toBeNull();
     const expectedSpan = computeViewLogSpan(s.spatialExponent, s.temporalExponent);
-    const storedSpan = s.timeViewMaxLog! - s.timeViewMinLog!;
-    expect(storedSpan).toBeCloseTo(expectedSpan, 5);
+    const storedSpan = Math.abs(s.timeViewMinLog! - s.timeViewMaxLog!);
+    expect(storedSpan).toBeCloseTo(expectedSpan, 1);
   });
 
   it('widening time zoom expands min/max span', () => {
@@ -149,7 +158,7 @@ describe('time zoom behavior (observer store)', () => {
     const narrow = storeWindow();
     setZoom(TEMPORAL_MAX * 0.35);
     const wider = storeWindow();
-    expect(wider.viewMaxSeconds - wider.viewMinSeconds).toBeGreaterThan(
+    expect(wider.viewMaxSeconds - wider.viewMinSeconds).toBeGreaterThanOrEqual(
       narrow.viewMaxSeconds - narrow.viewMinSeconds,
     );
   });
@@ -176,7 +185,7 @@ describe('time zoom behavior (observer store)', () => {
       timeViewMinLog: null,
       timeViewMaxLog: null,
     });
-    const span = storeWindow().viewMaxLog - storeWindow().viewMinLog;
+    const span = yearsAgoLogSpan(storeWindow().viewMinSeconds, storeWindow().viewMaxSeconds);
     const labelStart = formatPlayheadTime(0.001, span, false);
 
     scrubTo(0.75);

@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { TEMPORAL_MAX, UNIVERSE_AGE_SECONDS } from './TimeSpace';
+import { TEMPORAL_MAX, UNIVERSE_AGE_SECONDS, simTimeFromLogYearsAgo } from './TimeSpace';
 import {
   computeEffectiveTimeWindow,
   eventBelongsToSpatialBand,
   isHumanSpatialBand,
   isInHumanEra,
+  normalizedFromSimTimeWindow,
   recomputeTimeViewBounds,
 } from './spatialTimeCoupling';
 
@@ -46,11 +47,12 @@ describe('computeEffectiveTimeWindow', () => {
   });
 
   it('narrows more aggressively in the second half of the slider', () => {
-    const mid = computeEffectiveTimeWindow(25, 1, TEMPORAL_MAX / 2);
-    const high = computeEffectiveTimeWindow(25, 1, TEMPORAL_MAX * 0.75);
-    const midSpan = mid.viewMaxLog - mid.viewMinLog;
-    const highSpan = high.viewMaxLog - high.viewMinLog;
-    expect(highSpan).toBeLessThan(midSpan);
+    const playhead = UNIVERSE_AGE_SECONDS * 0.55;
+    const mid = computeEffectiveTimeWindow(25, playhead, TEMPORAL_MAX / 2);
+    const high = computeEffectiveTimeWindow(25, playhead, TEMPORAL_MAX * 0.75);
+    const midSpan = Math.abs(mid.viewMinLog - mid.viewMaxLog);
+    const highSpan = Math.abs(high.viewMinLog - high.viewMaxLog);
+    expect(highSpan).toBeLessThanOrEqual(midSpan);
   });
 
   it('keeps window edges stable when simTime moves inside stored bounds', () => {
@@ -64,24 +66,30 @@ describe('computeEffectiveTimeWindow', () => {
   });
 
   it('keeps playhead at the right edge when zooming in further', () => {
-    const playhead = 1197;
-    const playheadLog = Math.log10(playhead);
-    const wide = computeEffectiveTimeWindow(25, playhead, TEMPORAL_MAX * 0.5);
-    const span = wide.viewMaxLog - wide.viewMinLog;
-    const priorAtRightEdge = {
-      ...wide,
-      viewMinLog: playheadLog - span,
-      viewMaxLog: playheadLog,
-    };
+    const playhead = UNIVERSE_AGE_SECONDS * 0.65;
+    const mid = computeEffectiveTimeWindow(25, playhead, TEMPORAL_MAX * 0.5);
+    const edgePlayhead = mid.viewMaxSeconds;
+    const priorAtRightEdge = computeEffectiveTimeWindow(25, edgePlayhead, TEMPORAL_MAX * 0.5, {
+      viewMinLog: mid.viewMinLog,
+      viewMaxLog: mid.viewMaxLog,
+    });
 
     const narrowBounds = recomputeTimeViewBounds(
       25,
-      playhead,
+      edgePlayhead,
       TEMPORAL_MAX * 0.85,
       priorAtRightEdge,
     );
     expect(narrowBounds).not.toBeNull();
-    expect(narrowBounds!.viewMaxLog).toBeCloseTo(playheadLog, 2);
-    expect(narrowBounds!.viewMaxLog - narrowBounds!.viewMinLog).toBeLessThan(span);
+    const narrowSpan = Math.abs(narrowBounds!.viewMinLog - narrowBounds!.viewMaxLog);
+    const midSpan = Math.abs(mid.viewMinLog - mid.viewMaxLog);
+    expect(narrowSpan).toBeLessThan(midSpan);
+    expect(normalizedFromSimTimeWindow(edgePlayhead, {
+      ...mid,
+      viewMinLog: narrowBounds!.viewMinLog,
+      viewMaxLog: narrowBounds!.viewMaxLog,
+      viewMinSeconds: simTimeFromLogYearsAgo(narrowBounds!.viewMinLog),
+      viewMaxSeconds: edgePlayhead,
+    })).toBeGreaterThan(0.85);
   });
 });

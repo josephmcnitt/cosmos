@@ -18,6 +18,7 @@ import {
   getTemporalBand,
   TEMPORAL_MAX,
   TEMPORAL_MIN,
+  yearsAgoLogSpan,
 } from '../core/TimeSpace';
 import { TimelineEventTicks } from './TimelineEventTicks';
 import { SpiritualTimelineTicks } from './SpiritualTimelineTicks';
@@ -50,7 +51,7 @@ export function TimeControls() {
   );
 
   const normalized = normalizedFromSimTimeWindow(simTimeSeconds, timeWindow);
-  const viewLogSpan = timeWindow.viewMaxLog - timeWindow.viewMinLog;
+  const viewLogSpan = yearsAgoLogSpan(timeWindow.viewMinSeconds, timeWindow.viewMaxSeconds);
   const fullLogSpan = bandLogSpan(timeWindow);
   const narrowed = isEffectiveWindowNarrowed(timeWindow);
   const temporalBand = getTemporalBand(simTimeSeconds);
@@ -116,7 +117,7 @@ export function TimeControls() {
           {showSpiritual
             ? 'Click timeline dots · toggle Full Depth for esoteric'
             : narrowed
-              ? 'Log scale · zoomed in — Shift+scroll to pan time'
+              ? 'Log scale (years ago) · zoomed in — Shift+scroll to pan time'
               : 'Scroll canvas to zoom space · Shift+scroll for time precision'}
         </span>
       </div>

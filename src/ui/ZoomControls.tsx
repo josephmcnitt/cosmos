@@ -3,6 +3,7 @@ import { useIntroStore } from '../core/IntroState';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
 import { computeEffectiveTimeWindow, isEffectiveWindowNarrowed, storedTimeWindowOptions } from '../core/spatialTimeCoupling';
+import { yearsAgoLogSpan } from '../core/TimeSpace';
 import { handleWheelZoomEvent } from '../core/wheelZoom';
 
 export function ZoomControls() {
@@ -38,7 +39,7 @@ export function ZoomControls() {
           storedTimeWindowOptions(observer.timeViewMinLog, observer.timeViewMaxLog),
         );
         if (isEffectiveWindowNarrowed(window)) {
-          const viewSpan = window.viewMaxLog - window.viewMinLog;
+          const viewSpan = yearsAgoLogSpan(window.viewMinSeconds, window.viewMaxSeconds);
           panTimeViewAnchor(-e.deltaY * 0.002 * viewSpan);
           return;
         }

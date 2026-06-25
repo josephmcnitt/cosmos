@@ -20,17 +20,23 @@ export function temporalWindowHalfWidth(temporalExponent: number): number {
   return Math.pow(10, 1.6 - temporalExponent * 0.12);
 }
 
-/** Full-range log scrub: 0 = near Big Bang, 1 = present. */
+/** Full-range log scrub: 0 = Big Bang, 1 = present (log10 years ago). */
 export function simTimeFromNormalizedFull(normalized: number): number {
   const t = Math.max(0, Math.min(1, normalized));
-  const logTime = t * TEMPORAL_MAX;
-  return clampSimTime(Math.pow(10, logTime));
+  const logAgoHigh = logYearsAgoFromSimTime(0);
+  const logAgoLow = logYearsAgoFromSimTime(UNIVERSE_AGE_SECONDS);
+  const logAgo = logAgoHigh + t * (logAgoLow - logAgoHigh);
+  return simTimeFromLogYearsAgo(logAgo);
 }
 
-/** Map sim time to full-range scrubber [0, 1]. */
+/** Map sim time to full-range scrubber [0, 1] (log10 years ago). */
 export function normalizedFromSimTimeFull(simTimeSeconds: number): number {
-  const logTime = Math.log10(Math.max(simTimeSeconds, 1));
-  return Math.max(0, Math.min(1, logTime / TEMPORAL_MAX));
+  const logAgoHigh = logYearsAgoFromSimTime(0);
+  const logAgoLow = logYearsAgoFromSimTime(UNIVERSE_AGE_SECONDS);
+  const logAgo = logYearsAgoFromSimTime(simTimeSeconds);
+  const span = logAgoHigh - logAgoLow;
+  if (span <= 0) return 0;
+  return Math.max(0, Math.min(1, (logAgo - logAgoHigh) / span));
 }
 
 /** Precision scrub around current time when temporal zoom is high. */
@@ -96,7 +102,37 @@ const YEAR_SECONDS = 365.25 * 24 * 3600;
 const GYA = 1e9 * YEAR_SECONDS;
 const MYA = 1e6 * YEAR_SECONDS;
 
-/** Format sim time as human-readable epoch label. */
+/** Universe age in years — stable anchor for log-years-ago math. */
+export const UNIVERSE_AGE_YEARS = 13.8e9;
+
+/** Minimum ago (in years) for log scale at present. */
+const MIN_AGO_YEARS = 1 / YEAR_SECONDS;
+
+/** Seconds before present for a sim-time moment. */
+export function yearsAgoSeconds(simTimeSeconds: number): number {
+  return UNIVERSE_AGE_SECONDS - clampSimTime(simTimeSeconds);
+}
+
+/** Log10 years ago — timeline scrub uses this (more space for recent history). */
+export function logYearsAgoFromSimTime(simTimeSeconds: number): number {
+  const simYears = clampSimTime(simTimeSeconds) / YEAR_SECONDS;
+  const agoYears = Math.max(UNIVERSE_AGE_YEARS - simYears, MIN_AGO_YEARS);
+  return Math.log10(agoYears);
+}
+
+export function simTimeFromLogYearsAgo(logYearsAgo: number): number {
+  const agoYears = Math.pow(10, logYearsAgo);
+  const simYears = UNIVERSE_AGE_YEARS - agoYears;
+  return clampSimTime(Math.max(0, simYears * YEAR_SECONDS));
+}
+
+/** Log-years-ago span between two sim-time endpoints. */
+export function yearsAgoLogSpan(minSeconds: number, maxSeconds: number): number {
+  return Math.abs(
+    logYearsAgoFromSimTime(minSeconds) - logYearsAgoFromSimTime(maxSeconds),
+  );
+}
+
 export function formatSimTime(simTimeSeconds: number): string {
   const age = UNIVERSE_AGE_SECONDS - simTimeSeconds;
   const yearsAgo = age / YEAR_SECONDS;

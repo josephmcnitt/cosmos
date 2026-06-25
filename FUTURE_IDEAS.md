@@ -88,7 +88,7 @@ Items below are **explored but not current product direction**. Revisit when the
 
 ## Four modes of knowledge (Phase 9+)
 
-**Status:** Concept only (2026-06-24). Each mode is a **different unlock path** — not four tabs on the same fact.
+**Status:** **MVP shipped** (2026-06-25). `knowledgeMode.ts` infers mode from event + realm; optional `knowledgeMode` on events; badge in detail panel.
 
 Cosmos can treat knowing as four quadrants (communicable × verifiable):
 
@@ -118,7 +118,7 @@ Cosmos can treat knowing as four quadrants (communicable × verifiable):
 
 **Idea:** After meaningful practice at a stone (liminal → spiritual), zoom back out from walk mode and the **same** simulated sky can re-render as an **interpretive / astrological** view — zodiac band, planetary rulers, tradition-specific correspondences — while the material track still shows historical astronomy.
 
-**Status:** Phase 8 MVP + **8.1 shipped** (2026-06-25). Time-driven starfield/fog/ambient in cosmic view; fixed-noon Sun/Moon ephemeris at Earth-scale present. Correspondence lens still deferred.
+**Status:** Phase 8 through **8.1b shipped**; **8b / 9 / 10 MVP shipped** (2026-06-25). Deeper correspondence art and ritual timing still future.
 
 **Phase 8.1 (shipped):**
 
@@ -126,7 +126,15 @@ Cosmos can treat knowing as four quadrants (communicable × verifiable):
 2. **`EphemerisSky`** — Athens observer, 2026-06-21 noon UTC snapshot; gated by `heavenVisibility.isEphemerisBand`.
 3. **Tests** — `heavenVisibility`, `ephemeris`, extended `material-heavens` E2E.
 
-**Deferred to Phase 8.1b:** scrubbable Big Bang replay (today intro-only in `BigBangEffect.tsx`).
+**Deferred to Phase 8.1b:** ~~scrubbable Big Bang replay~~ **shipped** (2026-06-25).
+
+**Phase 8.1b (shipped):** `bigBangReplay.ts` drives `BigBangEffect` from `simTimeSeconds` after intro; E2E `bigbang-replay-active`.
+
+**Phase 8b (MVP shipped):** `CorrespondenceSky` + `traditionGates.ts` — zodiac ring after practice at present Earth scale.
+
+**Phase 9 (MVP shipped):** `knowledgeMode.ts` — rational/faith/experience/gnosis inference + event panel badge.
+
+**Phase 10 (MVP shipped):** Per-tradition `meetsTraditionGate()` rules wired to correspondence lens.
 
 **Phase 8 MVP (shipped):**
 
@@ -141,9 +149,10 @@ Cosmos can treat knowing as four quadrants (communicable × verifiable):
 |-------|--------|
 | **8 — Material cosmos** | Animated heavens tied to `simTimeSeconds` (structure formation, band meshes). Stays scientific; shared clock for everything else. |
 | **8.1 — Sky polish + ephemeris** | Starfield/fog/ambient wiring; fixed-noon Sun/Moon at Earth-scale present (**shipped**). |
-| **8.1b — Big Bang replay** | Scrubbable intro effect driven by `simTimeSeconds` (not wall-clock). |
-| **8b / early 10 — Correspondence lens** | Unlock astrological sky **after** spiritual depth at a stone; geometric style preserved (glyphs, orbits, color — not horoscope UI chrome). |
-| **10 — Tradition-accurate ritual gates** | Per-tradition rules only — not one global zodiac gate. Hermetic/Neoplatonic: planetary hours, elections. Kabbalah: sefirot/time cycles. Gnostic: inner gnosis, not natal chart. Platonic: Timaeus cosmology over horoscope. |
+| **8.1b — Big Bang replay** | Scrubbable intro effect driven by `simTimeSeconds` (**shipped**). |
+| **8b — Correspondence lens** | Interpretive zodiac ring after spiritual practice at present Earth scale (**MVP shipped**). |
+| **9 — Four modes of knowledge** | Rational / faith / experience / gnosis inference + event badge (**MVP shipped**). |
+| **10 — Tradition ritual gates** | Per-tradition practice thresholds; wired to correspondence lens (**MVP shipped**). |
 
 **Design principle:** Astrology is a **reward layer** for contemplative practice, not the universal key to the spiritual realm. Accuracy lives in **tradition modules**, not a single global mechanic.
 
@@ -176,5 +185,6 @@ Cosmos can treat knowing as four quadrants (communicable × verifiable):
 | 2026-06-24 | **Four modes of knowledge** (rational / faith / experience / gnosis) → distinct unlock paths; E = rational esoteric text; Q + spiritual realm = experience → gnosis (floating forms). Documented for Phase 9+ before implementation. |
 | 2026-06-25 | **Years-ago log timeline shipped:** scrub/zoom use log₁₀ years ago (left = Big Bang, right = present) so recent history gets more bar space and mid-timeline labels move with the playhead. |
 | 2026-06-25 | **E2E CI runs against local preview** (`vite preview` on port 4173); production smoke optional via `COSMOS_E2E_URL`. Vercel deploy stays build-only (`npm run build`). |
+| 2026-06-25 | **Phases 8.1b–10 MVP shipped:** scrubbable Big Bang replay, correspondence sky, knowledge modes, tradition gates. |
 | 2026-06-25 | **Phase 8.1 shipped:** `CosmicStarfield`, `CosmicSkySync`, `EphemerisSky`, `heavenVisibility` gates; fixed-noon Sun/Moon at Athens. Big Bang scrub replay → 8.1b. |
 | 2026-06-25 | **Phase 8 MVP shipped:** `MaterialHeavens` maps `simTimeSeconds` to cosmic sky phases (dark ages → first light → reionized); fog/ambient/band opacity multipliers on existing `WorldRoot`. |

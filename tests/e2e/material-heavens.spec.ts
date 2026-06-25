@@ -22,6 +22,13 @@ test.describe('Material heavens phase', () => {
     await expect(page.getByTestId('heaven-phase')).toHaveAttribute('data-phase', 'darkAges', {
       timeout: 5000,
     });
+    await expect(page.getByTestId('bigbang-replay-active')).toHaveAttribute('data-active', 'true');
+  });
+
+  test('big bang replay inactive at present', async ({ page }) => {
+    await jumpToPresentIfNeeded(page);
+    await clickTimelineRightEdge(page);
+    await expect(page.getByTestId('bigbang-replay-active')).toHaveAttribute('data-active', 'false');
   });
 
   test('mid cosmic timeline shows post-dark-ages phase', async ({ page }) => {

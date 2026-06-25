@@ -73,7 +73,32 @@ By default, Playwright starts `vite preview` when `COSMOS_E2E_URL` is unset ([pl
 
 First-time Playwright setup: `npx playwright install chromium`
 
-**Next:** Phase 8.1b — scrubbable Big Bang replay. See [FUTURE_IDEAS.md](FUTURE_IDEAS.md).
+**Next:** Phase 9+ depth — richer per-tradition correspondence art and knowledge-mode unlock paths. See [FUTURE_IDEAS.md](FUTURE_IDEAS.md).
+
+## Phase 8.1b — scrubbable Big Bang replay
+
+- **`bigBangReplay.ts`** — maps early `simTimeSeconds` to explosion frame (within ~35% of first-stars threshold)
+- **`BigBangEffect`** — intro still wall-clock; after skip, scrubbing the timeline left replays the burst from sim time
+- **Indicator** — `data-testid="bigbang-replay-active"`
+
+## Phase 8b — correspondence lens (MVP)
+
+- **`traditionGates.ts`** — per-tradition practice thresholds (Platonic, Hermetic, Kabbalah, Gnostic, …)
+- **`CorrespondenceSky`** — geometric zodiac tick ring tinted by dominant tradition; cosmic view at Earth-scale present after ≥1 practice session
+- **Indicator** — `data-testid="correspondence-active"`
+
+## Phase 9 — four modes of knowledge (MVP)
+
+- **`knowledgeMode.ts`** — infer rational / faith / experience / gnosis from event + realm phase
+- **Event detail panel** — knowledge mode label on selected events
+- **HUD hook** — `data-testid="knowledge-mode"`
+
+## Phase 10 — tradition ritual gates (MVP)
+
+- **`meetsTraditionGate()`** in `traditionGates.ts` — distinct unlock rules per stream (not one global gate)
+- Wired into correspondence lens activation
+
+**Tests:** `bigBangReplay.test.ts`, `traditionGates.test.ts`, `knowledgeMode.test.ts`; extended `material-heavens.spec.ts` (Big Bang replay indicator).
 
 ## Phase 8 — material heavens
 

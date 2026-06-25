@@ -29,6 +29,9 @@ import { TimeControls } from './ui/TimeControls';
 import { HeavenPhaseIndicator } from './ui/HeavenPhaseIndicator';
 import { EphemerisIndicator } from './ui/EphemerisIndicator';
 import { StarfieldIndicator } from './ui/StarfieldIndicator';
+import { BigBangReplayIndicator } from './ui/BigBangReplayIndicator';
+import { CorrespondenceIndicator } from './ui/CorrespondenceIndicator';
+import { KnowledgeModeIndicator } from './ui/KnowledgeModeIndicator';
 import { ZoomControls } from './ui/ZoomControls';
 import { BigBangEffect } from './world/BigBangEffect';
 import { DebugGrid } from './world/DebugGrid';
@@ -41,6 +44,7 @@ import { MaterialHeavens } from './world/MaterialHeavens';
 import { CosmicSkySync } from './world/CosmicSkySync';
 import { CosmicStarfield } from './world/CosmicStarfield';
 import { EphemerisSky } from './world/EphemerisSky';
+import { CorrespondenceSky } from './world/CorrespondenceSky';
 import { FlightStarfield } from './world/FlightStarfield';
 import { WorldRoot } from './world/WorldRoot';
 import { onRangeInputWheel } from './ui/rangeInputWheelGuard';
@@ -79,6 +83,7 @@ function Scene() {
           <FlightStarfield />
           {introComplete ? <MaterialHeavens /> : introPhase === 'expansion' || introPhase === 'reveal' ? <WorldRoot /> : null}
           {introComplete && <EphemerisSky />}
+          {introComplete && <CorrespondenceSky />}
           {introComplete && <HistoryMarkers />}
         </>
       )}
@@ -175,7 +180,10 @@ export default function App() {
         <div className={`ui-overlay${isFlying ? ' ui-overlay--flying' : ''}`}>
           <HeavenPhaseIndicator />
           <StarfieldIndicator />
+          <BigBangReplayIndicator />
           <EphemerisIndicator />
+          <CorrespondenceIndicator />
+          <KnowledgeModeIndicator />
           <HistoryKeyboard />
           <EmbodimentBanner />
           <div className="ui-sidebar-left">

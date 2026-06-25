@@ -9,6 +9,7 @@ import { flyToEvent } from '../core/flyToEvent';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
 import { usePracticeStore } from '../core/PracticeState';
+import { KNOWLEDGE_MODE_LABELS, resolveKnowledgeMode } from '../core/knowledgeMode';
 import { SPATIAL_BANDS } from '../core/ScaleSpace';
 import { formatSimTime } from '../core/TimeSpace';
 
@@ -19,6 +20,8 @@ export function EventDetailPanel() {
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
   const mode = useObserverStore((s) => s.mode);
   const nearbyEventId = usePracticeStore((s) => s.nearbyEventId);
+  const realmPhase = usePracticeStore((s) => s.realmPhase);
+  const activePractice = usePracticeStore((s) => s.activePractice);
 
   if (!selectedEventId) return null;
 
@@ -40,6 +43,8 @@ export function EventDetailPanel() {
     isSpiritualEvent(event) &&
     event.visibility === 'esoteric' &&
     nearbyEventId === selectedEventId;
+
+  const knowledgeMode = resolveKnowledgeMode(event, realmPhase, activePractice != null);
 
   return (
     <div className="event-detail ui-panel" data-testid="event-detail-panel">
@@ -73,6 +78,9 @@ export function EventDetailPanel() {
 
       <h2 className="event-detail-title">{event.title}</h2>
       <p className="event-detail-time">{formatSimTime(event.simTimeSeconds)}</p>
+      <span className="event-knowledge-mode" data-testid="event-knowledge-mode">
+        {KNOWLEDGE_MODE_LABELS[knowledgeMode]}
+      </span>
 
       {isSpiritualEvent(event) && (
         <p className="event-detail-meta">

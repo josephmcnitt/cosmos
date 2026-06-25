@@ -18,6 +18,8 @@ export type SpiritualVisibility = 'exoteric' | 'esoteric';
 
 export type DepthOfView = 'exoteric' | 'full';
 
+export type KnowledgeMode = 'rational' | 'faith' | 'experience' | 'gnosis';
+
 export interface MaterialEvent {
   id: string;
   simTimeSeconds: number;
@@ -30,6 +32,7 @@ export interface MaterialEvent {
   sourceUrl?: string;
   show3DMarker?: boolean;
   relatedSpiritualIds?: string[];
+  knowledgeMode?: KnowledgeMode;
 }
 
 export interface SpiritualEvent {
@@ -45,6 +48,7 @@ export interface SpiritualEvent {
   spatialBand?: string;
   sourceUrl?: string;
   relatedMaterialIds?: string[];
+  knowledgeMode?: KnowledgeMode;
 }
 
 export type TimelineEvent = MaterialEvent | SpiritualEvent;

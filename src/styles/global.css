@@ -979,6 +979,15 @@ body,
 .event-detail-time {
   font-size: 11px;
   color: #8899b0;
+  margin: 0 0 4px;
+}
+
+.event-knowledge-mode {
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9ab0cc;
   margin: 0 0 10px;
 }
 

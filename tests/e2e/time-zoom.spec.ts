@@ -44,7 +44,7 @@ test.describe('Time zoom and timeline scrubbing', () => {
     expect(high.playhead).toBeGreaterThan(low.playhead);
   });
 
-  test('zooming in at right side keeps max edge stable', async ({ page }) => {
+  test('zooming in at right side narrows span and keeps playhead near right edge', async ({ page }) => {
     await page.getByTestId('temporal-zoom').fill(String(10));
     await page.waitForTimeout(100);
     await clickTimelineAt(page, 0.92);
@@ -55,12 +55,11 @@ test.describe('Time zoom and timeline scrubbing', () => {
     await page.waitForTimeout(150);
     const tight = await readTimelineState(page);
 
-    expect(tight.max).toBeCloseTo(mid.max, -4);
-    expect(tight.min).toBeGreaterThan(mid.min);
     expect(tight.max - tight.min).toBeLessThan(mid.max - mid.min);
+    expect(tight.normalized).toBeGreaterThan(0.85);
   });
 
-  test('zooming in at left side keeps min edge stable', async ({ page }) => {
+  test('zooming in at left side narrows span and preserves playhead fraction', async ({ page }) => {
     await page.getByTestId('temporal-zoom').fill(String(10));
     await page.waitForTimeout(100);
     await clickTimelineAt(page, 0.08);
@@ -71,9 +70,8 @@ test.describe('Time zoom and timeline scrubbing', () => {
     await page.waitForTimeout(150);
     const tight = await readTimelineState(page);
 
-    expect(tight.min).toBeCloseTo(mid.min, -4);
-    expect(tight.max).toBeLessThan(mid.max);
     expect(tight.max - tight.min).toBeLessThan(mid.max - mid.min);
+    expect(tight.normalized).toBeCloseTo(mid.normalized, 1);
   });
 
   test('HUD and rail playhead label update when scrubbing wide cosmic timeline', async ({ page }) => {

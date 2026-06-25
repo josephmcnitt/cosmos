@@ -14,6 +14,8 @@ interface StarLayer {
   size: number;
   color: string;
   opacity: number;
+  /** Only rendered after intro (close “rush” stars). */
+  postIntroOnly?: boolean;
 }
 
 function buildLayer(
@@ -25,6 +27,7 @@ function buildLayer(
   size: number,
   color: string,
   opacity: number,
+  postIntroOnly = false,
 ): StarLayer {
   const positions = new Float32Array(count * 3);
   for (let i = 0; i < count; i++) {
@@ -32,7 +35,22 @@ function buildLayer(
     positions[i * 3 + 1] = (Math.random() - 0.5) * spread * 0.6;
     positions[i * 3 + 2] = -(zMin + Math.random() * (zMax - zMin));
   }
-  return { positions, count, zMin, zMax, parallax, spread, size, color, opacity };
+  return { positions, count, zMin, zMax, parallax, spread, size, color, opacity, postIntroOnly };
+}
+
+function respawnStar(layer: StarLayer, i: number): void {
+  layer.positions[i * 3] = (Math.random() - 0.5) * layer.spread;
+  layer.positions[i * 3 + 1] = (Math.random() - 0.5) * layer.spread * 0.6;
+  layer.positions[i * 3 + 2] = -(layer.zMin + Math.random() * (layer.zMax - layer.zMin));
+}
+
+/** Stronger near universe/galaxy zoom; fades inside planetary band meshes. */
+function parallaxWeight(spatialExponent: number): number {
+  const lo = 12;
+  const hi = 21;
+  if (spatialExponent <= lo) return 0;
+  if (spatialExponent >= hi) return 1;
+  return (spatialExponent - lo) / (hi - lo);
 }
 
 function FocusDot({ opacity }: { opacity: number }) {
@@ -54,9 +72,10 @@ export function FlightStarfield() {
 
   const layers = useMemo(
     () => [
-      buildLayer(2500, 120, 900, 420, 0.15, 1.4, '#c8d4ff', 0.55),
-      buildLayer(1800, 30, 180, 140, 0.45, 0.9, '#dfe4ff', 0.75),
-      buildLayer(900, 4, 45, 55, 0.85, 0.45, '#fff4c2', 0.9),
+      buildLayer(2200, 140, 950, 440, 0.1, 1.3, '#b8c8ff', 0.4),
+      buildLayer(1600, 35, 200, 150, 0.48, 1.0, '#dfe4ff', 0.65),
+      buildLayer(800, 5, 50, 58, 0.92, 0.55, '#fff0c0', 0.8),
+      buildLayer(420, 0.6, 24, 72, 1.2, 1.25, '#fffff0', 0.95, true),
     ],
     [],
   );
@@ -69,18 +88,25 @@ export function FlightStarfield() {
 
     const flySpeed = introActive
       ? Math.max(0.15, Math.abs(deltaZ) * 2.5)
-      : Math.max(0.01, Math.abs(deltaZ) * 1.4);
+      : Math.max(0.04, Math.abs(deltaZ) * 3.2);
+
+    const driftSign = introActive ? 1 : deltaZ > 0 ? -1 : deltaZ < 0 ? 1 : 0;
 
     for (const layer of layers) {
       for (let i = 0; i < layer.count; i++) {
         let x = layer.positions[i * 3]!;
         let y = layer.positions[i * 3 + 1]!;
         let z = layer.positions[i * 3 + 2]!;
-        z += flySpeed * layer.parallax;
+        if (driftSign !== 0) {
+          z += flySpeed * layer.parallax * driftSign;
+        }
         if (z > camZ + 8) {
-          z = -(layer.zMin + Math.random() * (layer.zMax - layer.zMin));
-          x = (Math.random() - 0.5) * layer.spread;
-          y = (Math.random() - 0.5) * layer.spread * 0.6;
+          respawnStar(layer, i);
+          continue;
+        }
+        if (!introActive && z < -camZ - layer.zMax - 16) {
+          respawnStar(layer, i);
+          continue;
         }
         layer.positions[i * 3] = x;
         layer.positions[i * 3 + 1] = y;
@@ -89,20 +115,23 @@ export function FlightStarfield() {
     }
   });
 
+  const introComplete = introPhase === 'complete';
   const showStars =
-    introPhase === 'expansion' || introPhase === 'reveal' || introPhase === 'complete';
+    introPhase === 'expansion' || introPhase === 'reveal' || introComplete;
 
   let layerScale = 0;
   if (introPhase === 'expansion') layerScale = 0.4;
   if (introPhase === 'reveal') layerScale = 0.75;
-  if (introPhase === 'complete') {
-    layerScale = 0.9 + Math.min(0.1, (25 - spatialExponent) / 50);
+  if (introComplete) {
+    layerScale = 0.8 + parallaxWeight(spatialExponent) * 0.2;
   }
+
+  const zoomWeight = introComplete ? parallaxWeight(spatialExponent) : 1;
 
   const dotOpacity =
     introPhase === 'void' || introPhase === 'ignition'
       ? 1
-      : introPhase === 'complete' && spatialExponent < 8
+      : introComplete && spatialExponent < 8
         ? 0
         : Math.max(0.15, 1 - layerScale * 0.85);
 
@@ -110,16 +139,21 @@ export function FlightStarfield() {
     <group>
       <FocusDot opacity={dotOpacity} />
       {showStars &&
-        introPhase !== 'complete' &&
-        layers.map((layer, i) => (
-          <StarBillboards
-            key={i}
-            positions={layer.positions}
-            color={layer.color}
-            opacity={layer.opacity * layerScale}
-            pixelSize={layer.size * 3.5}
-          />
-        ))}
+        zoomWeight > 0.01 &&
+        layers.map((layer, i) => {
+          if (layer.postIntroOnly && !introComplete) return null;
+          const opacity = layer.opacity * layerScale * zoomWeight;
+          const sizeBoost = layer.postIntroOnly ? 1.15 : 1;
+          return (
+            <StarBillboards
+              key={i}
+              positions={layer.positions}
+              color={layer.color}
+              opacity={opacity}
+              pixelSize={layer.size * 3.5 * sizeBoost}
+            />
+          );
+        })}
     </group>
   );
 }

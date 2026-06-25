@@ -29,6 +29,7 @@ export function TimeControls() {
   const setPlaybackRate = useObserverStore((s) => s.setPlaybackRate);
   const togglePlayback = useObserverStore((s) => s.togglePlayback);
   const temporalExponent = useObserverStore((s) => s.temporalExponent);
+  const timeViewAnchorLog = useObserverStore((s) => s.timeViewAnchorLog);
   const simTimeSeconds = useObserverStore((s) => s.simTimeSeconds);
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
   const setTemporalExponent = useObserverStore((s) => s.setTemporalExponent);
@@ -41,6 +42,7 @@ export function TimeControls() {
     spatialExponent,
     simTimeSeconds,
     temporalExponent,
+    timeViewAnchorLog != null ? { viewCenterLog: timeViewAnchorLog } : undefined,
   );
 
   const normalized = normalizedFromSimTimeWindow(simTimeSeconds, timeWindow);
@@ -105,7 +107,7 @@ export function TimeControls() {
           {showSpiritual
             ? 'Click timeline dots · toggle Full Depth for esoteric'
             : narrowed
-              ? 'Log scale · zoomed in — lower time zoom to widen'
+              ? 'Log scale · zoomed in — Shift+scroll to pan time'
               : 'Scroll canvas to zoom space · Shift+scroll for time precision'}
         </span>
       </div>

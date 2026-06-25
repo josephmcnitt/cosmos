@@ -51,4 +51,16 @@ describe('computeEffectiveTimeWindow', () => {
     const highSpan = high.viewMaxLog - high.viewMinLog;
     expect(highSpan).toBeLessThan(midSpan);
   });
+
+  it('keeps window edges stable when simTime moves inside a anchored view', () => {
+    const anchorLog = 3;
+    const early = computeEffectiveTimeWindow(25, 100, TEMPORAL_MAX / 2, {
+      viewCenterLog: anchorLog,
+    });
+    const later = computeEffectiveTimeWindow(25, 500, TEMPORAL_MAX / 2, {
+      viewCenterLog: anchorLog,
+    });
+    expect(later.viewMinLog).toBeCloseTo(early.viewMinLog, 5);
+    expect(later.viewMaxLog).toBeCloseTo(early.viewMaxLog, 5);
+  });
 });

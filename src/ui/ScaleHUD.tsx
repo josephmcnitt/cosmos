@@ -1,7 +1,7 @@
 import { getEventById, getNearestEventForBand } from '../data/history/index';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
-import { formatSimTime, formatSimTimeShort, formatTimelineHeader } from '../core/TimeSpace';
+import { formatSimTime, formatSimTimeAbsoluteShort, formatSimTimeShort, formatTimelineHeader } from '../core/TimeSpace';
 import { getSpatialBand, metersFromExponent } from '../core/ScaleSpace';
 import {
   bandLogSpan,
@@ -17,6 +17,7 @@ export function ScaleHUD() {
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
   const simTimeSeconds = useObserverStore((s) => s.simTimeSeconds);
   const temporalExponent = useObserverStore((s) => s.temporalExponent);
+  const timeViewAnchorLog = useObserverStore((s) => s.timeViewAnchorLog);
   const playbackRate = useObserverStore((s) => s.playbackRate);
   const showDebugGrid = useObserverStore((s) => s.showDebugGrid);
   const historyTrack = useHistoryStore((s) => s.historyTrack);
@@ -51,17 +52,19 @@ export function ScaleHUD() {
     spatialExponent,
     simTimeSeconds,
     temporalExponent,
+    timeViewAnchorLog != null ? { viewCenterLog: timeViewAnchorLog } : undefined,
   );
   const viewLogSpan = timeWindow.viewMaxLog - timeWindow.viewMinLog;
   const fullLogSpan = bandLogSpan(timeWindow);
   const timeNarrowed = isEffectiveWindowNarrowed(timeWindow);
+  const windowLabel = formatTimelineHeader(
+    timeWindow.viewMinSeconds,
+    timeWindow.viewMaxSeconds,
+    viewLogSpan,
+    fullLogSpan,
+  );
   const timeLabel = timeNarrowed
-    ? formatTimelineHeader(
-        timeWindow.viewMinSeconds,
-        timeWindow.viewMaxSeconds,
-        viewLogSpan,
-        fullLogSpan,
-      )
+    ? `${formatSimTimeAbsoluteShort(simTimeSeconds, viewLogSpan)} · ${windowLabel}`
     : formatSimTime(simTimeSeconds);
 
   if (mode === 'embodied') {

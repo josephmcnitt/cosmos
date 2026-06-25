@@ -2,12 +2,14 @@ import { useEffect } from 'react';
 import { useIntroStore } from '../core/IntroState';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
+import { computeEffectiveTimeWindow, isEffectiveWindowNarrowed } from '../core/spatialTimeCoupling';
 import { handleWheelZoomEvent } from '../core/wheelZoom';
 
 export function ZoomControls() {
   const mode = useObserverStore((s) => s.mode);
   const adjustSpatial = useObserverStore((s) => s.adjustSpatialExponent);
   const adjustTemporal = useObserverStore((s) => s.adjustTemporalExponent);
+  const panTimeViewAnchor = useObserverStore((s) => s.panTimeViewAnchor);
   const adjustCameraDistance = useObserverStore((s) => s.adjustCameraDistance);
   const introComplete = useIntroStore((s) => s.phase === 'complete');
   const isFlying = useHistoryStore((s) => s.isFlying);
@@ -27,6 +29,23 @@ export function ZoomControls() {
 
       e.preventDefault();
 
+      if (result.action === 'temporal' && e.shiftKey) {
+        const observer = useObserverStore.getState();
+        const window = computeEffectiveTimeWindow(
+          observer.spatialExponent,
+          observer.simTimeSeconds,
+          observer.temporalExponent,
+          observer.timeViewAnchorLog != null
+            ? { viewCenterLog: observer.timeViewAnchorLog }
+            : undefined,
+        );
+        if (isEffectiveWindowNarrowed(window)) {
+          const viewSpan = window.viewMaxLog - window.viewMinLog;
+          panTimeViewAnchor(-e.deltaY * 0.002 * viewSpan);
+          return;
+        }
+      }
+
       switch (result.action) {
         case 'spatial':
           adjustSpatial(result.adjustment);
@@ -42,7 +61,15 @@ export function ZoomControls() {
 
     window.addEventListener('wheel', onWheel, { passive: false });
     return () => window.removeEventListener('wheel', onWheel);
-  }, [adjustSpatial, adjustTemporal, adjustCameraDistance, introComplete, isFlying, mode]);
+  }, [
+    adjustSpatial,
+    adjustTemporal,
+    panTimeViewAnchor,
+    adjustCameraDistance,
+    introComplete,
+    isFlying,
+    mode,
+  ]);
 
   return null;
 }

@@ -28,6 +28,9 @@ export function HistoryKeyboard() {
           observer.spatialExponent,
           observer.simTimeSeconds,
           observer.temporalExponent,
+          observer.timeViewAnchorLog != null
+            ? { viewCenterLog: observer.timeViewAnchorLog }
+            : undefined,
         );
 
         const navOptions = {

@@ -24,12 +24,14 @@ export function TimelineEventTicks() {
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
   const simTimeSeconds = useObserverStore((s) => s.simTimeSeconds);
   const temporalExponent = useObserverStore((s) => s.temporalExponent);
+  const timeViewAnchorLog = useObserverStore((s) => s.timeViewAnchorLog);
 
   const band = getSpatialBand(spatialExponent);
   const timeWindow = computeEffectiveTimeWindow(
     spatialExponent,
     simTimeSeconds,
     temporalExponent,
+    timeViewAnchorLog != null ? { viewCenterLog: timeViewAnchorLog } : undefined,
   );
 
   const bandEvents = getEventsForSpatialBand(band.id);

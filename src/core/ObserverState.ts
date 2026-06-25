@@ -15,7 +15,11 @@ import {
 } from './embodiment';
 import {
   clampSimTimeToSpatialBand,
+  clampTimeViewAnchorLog,
   computeEffectiveTimeWindow,
+  computeSpatialTimeWindow,
+  defaultTimeViewAnchorLog,
+  isEffectiveWindowNarrowed,
   isInHumanEra,
   isHumanSpatialBand,
   simTimeFromWindowNormalized,
@@ -38,6 +42,8 @@ export interface ObserverState {
   focusPoint: Vector3;
   temporalExponent: number;
   simTimeSeconds: number;
+  /** Log10 center for narrowed time window; null when zoomed out. */
+  timeViewAnchorLog: number | null;
   playbackRate: number;
   mode: ObserverMode;
   showDebugGrid: boolean;
@@ -53,6 +59,7 @@ export interface ObserverActions {
   adjustSpatialExponent: (delta: number) => void;
   setTemporalExponent: (exponent: number) => void;
   adjustTemporalExponent: (delta: number) => void;
+  panTimeViewAnchor: (deltaLog: number) => void;
   setSimTime: (seconds: number) => void;
   scrubNormalized: (normalized: number, anchorSimTime?: number) => void;
   setPlaybackRate: (rate: number) => void;
@@ -139,11 +146,28 @@ function applyEmbodimentAfterUpdate(
   return partial;
 }
 
+function resolveTimeViewAnchorLog(
+  spatialExponent: number,
+  simTimeSeconds: number,
+  temporalExponent: number,
+): number | null {
+  const window = computeEffectiveTimeWindow(spatialExponent, simTimeSeconds, temporalExponent);
+  if (!isEffectiveWindowNarrowed(window)) return null;
+  return defaultTimeViewAnchorLog(simTimeSeconds);
+}
+
+function timeWindowOptions(state: Pick<ObserverState, 'timeViewAnchorLog'>) {
+  return state.timeViewAnchorLog != null
+    ? { viewCenterLog: state.timeViewAnchorLog }
+    : undefined;
+}
+
 export const useObserverStore = create<ObserverState & ObserverActions>((set, get) => ({
   spatialExponent: 24,
   focusPoint: DEFAULT_FOCUS.clone(),
   temporalExponent: 0,
   simTimeSeconds: UNIVERSE_AGE_SECONDS,
+  timeViewAnchorLog: null,
   playbackRate: 0,
   mode: 'cosmic',
   showDebugGrid: false,
@@ -180,13 +204,49 @@ export const useObserverStore = create<ObserverState & ObserverActions>((set, ge
     set(applyEmbodimentAfterUpdate(state, coupled));
   },
 
-  setTemporalExponent: (exponent) =>
-    set({ temporalExponent: clampTemporalExponent(exponent) }),
+  setTemporalExponent: (exponent) => {
+    const state = get();
+    const next = clampTemporalExponent(exponent);
+    set({
+      temporalExponent: next,
+      timeViewAnchorLog: resolveTimeViewAnchorLog(
+        state.spatialExponent,
+        state.simTimeSeconds,
+        next,
+      ),
+    });
+  },
 
-  adjustTemporalExponent: (delta) =>
-    set((s) => ({
-      temporalExponent: clampTemporalExponent(s.temporalExponent + delta),
-    })),
+  adjustTemporalExponent: (delta) => {
+    const state = get();
+    const next = clampTemporalExponent(state.temporalExponent + delta);
+    set({
+      temporalExponent: next,
+      timeViewAnchorLog: resolveTimeViewAnchorLog(
+        state.spatialExponent,
+        state.simTimeSeconds,
+        next,
+      ),
+    });
+  },
+
+  panTimeViewAnchor: (deltaLog) => {
+    const state = get();
+    const bandWindow = computeSpatialTimeWindow(state.spatialExponent);
+    const window = computeEffectiveTimeWindow(
+      state.spatialExponent,
+      state.simTimeSeconds,
+      state.temporalExponent,
+      timeWindowOptions(state),
+    );
+    if (!isEffectiveWindowNarrowed(window)) return;
+
+    const viewSpan = window.viewMaxLog - window.viewMinLog;
+    const current =
+      state.timeViewAnchorLog ?? defaultTimeViewAnchorLog(state.simTimeSeconds);
+    const next = clampTimeViewAnchorLog(current + deltaLog, bandWindow, viewSpan);
+    set({ timeViewAnchorLog: next });
+  },
 
   setSimTime: (seconds) => {
     const state = get();
@@ -202,6 +262,7 @@ export const useObserverStore = create<ObserverState & ObserverActions>((set, ge
       state.spatialExponent,
       anchor,
       state.temporalExponent,
+      timeWindowOptions(state),
     );
     const seconds = simTimeFromWindowNormalized(normalized, window);
     const partial = { simTimeSeconds: simulationClock.scrubTo(seconds) };
@@ -304,21 +365,23 @@ export const useObserverStore = create<ObserverState & ObserverActions>((set, ge
   getTemporalBandLabel: () => getTemporalBand(get().simTimeSeconds).label,
 
   getScrubberNormalized: () => {
-    const { simTimeSeconds, spatialExponent, temporalExponent } = get();
+    const state = get();
     const window = computeEffectiveTimeWindow(
-      spatialExponent,
-      simTimeSeconds,
-      temporalExponent,
+      state.spatialExponent,
+      state.simTimeSeconds,
+      state.temporalExponent,
+      timeWindowOptions(state),
     );
-    return normalizedFromSimTimeWindow(simTimeSeconds, window);
+    return normalizedFromSimTimeWindow(state.simTimeSeconds, window);
   },
 
   getEffectiveTimeWindow: () => {
-    const { spatialExponent, simTimeSeconds, temporalExponent } = get();
+    const state = get();
     return computeEffectiveTimeWindow(
-      spatialExponent,
-      simTimeSeconds,
-      temporalExponent,
+      state.spatialExponent,
+      state.simTimeSeconds,
+      state.temporalExponent,
+      timeWindowOptions(state),
     );
   },
 }));
@@ -335,6 +398,7 @@ export function getInitialObserverState(): ObserverState {
     focusPoint: DEFAULT_FOCUS.clone(),
     temporalExponent: 0,
     simTimeSeconds: clampSimTime(UNIVERSE_AGE_SECONDS),
+    timeViewAnchorLog: null,
     playbackRate: 0,
     mode: 'cosmic',
     showDebugGrid: false,

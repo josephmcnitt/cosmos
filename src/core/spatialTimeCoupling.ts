@@ -115,6 +115,11 @@ export function computeSpatialTimeWindow(spatialExponent: number): SpatialTimeWi
   };
 }
 
+export interface TimeWindowOptions {
+  /** When narrowed, keep the window centered here instead of on simTime. */
+  viewCenterLog?: number | null;
+}
+
 /**
  * Effective log-scrub window: spatial band bounds narrowed by temporal zoom
  * (temporalExponent 0 = full band, higher = zoom in on sim time).
@@ -123,6 +128,7 @@ export function computeEffectiveTimeWindow(
   spatialExponent: number,
   simTimeSeconds: number,
   temporalExponent: number,
+  options?: TimeWindowOptions,
 ): EffectiveTimeWindow {
   const bandWindow = computeSpatialTimeWindow(spatialExponent);
   const bandSpan = bandWindow.maxLog - bandWindow.minLog;
@@ -134,9 +140,13 @@ export function computeEffectiveTimeWindow(
     bandSpan * (1 - zoom),
   );
 
+  const playheadLog = Math.log10(Math.max(simTimeSeconds, 1));
+  const narrowed = viewSpan < bandSpan * 0.95;
+  const anchoredCenter =
+    narrowed && options?.viewCenterLog != null ? options.viewCenterLog : playheadLog;
   const centerLog = Math.max(
     bandWindow.minLog,
-    Math.min(bandWindow.maxLog, Math.log10(Math.max(simTimeSeconds, 1))),
+    Math.min(bandWindow.maxLog, anchoredCenter),
   );
 
   let viewMinLog = centerLog - viewSpan / 2;
@@ -218,4 +228,24 @@ export function isEffectiveWindowNarrowed(
   const viewSpan = window.viewMaxLog - window.viewMinLog;
   const fullSpan = window.maxLog - window.minLog;
   return viewSpan < fullSpan * 0.95;
+}
+
+/** Log center for a narrowed window — playhead log when not yet anchored. */
+export function defaultTimeViewAnchorLog(simTimeSeconds: number): number {
+  return Math.log10(Math.max(simTimeSeconds, 1));
+}
+
+/** Clamp a log anchor so a window of viewSpan fits inside the spatial band. */
+export function clampTimeViewAnchorLog(
+  anchorLog: number,
+  bandWindow: Pick<SpatialTimeWindow, 'minLog' | 'maxLog'>,
+  viewSpan: number,
+): number {
+  const half = viewSpan / 2;
+  const minCenter = bandWindow.minLog + half;
+  const maxCenter = bandWindow.maxLog - half;
+  if (minCenter > maxCenter) {
+    return (bandWindow.minLog + bandWindow.maxLog) / 2;
+  }
+  return Math.max(minCenter, Math.min(maxCenter, anchorLog));
 }

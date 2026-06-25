@@ -45,6 +45,7 @@ export function EventListPanel() {
   const simTimeSeconds = useObserverStore((s) => s.simTimeSeconds);
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
   const temporalExponent = useObserverStore((s) => s.temporalExponent);
+  const timeViewAnchorLog = useObserverStore((s) => s.timeViewAnchorLog);
   const goToHumanEra = useObserverStore((s) => s.goToHumanEra);
   const mode = useObserverStore((s) => s.mode);
 
@@ -57,6 +58,7 @@ export function EventListPanel() {
     spatialExponent,
     simTimeSeconds,
     temporalExponent,
+    timeViewAnchorLog != null ? { viewCenterLog: timeViewAnchorLog } : undefined,
   );
 
   const materialEvents = (() => {

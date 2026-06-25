@@ -8,6 +8,7 @@ import {
   shouldExitEmbodiedFromSpatial,
   shouldExitEmbodiedFromTime,
   SITE_HALF_SIZE,
+  spatialExponentAfterExitEmbodied,
 } from './embodiment';
 
 const introComplete = { introComplete: true, isFlying: false };
@@ -83,5 +84,17 @@ describe('clampAvatarToSite', () => {
     const out = clampAvatarToSite(SITE_HALF_SIZE + 10, -(SITE_HALF_SIZE + 10));
     expect(out.x).toBe(SITE_HALF_SIZE);
     expect(out.z).toBe(-SITE_HALF_SIZE);
+  });
+});
+
+describe('spatialExponentAfterExitEmbodied', () => {
+  it('drops below enter threshold when pre-embodiment was at walk scale', () => {
+    expect(spatialExponentAfterExitEmbodied(EMBODIED_ENTER_EXPONENT)).toBeLessThan(
+      EMBODIED_EXIT_EXPONENT,
+    );
+  });
+
+  it('preserves pre-embodiment when already below walk entry', () => {
+    expect(spatialExponentAfterExitEmbodied(3)).toBe(3);
   });
 });

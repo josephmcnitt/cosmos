@@ -86,27 +86,31 @@ Items below are **explored but not current product direction**. Revisit when the
 
 ---
 
-## Four paths of knowledge (Phase 9 / 10)
+## Four modes of knowledge (Phase 9+)
 
-**Status:** Conceptual framework from 2026-06-24. Partially mapped today; full unlock mechanics not built.
+**Status:** Concept only (2026-06-24). Each mode is a **different unlock path** — not four tabs on the same fact.
 
-Epistemology grid (communicability × verifiability):
+Cosmos can treat knowing as four quadrants (communicable × verifiable):
 
-| Mode | Communicable? | Verifiable? | Unlock in Cosmos | Current mapping |
-|------|---------------|-------------|------------------|-----------------|
-| **Rational** | Yes | Yes | Read esoteric detail (sources, cross-links) | **E** discover → detail panel |
-| **Faith** | Yes | No | Tradition texts, trust without proof | Exoteric spiritual track (future: sermons, creed) |
-| **Experience** | No | Yes (to self) | Embodied practice, resonance | **Q** hold at stone |
-| **Gnosis** | No | No | Direct inner knowing | Spiritual realm floating forms after deep practice |
+| Mode | Communicable? | Verifiable? | Unlock sketch | In-app expression (draft) |
+|------|---------------|-------------|---------------|---------------------------|
+| **Rational** | Yes | Yes | Discover esoteric text (**E** at stone), cross-links, sources | Detail panel — summary, body, Wikipedia `sourceUrl` |
+| **Faith** | Yes | No | Spiritual track, tradition filters, exoteric narrative | Exoteric events, tradition chips, material↔spiritual cross-links |
+| **Experience** | No | Yes (first-person) | Hold **Q** at stone, liminal realm, resonance | Practice overlay, contemplation lines, tradition-colored liminal fog |
+| **Gnosis** | No | No | Deep practice → spiritual realm, sustained presence | Floating geometric forms (`SpiritualRealm`), non-propositional shift |
 
-**Design principle:** Each stone/tradition may emphasize different paths (Gnostic → gnosis; Hermetic → rational + experience; etc.). Do not require all four for every event.
+**Design principles:**
+
+- **Different keys, different doors** — rational unlock ≠ gnosis unlock; avoid collapsing all four into one “read the panel” moment.
+- **Esoteric discover (E)** opens **rational** knowledge (communicable, citable) — what you screenshot in walk mode today.
+- **Gnosis** stays **noncommunicable** — the floating forms and realm shift are the content; no text dump replaces them.
+- **Faith** and **experience** get their own progression later (tradition-specific ritual timing, elections, silence thresholds — see astrology section).
 
 **If revived:**
 
-- Badge detail panel by knowledge mode (Rational · Esoteric already hinted in UI).
-- Gate gnosis visuals on experience threshold, not on reading alone.
-- Faith layer: communicable tradition narrative without Wikipedia-style verification.
-- Keep geometric style — gnosis stays non-literal (forms, not faces or stock art).
+- Tag events and stones with primary `knowledgeMode` where useful.
+- UI affordances per mode (panel vs practice vs realm-only).
+- Phase 10 tradition modules define accurate unlock rules per stream (Hermetic vs Gnostic vs Kabbalah differ).
 
 ---
 
@@ -152,4 +156,4 @@ Epistemology grid (communicability × verifiability):
 | 2026-06-24 | Keep geometric style; no explicit in-app videos. Generated/embedded video, voices, music, rich graphics → this backburner list. Phase 6 code remains but is not the near-term focus. |
 | 2026-06-24 | **Phase 7 shipped:** Vitest unit tests, Playwright smoke vs production, realm transition coordinator, UI polish (era hints, export de-emphasized), richer esoteric copy on five walk stones. E2E validates deploy URL; preview URL for PR gates later. |
 | 2026-06-24 | **Astrology / correspondence sky** → Phase 8 material heavens first, then interpretive astrological lens after spiritual practice (Phase 8b/10), with per-tradition ritual gates in Phase 10 — not a universal zodiac requirement. |
-| 2026-06-24 | **Four paths of knowledge** (rational / faith / experience / gnosis) → Phase 9–10 unlock design; E=rational, Q=experience, spiritual forms=gnosis today. |
+| 2026-06-24 | **Four modes of knowledge** (rational / faith / experience / gnosis) → distinct unlock paths; E = rational esoteric text; Q + spiritual realm = experience → gnosis (floating forms). Documented for Phase 9+ before implementation. |

@@ -31,8 +31,6 @@ export interface EffectiveTimeWindow extends SpatialTimeWindow {
   viewMaxLog: number;
   viewMinSeconds: number;
   viewMaxSeconds: number;
-  viewLabelMin: string;
-  viewLabelMax: string;
 }
 
 const DOMAIN_DEFAULT_BAND: Record<HistoryDomain, string> = {
@@ -158,17 +156,12 @@ export function computeEffectiveTimeWindow(
     viewMaxLog = Math.min(bandWindow.maxLog, viewMaxLog);
   }
 
-  const viewMinSeconds = clampSimTime(Math.pow(10, viewMinLog));
-  const viewMaxSeconds = clampSimTime(Math.pow(10, viewMaxLog));
-
   return {
     ...bandWindow,
     viewMinLog,
     viewMaxLog,
-    viewMinSeconds,
-    viewMaxSeconds,
-    viewLabelMin: formatSimTimeShort(viewMinSeconds),
-    viewLabelMax: formatSimTimeShort(viewMaxSeconds),
+    viewMinSeconds: clampSimTime(Math.pow(10, viewMinLog)),
+    viewMaxSeconds: clampSimTime(Math.pow(10, viewMaxLog)),
   };
 }
 

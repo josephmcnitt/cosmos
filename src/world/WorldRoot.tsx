@@ -1,6 +1,6 @@
 import { useMemo, type ComponentType } from 'react';
 import * as THREE from 'three';
-import { getBandOpacity, getBandVisualScale, SPATIAL_BANDS } from '../core/ScaleSpace';
+import { getBandOpacity, SPATIAL_BANDS } from '../core/ScaleSpace';
 import { useObserverStore } from '../core/ObserverState';
 
 function UniverseBand({ opacity }: { opacity: number }) {
@@ -206,13 +206,7 @@ export function WorldRoot() {
         const Component = BAND_COMPONENTS[band.id];
         if (!Component) return null;
         const opacity = getBandOpacity(band, spatialExponent);
-        if (opacity <= 0.01) return null;
-        const scale = getBandVisualScale(band, spatialExponent);
-        return (
-          <group key={band.id} scale={[scale, scale, scale]}>
-            <Component opacity={opacity} />
-          </group>
-        );
+        return <Component key={band.id} opacity={opacity} />;
       })}
     </>
   );

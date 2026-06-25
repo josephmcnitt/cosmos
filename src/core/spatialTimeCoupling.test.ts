@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { UNIVERSE_AGE_SECONDS } from './TimeSpace';
 import {
-  computeEffectiveTimeWindow,
   eventBelongsToSpatialBand,
   isHumanSpatialBand,
   isInHumanEra,
+  computeEffectiveTimeWindow,
 } from './spatialTimeCoupling';
-import { TEMPORAL_MAX } from './TimeSpace';
+import { TEMPORAL_MAX, UNIVERSE_AGE_SECONDS } from './TimeSpace';
 
 describe('isInHumanEra', () => {
   it('is true at present', () => {
@@ -36,14 +36,12 @@ describe('eventBelongsToSpatialBand', () => {
   });
 });
 
-describe('computeEffectiveTimeWindow view labels', () => {
+describe('computeEffectiveTimeWindow', () => {
   it('narrows view labels when temporal zoom increases', () => {
-    const wide = computeEffectiveTimeWindow(25, UNIVERSE_AGE_SECONDS, 0);
-    const narrow = computeEffectiveTimeWindow(25, UNIVERSE_AGE_SECONDS, TEMPORAL_MAX * 0.8);
-
-    expect(wide.viewLabelMin).not.toBe(narrow.viewLabelMin);
-    expect(wide.viewMaxSeconds - wide.viewMinSeconds).toBeGreaterThan(
-      narrow.viewMaxSeconds - narrow.viewMinSeconds,
+    const wide = computeEffectiveTimeWindow(25, UNIVERSE_AGE_SECONDS * 0.5, 0);
+    const narrow = computeEffectiveTimeWindow(25, UNIVERSE_AGE_SECONDS * 0.5, TEMPORAL_MAX);
+    expect(narrow.viewMaxSeconds - narrow.viewMinSeconds).toBeLessThan(
+      wide.viewMaxSeconds - wide.viewMinSeconds,
     );
   });
 });

@@ -5,13 +5,13 @@ import {
   EMBODIED_CAMERA_MAX,
   EMBODIED_CAMERA_MIN,
   EMBODIED_ENTER_EXPONENT,
-  EMBODIED_EXIT_EXPONENT,
   getEmbodimentContext,
   prepareEmbodiedDiscovery,
   resetEmbodiedPractice,
   shouldEnterEmbodied,
   shouldExitEmbodiedFromSpatial,
   shouldExitEmbodiedFromTime,
+  spatialExponentAfterExitEmbodied,
 } from './embodiment';
 import {
   clampSimTimeToSpatialBand,
@@ -113,14 +113,10 @@ function applyEmbodimentAfterUpdate(
   if (shouldExitEmbodiedFromTime(merged) || shouldExitEmbodiedFromSpatial(merged)) {
     if (merged.mode === 'embodied') {
       resetEmbodiedPractice();
-      const belowWalk =
-        merged.preEmbodimentExponent >= EMBODIED_ENTER_EXPONENT
-          ? EMBODIED_EXIT_EXPONENT - 0.15
-          : merged.preEmbodimentExponent;
       return {
         ...partial,
         mode: 'cosmic',
-        spatialExponent: belowWalk,
+        spatialExponent: spatialExponentAfterExitEmbodied(merged.preEmbodimentExponent),
         embodimentTransition: 'exiting',
       };
     }
@@ -262,13 +258,9 @@ export const useObserverStore = create<ObserverState & ObserverActions>((set, ge
     const state = get();
     if (state.mode !== 'embodied') return;
     resetEmbodiedPractice();
-    const belowWalk =
-      state.preEmbodimentExponent >= EMBODIED_ENTER_EXPONENT
-        ? EMBODIED_EXIT_EXPONENT - 0.15
-        : state.preEmbodimentExponent;
     set({
       mode: 'cosmic',
-      spatialExponent: belowWalk,
+      spatialExponent: spatialExponentAfterExitEmbodied(state.preEmbodimentExponent),
       embodimentTransition: 'exiting',
     });
   },

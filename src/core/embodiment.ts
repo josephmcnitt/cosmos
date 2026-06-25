@@ -80,6 +80,14 @@ export function isEmbodiedMode(mode: ObserverMode): boolean {
   return mode === 'embodied';
 }
 
+/** Spatial exponent after leaving walk — must stay below enter threshold to avoid re-entry. */
+export function spatialExponentAfterExitEmbodied(preEmbodimentExponent: number): number {
+  if (preEmbodimentExponent < EMBODIED_ENTER_EXPONENT) {
+    return preEmbodimentExponent;
+  }
+  return EMBODIED_EXIT_EXPONENT - 0.25;
+}
+
 /** Clears session practice / realm state when leaving walk mode. */
 export function resetEmbodiedPractice(): void {
   usePracticeStore.getState().resetPractice();

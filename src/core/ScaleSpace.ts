@@ -71,24 +71,3 @@ export function getBandOpacity(band: ScaleBand, exponent: number): number {
 export function getDominantSpatialBand(exponent: number): ScaleBand {
   return getSpatialBand(exponent);
 }
-
-/** Characteristic scene radius per band (scene units, not meters). */
-const BAND_BASE_RADIUS: Record<string, number> = {
-  universe: 140,
-  galaxy: 20,
-  stellar: 4,
-  planetary: 2.5,
-  terrestrial: 20,
-  human: 1,
-};
-
-/** Scale dominant band geometry so it fills the view at intermediate zoom levels. */
-export function getBandVisualScale(band: ScaleBand, exponent: number): number {
-  const opacity = getBandOpacity(band, exponent);
-  if (opacity < 0.08) return 1;
-
-  const distance = sceneDistanceFromExponent(exponent);
-  const base = BAND_BASE_RADIUS[band.id] ?? 10;
-  const fill = 0.45 + opacity * 0.35;
-  return Math.max(1, (distance * fill * 2.2) / base);
-}

@@ -193,19 +193,27 @@ const BAND_COMPONENTS: Record<string, ComponentType<{ opacity: number }>> = {
   human: HumanBand,
 };
 
-export function WorldRoot() {
+export interface HeavenModifiers {
+  bandScale?: Partial<Record<string, number>>;
+  ambientScale?: number;
+}
+
+export function WorldRoot({ modifiers }: { modifiers?: HeavenModifiers }) {
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
+  const ambientIntensity = modifiers?.ambientScale ?? 0.35;
 
   return (
     <>
-      <ambientLight intensity={0.35} />
+      <ambientLight intensity={ambientIntensity} />
       <directionalLight position={[10, 20, 10]} intensity={1.2} />
       <directionalLight position={[-8, 5, -6]} intensity={0.3} color="#6688ff" />
 
       {SPATIAL_BANDS.map((band) => {
         const Component = BAND_COMPONENTS[band.id];
         if (!Component) return null;
-        const opacity = getBandOpacity(band, spatialExponent);
+        const base = getBandOpacity(band, spatialExponent);
+        const scale = modifiers?.bandScale?.[band.id] ?? 1;
+        const opacity = base * scale;
         return <Component key={band.id} opacity={opacity} />;
       })}
     </>

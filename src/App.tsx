@@ -25,6 +25,7 @@ import { HistoryKeyboard } from './ui/HistoryKeyboard';
 import { IntroOverlay } from './ui/IntroOverlay';
 import { ScaleHUD, TimelineLabel } from './ui/ScaleHUD';
 import { TimeControls } from './ui/TimeControls';
+import { HeavenPhaseIndicator } from './ui/HeavenPhaseIndicator';
 import { ZoomControls } from './ui/ZoomControls';
 import { BigBangEffect } from './world/BigBangEffect';
 import { DebugGrid } from './world/DebugGrid';
@@ -33,7 +34,7 @@ import { LiminalEffects } from './world/LiminalEffects';
 import { SpiritualRealm } from './world/SpiritualRealm';
 import { HistoryMarkers } from './world/HistoryMarkers';
 import { PlayerAvatar } from './world/PlayerAvatar';
-import { WorldRoot } from './world/WorldRoot';
+import { MaterialHeavens } from './world/MaterialHeavens';
 import { onRangeInputWheel } from './ui/rangeInputWheelGuard';
 
 function Scene() {
@@ -65,7 +66,7 @@ function Scene() {
       ) : (
         showWorld && (
           <>
-            <WorldRoot />
+            <MaterialHeavens />
             <HistoryMarkers />
           </>
         )
@@ -159,6 +160,7 @@ export default function App() {
 
       {introComplete && (
         <div className={`ui-overlay${isFlying ? ' ui-overlay--flying' : ''}`}>
+          <HeavenPhaseIndicator />
           <HistoryKeyboard />
           <EmbodimentBanner />
           <div className="ui-sidebar-left">

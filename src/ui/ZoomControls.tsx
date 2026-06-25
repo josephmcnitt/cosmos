@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useIntroStore } from '../core/IntroState';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
-import { computeEffectiveTimeWindow, isEffectiveWindowNarrowed } from '../core/spatialTimeCoupling';
+import { computeEffectiveTimeWindow, isEffectiveWindowNarrowed, storedTimeWindowOptions } from '../core/spatialTimeCoupling';
 import { handleWheelZoomEvent } from '../core/wheelZoom';
 
 export function ZoomControls() {
@@ -35,9 +35,7 @@ export function ZoomControls() {
           observer.spatialExponent,
           observer.simTimeSeconds,
           observer.temporalExponent,
-          observer.timeViewAnchorLog != null
-            ? { viewCenterLog: observer.timeViewAnchorLog }
-            : undefined,
+          storedTimeWindowOptions(observer.timeViewMinLog, observer.timeViewMaxLog),
         );
         if (isEffectiveWindowNarrowed(window)) {
           const viewSpan = window.viewMaxLog - window.viewMinLog;

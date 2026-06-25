@@ -3,7 +3,7 @@ import { getAdjacentTimelineEvent, getVisibleTimelineEvents } from '../data/hist
 import { flyToEvent } from '../core/flyToEvent';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
-import { computeEffectiveTimeWindow } from '../core/spatialTimeCoupling';
+import { computeEffectiveTimeWindow, storedTimeWindowOptions } from '../core/spatialTimeCoupling';
 import { useIntroActive } from '../core/IntroSkipHandler';
 
 export function HistoryKeyboard() {
@@ -28,9 +28,7 @@ export function HistoryKeyboard() {
           observer.spatialExponent,
           observer.simTimeSeconds,
           observer.temporalExponent,
-          observer.timeViewAnchorLog != null
-            ? { viewCenterLog: observer.timeViewAnchorLog }
-            : undefined,
+          storedTimeWindowOptions(observer.timeViewMinLog, observer.timeViewMaxLog),
         );
 
         const navOptions = {

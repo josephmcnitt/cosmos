@@ -8,6 +8,7 @@ import {
   isEffectiveWindowNarrowed,
   isHumanSpatialBand,
   normalizedFromSimTimeWindow,
+  storedTimeWindowOptions,
 } from '../core/spatialTimeCoupling';
 import {
   TEMPORAL_MAX,
@@ -29,7 +30,8 @@ export function TimeControls() {
   const setPlaybackRate = useObserverStore((s) => s.setPlaybackRate);
   const togglePlayback = useObserverStore((s) => s.togglePlayback);
   const temporalExponent = useObserverStore((s) => s.temporalExponent);
-  const timeViewAnchorLog = useObserverStore((s) => s.timeViewAnchorLog);
+  const timeViewMinLog = useObserverStore((s) => s.timeViewMinLog);
+  const timeViewMaxLog = useObserverStore((s) => s.timeViewMaxLog);
   const simTimeSeconds = useObserverStore((s) => s.simTimeSeconds);
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
   const setTemporalExponent = useObserverStore((s) => s.setTemporalExponent);
@@ -42,7 +44,7 @@ export function TimeControls() {
     spatialExponent,
     simTimeSeconds,
     temporalExponent,
-    timeViewAnchorLog != null ? { viewCenterLog: timeViewAnchorLog } : undefined,
+    storedTimeWindowOptions(timeViewMinLog, timeViewMaxLog),
   );
 
   const normalized = normalizedFromSimTimeWindow(simTimeSeconds, timeWindow);

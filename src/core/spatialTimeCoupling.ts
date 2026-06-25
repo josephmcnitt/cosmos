@@ -116,8 +116,56 @@ export function computeSpatialTimeWindow(spatialExponent: number): SpatialTimeWi
 }
 
 export interface TimeWindowOptions {
-  /** When narrowed, keep the window centered here instead of on simTime. */
-  viewCenterLog?: number | null;
+  /** When narrowed, use these fixed log bounds (scrub/pan). */
+  viewMinLog?: number | null;
+  viewMaxLog?: number | null;
+}
+
+export function storedTimeWindowOptions(
+  timeViewMinLog: number | null,
+  timeViewMaxLog: number | null,
+): TimeWindowOptions | undefined {
+  if (timeViewMinLog != null && timeViewMaxLog != null) {
+    return { viewMinLog: timeViewMinLog, viewMaxLog: timeViewMaxLog };
+  }
+  return undefined;
+}
+
+function layoutTimeViewBounds(
+  playheadLog: number,
+  fraction: number,
+  viewSpan: number,
+  bandWindow: Pick<SpatialTimeWindow, 'minLog' | 'maxLog'>,
+): { viewMinLog: number; viewMaxLog: number } {
+  const f = Math.max(0, Math.min(1, fraction));
+  let viewMinLog = playheadLog - f * viewSpan;
+  let viewMaxLog = playheadLog + (1 - f) * viewSpan;
+
+  if (viewMinLog < bandWindow.minLog) {
+    const shift = bandWindow.minLog - viewMinLog;
+    viewMinLog += shift;
+    viewMaxLog += shift;
+  }
+  if (viewMaxLog > bandWindow.maxLog) {
+    const shift = viewMaxLog - bandWindow.maxLog;
+    viewMinLog -= shift;
+    viewMaxLog -= shift;
+  }
+
+  viewMinLog = Math.max(bandWindow.minLog, viewMinLog);
+  viewMaxLog = Math.min(bandWindow.maxLog, viewMaxLog);
+  return { viewMinLog, viewMaxLog };
+}
+
+export function computeViewLogSpan(
+  spatialExponent: number,
+  temporalExponent: number,
+): number {
+  const bandWindow = computeSpatialTimeWindow(spatialExponent);
+  const bandSpan = bandWindow.maxLog - bandWindow.minLog;
+  const t = Math.max(0, Math.min(1, temporalExponent / TEMPORAL_MAX));
+  const zoom = 1 - Math.pow(1 - t, 2);
+  return Math.max(MIN_VIEW_LOG_SPAN, bandSpan * (1 - zoom));
 }
 
 /**
@@ -132,38 +180,50 @@ export function computeEffectiveTimeWindow(
 ): EffectiveTimeWindow {
   const bandWindow = computeSpatialTimeWindow(spatialExponent);
   const bandSpan = bandWindow.maxLog - bandWindow.minLog;
-  const t = Math.max(0, Math.min(1, temporalExponent / TEMPORAL_MAX));
-  // Ease-in: more narrowing in the second half of the time-zoom slider.
-  const zoom = 1 - Math.pow(1 - t, 2);
-  const viewSpan = Math.max(
-    MIN_VIEW_LOG_SPAN,
-    bandSpan * (1 - zoom),
-  );
+  const viewSpan = computeViewLogSpan(spatialExponent, temporalExponent);
 
   const playheadLog = Math.log10(Math.max(simTimeSeconds, 1));
   const narrowed = viewSpan < bandSpan * 0.95;
-  const anchoredCenter =
-    narrowed && options?.viewCenterLog != null ? options.viewCenterLog : playheadLog;
-  const centerLog = Math.max(
-    bandWindow.minLog,
-    Math.min(bandWindow.maxLog, anchoredCenter),
-  );
 
-  let viewMinLog = centerLog - viewSpan / 2;
-  let viewMaxLog = centerLog + viewSpan / 2;
+  let viewMinLog: number;
+  let viewMaxLog: number;
 
-  if (viewMaxLog - viewMinLog >= bandSpan) {
-    viewMinLog = bandWindow.minLog;
-    viewMaxLog = bandWindow.maxLog;
+  if (
+    narrowed &&
+    options?.viewMinLog != null &&
+    options?.viewMaxLog != null
+  ) {
+    viewMinLog = options.viewMinLog;
+    viewMaxLog = options.viewMaxLog;
+  } else if (narrowed) {
+    ({ viewMinLog, viewMaxLog } = layoutTimeViewBounds(
+      playheadLog,
+      0.5,
+      viewSpan,
+      bandWindow,
+    ));
   } else {
-    if (viewMinLog < bandWindow.minLog) {
-      viewMaxLog += bandWindow.minLog - viewMinLog;
+    viewMinLog = playheadLog - viewSpan / 2;
+    viewMaxLog = playheadLog + viewSpan / 2;
+  }
+
+  if (!narrowed || options?.viewMinLog == null) {
+    if (viewMaxLog - viewMinLog >= bandSpan) {
       viewMinLog = bandWindow.minLog;
-    }
-    if (viewMaxLog > bandWindow.maxLog) {
-      viewMinLog -= viewMaxLog - bandWindow.maxLog;
       viewMaxLog = bandWindow.maxLog;
+    } else {
+      if (viewMinLog < bandWindow.minLog) {
+        viewMaxLog += bandWindow.minLog - viewMinLog;
+        viewMinLog = bandWindow.minLog;
+      }
+      if (viewMaxLog > bandWindow.maxLog) {
+        viewMinLog -= viewMaxLog - bandWindow.maxLog;
+        viewMaxLog = bandWindow.maxLog;
+      }
+      viewMinLog = Math.max(bandWindow.minLog, viewMinLog);
+      viewMaxLog = Math.min(bandWindow.maxLog, viewMaxLog);
     }
+  } else {
     viewMinLog = Math.max(bandWindow.minLog, viewMinLog);
     viewMaxLog = Math.min(bandWindow.maxLog, viewMaxLog);
   }
@@ -230,22 +290,60 @@ export function isEffectiveWindowNarrowed(
   return viewSpan < fullSpan * 0.95;
 }
 
-/** Log center for a narrowed window — playhead log when not yet anchored. */
-export function defaultTimeViewAnchorLog(simTimeSeconds: number): number {
+/** Log10 playhead position for time-window layout. */
+export function playheadLogFromSimTime(simTimeSeconds: number): number {
   return Math.log10(Math.max(simTimeSeconds, 1));
 }
 
-/** Clamp a log anchor so a window of viewSpan fits inside the spatial band. */
-export function clampTimeViewAnchorLog(
-  anchorLog: number,
-  bandWindow: Pick<SpatialTimeWindow, 'minLog' | 'maxLog'>,
-  viewSpan: number,
-): number {
-  const half = viewSpan / 2;
-  const minCenter = bandWindow.minLog + half;
-  const maxCenter = bandWindow.maxLog - half;
-  if (minCenter > maxCenter) {
-    return (bandWindow.minLog + bandWindow.maxLog) / 2;
+/** Recompute narrowed view bounds zooming around the playhead. */
+export function recomputeTimeViewBounds(
+  spatialExponent: number,
+  simTimeSeconds: number,
+  temporalExponent: number,
+  priorWindow?: Pick<EffectiveTimeWindow, 'viewMinLog' | 'viewMaxLog' | 'minLog' | 'maxLog'>,
+): { viewMinLog: number; viewMaxLog: number } | null {
+  const bandWindow = computeSpatialTimeWindow(spatialExponent);
+  const bandSpan = bandWindow.maxLog - bandWindow.minLog;
+  const viewSpan = computeViewLogSpan(spatialExponent, temporalExponent);
+  if (viewSpan >= bandSpan * 0.95) return null;
+
+  const playheadLog = playheadLogFromSimTime(simTimeSeconds);
+  let fraction = 0.5;
+  if (priorWindow && isEffectiveWindowNarrowed(priorWindow)) {
+    fraction = normalizedFromSimTimeWindow(simTimeSeconds, priorWindow as EffectiveTimeWindow);
+  } else {
+    const wideWindow = computeEffectiveTimeWindow(
+      spatialExponent,
+      simTimeSeconds,
+      temporalExponent,
+    );
+    fraction = normalizedFromSimTimeWindow(simTimeSeconds, wideWindow);
   }
-  return Math.max(minCenter, Math.min(maxCenter, anchorLog));
+
+  return layoutTimeViewBounds(playheadLog, fraction, viewSpan, bandWindow);
+}
+
+/** Translate stored view bounds for panning, clamped to the spatial band. */
+export function translateTimeViewBounds(
+  viewMinLog: number,
+  viewMaxLog: number,
+  deltaLog: number,
+  bandWindow: Pick<SpatialTimeWindow, 'minLog' | 'maxLog'>,
+): { viewMinLog: number; viewMaxLog: number } {
+  let nextMin = viewMinLog + deltaLog;
+  let nextMax = viewMaxLog + deltaLog;
+  if (nextMin < bandWindow.minLog) {
+    const shift = bandWindow.minLog - nextMin;
+    nextMin += shift;
+    nextMax += shift;
+  }
+  if (nextMax > bandWindow.maxLog) {
+    const shift = nextMax - bandWindow.maxLog;
+    nextMin -= shift;
+    nextMax -= shift;
+  }
+  return {
+    viewMinLog: Math.max(bandWindow.minLog, nextMin),
+    viewMaxLog: Math.min(bandWindow.maxLog, nextMax),
+  };
 }

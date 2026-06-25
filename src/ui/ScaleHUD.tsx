@@ -9,6 +9,7 @@ import {
   isEffectiveWindowNarrowed,
   isHumanSpatialBand,
   isInHumanEra,
+  storedTimeWindowOptions,
 } from '../core/spatialTimeCoupling';
 import { usePracticeStore } from '../core/PracticeState';
 
@@ -17,7 +18,8 @@ export function ScaleHUD() {
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
   const simTimeSeconds = useObserverStore((s) => s.simTimeSeconds);
   const temporalExponent = useObserverStore((s) => s.temporalExponent);
-  const timeViewAnchorLog = useObserverStore((s) => s.timeViewAnchorLog);
+  const timeViewMinLog = useObserverStore((s) => s.timeViewMinLog);
+  const timeViewMaxLog = useObserverStore((s) => s.timeViewMaxLog);
   const playbackRate = useObserverStore((s) => s.playbackRate);
   const showDebugGrid = useObserverStore((s) => s.showDebugGrid);
   const historyTrack = useHistoryStore((s) => s.historyTrack);
@@ -52,7 +54,7 @@ export function ScaleHUD() {
     spatialExponent,
     simTimeSeconds,
     temporalExponent,
-    timeViewAnchorLog != null ? { viewCenterLog: timeViewAnchorLog } : undefined,
+    storedTimeWindowOptions(timeViewMinLog, timeViewMaxLog),
   );
   const viewLogSpan = timeWindow.viewMaxLog - timeWindow.viewMinLog;
   const fullLogSpan = bandLogSpan(timeWindow);

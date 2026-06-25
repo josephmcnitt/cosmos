@@ -5,6 +5,7 @@ import {
   eventBelongsToSpatialBand,
   isHumanSpatialBand,
   isInHumanEra,
+  recomputeTimeViewBounds,
 } from './spatialTimeCoupling';
 
 describe('isInHumanEra', () => {
@@ -52,15 +53,33 @@ describe('computeEffectiveTimeWindow', () => {
     expect(highSpan).toBeLessThan(midSpan);
   });
 
-  it('keeps window edges stable when simTime moves inside a anchored view', () => {
-    const anchorLog = 3;
-    const early = computeEffectiveTimeWindow(25, 100, TEMPORAL_MAX / 2, {
-      viewCenterLog: anchorLog,
-    });
-    const later = computeEffectiveTimeWindow(25, 500, TEMPORAL_MAX / 2, {
-      viewCenterLog: anchorLog,
-    });
+  it('keeps window edges stable when simTime moves inside stored bounds', () => {
+    const bounds = { viewMinLog: 2, viewMaxLog: 4 };
+    const early = computeEffectiveTimeWindow(25, 100, TEMPORAL_MAX / 2, bounds);
+    const later = computeEffectiveTimeWindow(25, 500, TEMPORAL_MAX / 2, bounds);
     expect(later.viewMinLog).toBeCloseTo(early.viewMinLog, 5);
     expect(later.viewMaxLog).toBeCloseTo(early.viewMaxLog, 5);
+  });
+
+  it('keeps playhead at the right edge when zooming in further', () => {
+    const playhead = 1197;
+    const playheadLog = Math.log10(playhead);
+    const wide = computeEffectiveTimeWindow(25, playhead, TEMPORAL_MAX * 0.5);
+    const span = wide.viewMaxLog - wide.viewMinLog;
+    const priorAtRightEdge = {
+      ...wide,
+      viewMinLog: playheadLog - span,
+      viewMaxLog: playheadLog,
+    };
+
+    const narrowBounds = recomputeTimeViewBounds(
+      25,
+      playhead,
+      TEMPORAL_MAX * 0.85,
+      priorAtRightEdge,
+    );
+    expect(narrowBounds).not.toBeNull();
+    expect(narrowBounds!.viewMaxLog).toBeCloseTo(playheadLog, 2);
+    expect(narrowBounds!.viewMaxLog - narrowBounds!.viewMinLog).toBeLessThan(span);
   });
 });

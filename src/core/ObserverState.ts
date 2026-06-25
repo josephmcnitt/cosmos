@@ -15,15 +15,15 @@ import {
 } from './embodiment';
 import {
   clampSimTimeToSpatialBand,
-  clampTimeViewAnchorLog,
   computeEffectiveTimeWindow,
   computeSpatialTimeWindow,
-  defaultTimeViewAnchorLog,
   isEffectiveWindowNarrowed,
   isInHumanEra,
   isHumanSpatialBand,
+  recomputeTimeViewBounds,
   simTimeFromWindowNormalized,
   normalizedFromSimTimeWindow,
+  translateTimeViewBounds,
 } from './spatialTimeCoupling';
 import { clampSpatialExponent, getDominantSpatialBand, getSpatialBand } from './ScaleSpace';
 import {
@@ -42,8 +42,9 @@ export interface ObserverState {
   focusPoint: Vector3;
   temporalExponent: number;
   simTimeSeconds: number;
-  /** Log10 center for narrowed time window; null when zoomed out. */
-  timeViewAnchorLog: number | null;
+  /** Fixed log bounds for narrowed time window; null when zoomed out. */
+  timeViewMinLog: number | null;
+  timeViewMaxLog: number | null;
   playbackRate: number;
   mode: ObserverMode;
   showDebugGrid: boolean;
@@ -146,20 +147,45 @@ function applyEmbodimentAfterUpdate(
   return partial;
 }
 
-function resolveTimeViewAnchorLog(
-  spatialExponent: number,
-  simTimeSeconds: number,
-  temporalExponent: number,
-): number | null {
-  const window = computeEffectiveTimeWindow(spatialExponent, simTimeSeconds, temporalExponent);
-  if (!isEffectiveWindowNarrowed(window)) return null;
-  return defaultTimeViewAnchorLog(simTimeSeconds);
+function resolveTimeViewBounds(
+  state: Pick<
+    ObserverState,
+    'spatialExponent' | 'simTimeSeconds' | 'temporalExponent' | 'timeViewMinLog' | 'timeViewMaxLog'
+  >,
+  nextTemporal: number,
+): { viewMinLog: number | null; viewMaxLog: number | null } {
+  const priorWindow =
+    state.timeViewMinLog != null && state.timeViewMaxLog != null
+      ? computeEffectiveTimeWindow(
+          state.spatialExponent,
+          state.simTimeSeconds,
+          state.temporalExponent,
+          { viewMinLog: state.timeViewMinLog, viewMaxLog: state.timeViewMaxLog },
+        )
+      : computeEffectiveTimeWindow(
+          state.spatialExponent,
+          state.simTimeSeconds,
+          state.temporalExponent,
+        );
+
+  const bounds = recomputeTimeViewBounds(
+    state.spatialExponent,
+    state.simTimeSeconds,
+    nextTemporal,
+    priorWindow,
+  );
+
+  if (!bounds) return { viewMinLog: null, viewMaxLog: null };
+  return { viewMinLog: bounds.viewMinLog, viewMaxLog: bounds.viewMaxLog };
 }
 
-function timeWindowOptions(state: Pick<ObserverState, 'timeViewAnchorLog'>) {
-  return state.timeViewAnchorLog != null
-    ? { viewCenterLog: state.timeViewAnchorLog }
-    : undefined;
+function timeWindowOptions(
+  state: Pick<ObserverState, 'timeViewMinLog' | 'timeViewMaxLog'>,
+) {
+  if (state.timeViewMinLog != null && state.timeViewMaxLog != null) {
+    return { viewMinLog: state.timeViewMinLog, viewMaxLog: state.timeViewMaxLog };
+  }
+  return undefined;
 }
 
 export const useObserverStore = create<ObserverState & ObserverActions>((set, get) => ({
@@ -167,7 +193,8 @@ export const useObserverStore = create<ObserverState & ObserverActions>((set, ge
   focusPoint: DEFAULT_FOCUS.clone(),
   temporalExponent: 0,
   simTimeSeconds: UNIVERSE_AGE_SECONDS,
-  timeViewAnchorLog: null,
+  timeViewMinLog: null,
+  timeViewMaxLog: null,
   playbackRate: 0,
   mode: 'cosmic',
   showDebugGrid: false,
@@ -207,31 +234,29 @@ export const useObserverStore = create<ObserverState & ObserverActions>((set, ge
   setTemporalExponent: (exponent) => {
     const state = get();
     const next = clampTemporalExponent(exponent);
+    const bounds = resolveTimeViewBounds(state, next);
     set({
       temporalExponent: next,
-      timeViewAnchorLog: resolveTimeViewAnchorLog(
-        state.spatialExponent,
-        state.simTimeSeconds,
-        next,
-      ),
+      timeViewMinLog: bounds.viewMinLog,
+      timeViewMaxLog: bounds.viewMaxLog,
     });
   },
 
   adjustTemporalExponent: (delta) => {
     const state = get();
     const next = clampTemporalExponent(state.temporalExponent + delta);
+    const bounds = resolveTimeViewBounds(state, next);
     set({
       temporalExponent: next,
-      timeViewAnchorLog: resolveTimeViewAnchorLog(
-        state.spatialExponent,
-        state.simTimeSeconds,
-        next,
-      ),
+      timeViewMinLog: bounds.viewMinLog,
+      timeViewMaxLog: bounds.viewMaxLog,
     });
   },
 
   panTimeViewAnchor: (deltaLog) => {
     const state = get();
+    if (state.timeViewMinLog == null || state.timeViewMaxLog == null) return;
+
     const bandWindow = computeSpatialTimeWindow(state.spatialExponent);
     const window = computeEffectiveTimeWindow(
       state.spatialExponent,
@@ -241,11 +266,13 @@ export const useObserverStore = create<ObserverState & ObserverActions>((set, ge
     );
     if (!isEffectiveWindowNarrowed(window)) return;
 
-    const viewSpan = window.viewMaxLog - window.viewMinLog;
-    const current =
-      state.timeViewAnchorLog ?? defaultTimeViewAnchorLog(state.simTimeSeconds);
-    const next = clampTimeViewAnchorLog(current + deltaLog, bandWindow, viewSpan);
-    set({ timeViewAnchorLog: next });
+    const next = translateTimeViewBounds(
+      state.timeViewMinLog,
+      state.timeViewMaxLog,
+      deltaLog,
+      bandWindow,
+    );
+    set({ timeViewMinLog: next.viewMinLog, timeViewMaxLog: next.viewMaxLog });
   },
 
   setSimTime: (seconds) => {
@@ -398,7 +425,8 @@ export function getInitialObserverState(): ObserverState {
     focusPoint: DEFAULT_FOCUS.clone(),
     temporalExponent: 0,
     simTimeSeconds: clampSimTime(UNIVERSE_AGE_SECONDS),
-    timeViewAnchorLog: null,
+    timeViewMinLog: null,
+    timeViewMaxLog: null,
     playbackRate: 0,
     mode: 'cosmic',
     showDebugGrid: false,

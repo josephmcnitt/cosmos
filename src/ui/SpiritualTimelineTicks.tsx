@@ -1,5 +1,6 @@
 import {
   computeEffectiveTimeWindow,
+  storedTimeWindowOptions,
   tickPositionInWindow,
 } from '../core/spatialTimeCoupling';
 import { getSpiritualEventsInWindow } from '../data/spiritual/index';
@@ -32,13 +33,14 @@ export function SpiritualTimelineTicks() {
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
   const simTimeSeconds = useObserverStore((s) => s.simTimeSeconds);
   const temporalExponent = useObserverStore((s) => s.temporalExponent);
-  const timeViewAnchorLog = useObserverStore((s) => s.timeViewAnchorLog);
+  const timeViewMinLog = useObserverStore((s) => s.timeViewMinLog);
+  const timeViewMaxLog = useObserverStore((s) => s.timeViewMaxLog);
 
   const timeWindow = computeEffectiveTimeWindow(
     spatialExponent,
     simTimeSeconds,
     temporalExponent,
-    timeViewAnchorLog != null ? { viewCenterLog: timeViewAnchorLog } : undefined,
+    storedTimeWindowOptions(timeViewMinLog, timeViewMaxLog),
   );
 
   const events = getSpiritualEventsInWindow(

@@ -46,12 +46,12 @@ export function EmbodiedPrompt() {
   if (!event) return null;
 
   return (
-    <div className="embodied-prompt ui-panel">
-      <div className="embodied-prompt-row">
+    <div className="embodied-prompt ui-panel" data-testid="embodied-prompt">
+      <div className="embodied-prompt-row" data-testid="embodied-discover">
         <span className="embodied-prompt-key">E</span>
         <span>Discover: {event.title}</span>
       </div>
-      <div className="embodied-prompt-row embodied-prompt-row--secondary">
+      <div className="embodied-prompt-row embodied-prompt-row--secondary" data-testid="embodied-practice">
         <span className="embodied-prompt-key">Q</span>
         <span>Hold still · hold Q to practice (~12s)</span>
       </div>

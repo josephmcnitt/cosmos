@@ -4,12 +4,14 @@ import { EmbodiedCamera } from './camera/EmbodiedCamera';
 import { LogarithmicCamera } from './camera/LogarithmicCamera';
 import { EmbodimentSync } from './core/EmbodimentSync';
 import { PracticeSync } from './core/PracticeSync';
+import { RealmTransitionSync } from './core/RealmTransitionSync';
+import { useRealmDisplayStore } from './core/RealmDisplayState';
+import { fogDistances } from './core/realmTransition';
 import { IntroSkipHandler, useIntroActive } from './core/IntroSkipHandler';
 import { SimulationLoop } from './core/SimulationLoop';
 import { useIntroStore } from './core/IntroState';
 import { useHistoryStore } from './core/HistoryState';
 import { useObserverStore } from './core/ObserverState';
-import { usePracticeStore } from './core/PracticeState';
 import { SPATIAL_MAX, SPATIAL_MIN } from './core/ScaleSpace';
 import { EmbodiedControls } from './input/EmbodiedControls';
 import { PracticeControls } from './input/PracticeControls';
@@ -36,15 +38,17 @@ import { WorldRoot } from './world/WorldRoot';
 function Scene() {
   const introPhase = useIntroStore((s) => s.phase);
   const mode = useObserverStore((s) => s.mode);
-  const realmPhase = usePracticeStore((s) => s.realmPhase);
+  const liminalWeight = useRealmDisplayStore((s) => s.liminalWeight);
+  const spiritualWeight = useRealmDisplayStore((s) => s.spiritualWeight);
   const showWorld = introPhase === 'expansion' || introPhase === 'reveal' || introPhase === 'complete';
   const embodied = mode === 'embodied' && showWorld;
-  const showLiminal = embodied && (realmPhase === 'liminal' || realmPhase === 'spiritual');
+  const realmActive = liminalWeight > 0.02 || spiritualWeight > 0.02;
+  const fog = fogDistances(embodied, liminalWeight, spiritualWeight);
 
   return (
     <>
       <color attach="background" args={['#000000']} />
-      <fog attach="fog" args={['#030508', embodied ? 15 : 80, embodied ? 55 : 350]} />
+      <fog attach="fog" args={['#030508', fog.near, fog.far]} />
       <ambientLight intensity={embodied ? 0.45 : 0.15} />
       {embodied ? <EmbodiedCamera /> : <LogarithmicCamera />}
       <SimulationLoop />
@@ -54,8 +58,8 @@ function Scene() {
           <directionalLight position={[8, 16, 6]} intensity={1.1} castShadow />
           <EmbodiedSite />
           <PlayerAvatar />
-          {showLiminal && <LiminalEffects />}
-          {realmPhase === 'spiritual' && <SpiritualRealm />}
+          {realmActive && <LiminalEffects />}
+          {spiritualWeight > 0.02 && <SpiritualRealm />}
         </>
       ) : (
         showWorld && (
@@ -98,6 +102,7 @@ function SpatialSlider() {
       <label>
         Spatial zoom
         <input
+          data-testid="spatial-slider"
           type="range"
           min={SPATIAL_MIN}
           max={SPATIAL_MAX}
@@ -114,15 +119,14 @@ function SpatialSlider() {
 export default function App() {
   const introComplete = useIntroStore((s) => s.phase === 'complete');
   const isFlying = useHistoryStore((s) => s.isFlying);
-  const realmPhase = usePracticeStore((s) => s.realmPhase);
+  const embodimentOverlay = useRealmDisplayStore((s) => s.embodimentOverlay);
 
   return (
-    <div
-      className={`app${isFlying ? ' app--flying' : ''} app--realm-${realmPhase}`}
-    >
+    <div className={`app${isFlying ? ' app--flying' : ''}`}>
       <IntroSkipHandler />
       <EmbodimentSync />
       <PracticeSync />
+      <RealmTransitionSync />
       <EmbodiedControls />
       <PracticeControls />
       <KeyboardShortcuts />
@@ -142,6 +146,14 @@ export default function App() {
       </Canvas>
 
       <IntroOverlay />
+
+      {embodimentOverlay > 0.01 && (
+        <div
+          className="embodiment-fade-overlay"
+          style={{ opacity: embodimentOverlay }}
+          aria-hidden
+        />
+      )}
 
       {introComplete && (
         <div className={`ui-overlay${isFlying ? ' ui-overlay--flying' : ''}`}>

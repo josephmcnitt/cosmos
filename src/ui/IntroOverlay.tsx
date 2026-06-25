@@ -88,6 +88,7 @@ export function IntroOverlay() {
     <div
       ref={overlayRef}
       className="intro-overlay"
+      data-testid="intro-overlay"
       aria-hidden={phase === 'reveal'}
     >
       {phase === 'void' && (
@@ -98,7 +99,7 @@ export function IntroOverlay() {
       {(phase === 'ignition' || phase === 'expansion') && (
         <div className="intro-caption">From the center of everything…</div>
       )}
-      <div className="intro-skip">Click or press any key to skip</div>
+      <div className="intro-skip" data-testid="intro-skip">Click or press any key to skip</div>
     </div>
   );
 }

@@ -22,3 +22,7 @@ Thumbs.db
 # Env
 .env
 .env.*
+
+# Playwright
+test-results/
+playwright-report/

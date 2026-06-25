@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useObserverStore } from '../core/ObserverState';
+import { EMBODIMENT_TRANSITION_MS } from '../core/realmTransition';
 
 export function EmbodimentBanner() {
   const embodimentTransition = useObserverStore((s) => s.embodimentTransition);
@@ -21,12 +22,16 @@ export function EmbodimentBanner() {
       const t = window.setTimeout(() => {
         useObserverStore.setState({ embodimentTransition: 'none' });
         setVisible(false);
-      }, 800);
+      }, EMBODIMENT_TRANSITION_MS);
       return () => window.clearTimeout(t);
     }
   }, [embodimentTransition]);
 
   if (!visible) return null;
 
-  return <div className="embodiment-banner">{message}</div>;
+  return (
+    <div className="embodiment-banner" data-testid="embodiment-banner">
+      {message}
+    </div>
+  );
 }

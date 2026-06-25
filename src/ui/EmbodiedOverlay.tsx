@@ -9,8 +9,9 @@ export function EmbodiedOverlay() {
   return (
     <div className="embodied-overlay ui-panel">
       <div className="embodied-overlay-hint">
-        <strong>W/S</strong> walk · <strong>A/D</strong> turn · <strong>E</strong> discover ·{' '}
-        <strong>Q</strong> hold to practice · <strong>scroll</strong> zoom out to cosmos
+        <strong>W/S</strong> walk · <strong>A/D</strong> turn only · <strong>E</strong> discover ·{' '}
+        <strong>Q</strong> hold to practice (W/S cancels practice) · <strong>scroll</strong> zoom
+        out to exit walk
       </div>
       <button type="button" className="embodied-exit-btn" onClick={exitEmbodied}>
         Zoom out to cosmos

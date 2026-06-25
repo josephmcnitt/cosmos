@@ -20,11 +20,14 @@ export function DepthOfViewToggle() {
           <button
             key={id}
             type="button"
+            data-testid={`depth-toggle-${id}`}
             className={`depth-toggle-btn${depthOfView === id ? ' active' : ''}${id === 'full' ? ' depth-toggle-btn--full' : ''}`}
             onClick={() => setDepthOfView(id)}
             title={
-              id === 'full' && hiddenCount > 0
-                ? `Reveal ${hiddenCount} esoteric events`
+              id === 'full'
+                ? hiddenCount > 0
+                  ? `Reveal ${hiddenCount} esoteric events — required for walk stones`
+                  : 'Full Depth reveals esoteric events and walk stones'
                 : undefined
             }
           >

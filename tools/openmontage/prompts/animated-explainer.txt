@@ -1,0 +1,14 @@
+Using the OpenMontage Animated Explainer pipeline, produce a {duration}-second video from the attached Cosmos brief.
+
+Requirements:
+- Use Piper TTS for narration (free/local path unless I provide other API keys).
+- Use Remotion image scenes with Ken Burns motion — contemplative pacing.
+- Tone: {tone}. Style playbook: clean_professional.
+{accentLine}
+- Follow all sections in the brief (hook → context → core → links → close).
+- Honor onScreenText and visualHint fields for each section.
+
+Brief file: exports/{briefFilename}
+Topic: {title}
+
+Research the topic briefly for factual accuracy, then render the final MP4.

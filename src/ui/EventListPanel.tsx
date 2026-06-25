@@ -12,6 +12,7 @@ import { useObserverStore } from '../core/ObserverState';
 import {
   computeEffectiveTimeWindow,
   isHumanSpatialBand,
+  isInHumanEra,
 } from '../core/spatialTimeCoupling';
 import { formatSimTimeShort } from '../core/TimeSpace';
 import { HistoryTrackToggle } from './HistoryTrackToggle';
@@ -44,8 +45,12 @@ export function EventListPanel() {
   const simTimeSeconds = useObserverStore((s) => s.simTimeSeconds);
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
   const temporalExponent = useObserverStore((s) => s.temporalExponent);
+  const goToHumanEra = useObserverStore((s) => s.goToHumanEra);
+  const mode = useObserverStore((s) => s.mode);
 
   const atHumanScale = isHumanSpatialBand(spatialExponent);
+  const inHumanEra = isInHumanEra(simTimeSeconds);
+  const epochMismatch = atHumanScale && !inHumanEra && mode !== 'embodied';
   const showSpiritual = historyTrack === 'spiritual';
 
   const timeWindow = computeEffectiveTimeWindow(
@@ -92,6 +97,17 @@ export function EventListPanel() {
             </p>
           ) : (
             <>
+              {epochMismatch && (
+                <button
+                  type="button"
+                  className="event-list-reveal-btn"
+                  data-testid="spiritual-jump-to-present"
+                  onClick={goToHumanEra}
+                >
+                  At human scale but deep time — jump to present to walk →
+                </button>
+              )}
+
               <div className="event-tradition-chips">
                 {TRADITION_OPTIONS.map(({ id, label }) => (
                   <button

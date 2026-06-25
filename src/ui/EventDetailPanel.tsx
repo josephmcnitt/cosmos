@@ -42,7 +42,7 @@ export function EventDetailPanel() {
     nearbyEventId === selectedEventId;
 
   return (
-    <div className="event-detail ui-panel">
+    <div className="event-detail ui-panel" data-testid="event-detail-panel">
       <button
         type="button"
         className="event-detail-close"
@@ -73,6 +73,12 @@ export function EventDetailPanel() {
 
       <h2 className="event-detail-title">{event.title}</h2>
       <p className="event-detail-time">{formatSimTime(event.simTimeSeconds)}</p>
+
+      {isSpiritualEvent(event) && (
+        <p className="event-detail-meta">
+          {TRADITION_LABELS[event.tradition]} · {bandLabel} scale
+        </p>
+      )}
 
       {!atScale && bandLabel && (
         <p className="event-detail-scale-hint">
@@ -122,13 +128,14 @@ export function EventDetailPanel() {
                   key={linked.id}
                   type="button"
                   className={`event-crosslink event-crosslink--spiritual event-crosslink--${linked.tradition}${locked ? ' event-crosslink--locked' : ''}`}
-                  title={locked ? 'Enable Full Depth to view' : undefined}
+                  title={locked ? 'Enable Full Depth (Spiritual track) to open this link' : undefined}
                   onClick={() => {
                     if (locked) return;
                     void flyToEvent(linked);
                   }}
                 >
                   {linked.title}
+                  {locked && ' 🔒'}
                 </button>
               );
             })}
@@ -139,7 +146,8 @@ export function EventDetailPanel() {
       {hiddenEsotericLinks.length > 0 && (
         <p className="event-detail-esoteric-hint">
           {hiddenEsotericLinks.length} esoteric link
-          {hiddenEsotericLinks.length > 1 ? 's' : ''} hidden — enable Full Depth
+          {hiddenEsotericLinks.length > 1 ? 's' : ''} hidden — switch to Spiritual track and enable
+          Full Depth
         </p>
       )}
 

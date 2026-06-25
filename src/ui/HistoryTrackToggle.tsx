@@ -17,9 +17,11 @@ export function HistoryTrackToggle() {
           key={id}
           type="button"
           role="tab"
+          data-testid={`history-track-${id}`}
           aria-selected={historyTrack === id}
           className={`history-track-btn history-track-btn--${id}${historyTrack === id ? ' active' : ''}`}
           onClick={() => setHistoryTrack(id)}
+          title={id === 'spiritual' ? 'Esoteric walk stones need Spiritual + Full Depth' : undefined}
         >
           {label}
         </button>

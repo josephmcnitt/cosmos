@@ -12,7 +12,7 @@ export const ESOTERIC_EVENTS: SpiritualEvent[] = [
     visibility: 'esoteric',
     title: 'Unwritten doctrines',
     summary:
-      'Beyond his published dialogues, Plato is said to have taught oral doctrines on the One and the Indefinite Dyad — seeds of later Neoplatonism.',
+      'Beyond his published dialogues, Plato is said to have taught oral doctrines on the One and the Indefinite Dyad — seeds of later Neoplatonism. At the stone, the question is whether truth lives only in written form.',
     body:
       'Ancient reports (especially from Aristotle and later Neoplatonists) suggest Plato reserved his deepest metaphysical teaching for inner-circle students. Whether these "unwritten doctrines" existed as a systematic esoteric curriculum or as speculative reconstruction remains debated — but they became a foundation for Western esoteric Platonism for two millennia.',
     relatedMaterialIds: ['plato'],
@@ -27,7 +27,7 @@ export const ESOTERIC_EVENTS: SpiritualEvent[] = [
     visibility: 'esoteric',
     title: 'Plotinus — The One',
     summary:
-      'Plotinus teaches emanation from the ineffable One through Nous and Soul — a ladder of ascent from matter back to unity.',
+      'Plotinus teaches emanation from the ineffable One through Nous and Soul — a ladder of ascent from matter back to unity. Walk the site as if each step were a rung on that inward ladder.',
     body:
       'In the Enneads, Plotinus maps reality as concentric rings of being emanating from a source beyond being itself. The philosopher\'s task is contemplative ascent — purifying the soul until it mirrors the One. Neoplatonism will influence Christian mystics, Islamic philosophers, Kabbalists, and Renaissance Hermeticists.',
     relatedMaterialIds: ['library-alexandria'],
@@ -42,7 +42,7 @@ export const ESOTERIC_EVENTS: SpiritualEvent[] = [
     visibility: 'esoteric',
     title: 'Hermetic Corpus',
     summary:
-      'Texts attributed to Hermes Trismegistus teach "As above, so below" — the microcosm mirrors the macrocosm in a living, ensouled universe.',
+      'Texts attributed to Hermes Trismegistus teach "As above, so below" — the microcosm mirrors the macrocosm in a living, ensouled universe. The stone asks you to feel correspondence before you name it.',
     body:
       'The Hermetica blend Greek philosophy, Egyptian religion, and alchemical symbolism. They propose that human beings can know the divine by understanding correspondences between celestial and terrestrial realms — a template for Western esotericism from late antiquity through the Renaissance.',
     relatedMaterialIds: ['heavy-elements', 'library-alexandria'],
@@ -57,7 +57,7 @@ export const ESOTERIC_EVENTS: SpiritualEvent[] = [
     visibility: 'esoteric',
     title: 'Gnostic texts',
     summary:
-      'Hidden gospels teach that the material world is a prison — gnosis, secret knowledge, frees the divine spark within.',
+      'Hidden gospels teach that the material world is a prison — gnosis, secret knowledge, frees the divine spark within. Stand still long enough and the spark may answer.',
     body:
       'Gnostic communities produced texts like the Gospel of Thomas and Apocryphon of John, often suppressed by orthodox Christianity. They share a myth of a fallen creator god and a transcendent true God — the soul awakens through inner revelation, not institutional authority alone.',
     relatedMaterialIds: ['christianity'],
@@ -112,7 +112,7 @@ export const ESOTERIC_EVENTS: SpiritualEvent[] = [
     visibility: 'esoteric',
     title: 'The Zohar',
     summary:
-      'The Zohar unveils Kabbalah\'s symbolic Torah — divine emanations, soul-sparks, and the drama of cosmic repair (tikkun).',
+      'The Zohar unveils Kabbalah\'s symbolic Torah — divine emanations, soul-sparks, and the drama of cosmic repair (tikkun). Its language is myth; its aim is repair of what was shattered.',
     body:
       'Attributed to Moses de León in medieval Spain, the Zohar is a vast mystical commentary on Torah cast as wanderings of Rabbi Shimon bar Yochai. Its mythopoetic language of sefirot, shekhinah, and exile will define Kabbalah for centuries and influence Christian Kabbalists and Hermetic orders.',
     ...HUMAN,

@@ -43,11 +43,11 @@ export function ScaleHUD() {
   if (mode === 'embodied') {
     const discovered = selectedEventId ? getEventById(selectedEventId) : null;
     return (
-      <div className="hud ui-panel hud--embodied">
+      <div className="hud ui-panel hud--embodied" data-testid="hud-embodied">
         <div className="hud-title">Cosmos</div>
         <div className="hud-row">
           <span className="hud-label">Mode</span>
-          <span className="hud-value hud-walking">Walking</span>
+          <span className="hud-value hud-walking" data-testid="hud-walking">Walking</span>
         </div>
         <div className="hud-row hud-muted">
           <span className="hud-label">Era</span>
@@ -61,9 +61,9 @@ export function ScaleHUD() {
         )}
         {showDebugGrid && (
           <div className="hud-row hud-debug">
-            <span className="hud-label">Depth</span>
+            <span className="hud-label">Realm</span>
             <span>
-              {spiritualDepth.toFixed(2)} · {realmPhase} · {sessionsCompleted} sessions
+              {realmPhase} · depth {spiritualDepth.toFixed(2)} · {sessionsCompleted} sessions
             </span>
           </div>
         )}
@@ -118,6 +118,7 @@ export function ScaleHUD() {
         <button
           type="button"
           className="hud-warning hud-warning-btn"
+          data-testid="jump-to-present"
           onClick={goToHumanEra}
         >
           Human scale · jump to present →

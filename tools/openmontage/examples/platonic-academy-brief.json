@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "pipeline": "animated-explainer",
+  "title": "Unwritten doctrines",
+  "topic": "Unwritten doctrines",
+  "hook": "Unwritten doctrines. Beyond the visible forms, what is the One?",
+  "tone": "contemplative",
+  "traditionColor": "#e8e0d0",
+  "durationTargetSec": 60,
+  "sections": [
+    {
+      "heading": "Opening",
+      "narration": "Unwritten doctrines. Beyond the visible forms, what is the One?",
+      "visualHint": "Slow zoom on illuminated manuscript / symbolic stone — platonism color accent.",
+      "onScreenText": "Unwritten doctrines"
+    },
+    {
+      "heading": "Context",
+      "narration": "In 2426 years ago, within the Platonism stream of spiritual history — at Human scale — a door opens.",
+      "visualHint": "Era card: 2426 years ago; tradition motif in platonism palette; subtle symbolic geometry.",
+      "onScreenText": "Platonism"
+    },
+    {
+      "heading": "The mystery",
+      "narration": "Ancient reports (especially from Aristotle and later Neoplatonists) suggest Plato reserved his deepest metaphysical teaching for inner-circle students.",
+      "visualHint": "Abstract esoteric imagery — platonism; textural, luminous, not literal.",
+      "onScreenText": "Unwritten doctrines"
+    },
+    {
+      "narration": "Whether these \"unwritten doctrines\" existed as a systematic esoteric curriculum or as speculative reconstruction remains debated — but they became a foundation for Western esoteric Platonism for two millennia.",
+      "visualHint": "Abstract esoteric imagery — platonism; textural, luminous, not literal."
+    },
+    {
+      "heading": "Parallel threads",
+      "narration": "This moment echoes elsewhere in material history: Plato's Academy.",
+      "visualHint": "Split-screen or cross-fade between linked topics; connection lines between titles.",
+      "onScreenText": "Related"
+    },
+    {
+      "heading": "Cosmos",
+      "narration": "Learn more from the sources cited in Cosmos. Zoom out to the universe. Zoom in to walk the stones. The hidden streams wait.",
+      "visualHint": "Cosmos wordmark; starfield fading to a single glowing stone; contemplative outro.",
+      "onScreenText": "Cosmos"
+    }
+  ],
+  "metadata": {
+    "eventId": "platonic-academy-esoteric",
+    "track": "spiritual",
+    "tradition": "platonism",
+    "visibility": "esoteric",
+    "relatedEventIds": [
+      "plato"
+    ],
+    "sourceUrl": "https://en.wikipedia.org/wiki/Unwritten_doctrine",
+    "exportedAt": "2026-06-24T23:28:17.298Z",
+    "epochLabel": "2426 years ago",
+    "spatialBand": "Human"
+  },
+  "openMontage": {
+    "suggestedPipeline": "animated_explainer",
+    "stylePlaybook": "clean_professional",
+    "cursorPrompt": "Using the OpenMontage Animated Explainer pipeline, produce a 60-second video from the attached Cosmos brief.\n\nRequirements:\n- Use Piper TTS for narration (free/local path unless I provide other API keys).\n- Use Remotion image scenes with Ken Burns motion — contemplative pacing.\n- Tone: contemplative. Style playbook: clean_professional.\n- Accent color for titles and transitions: #e8e0d0.\n- Follow the 6 sections in the brief (hook → context → core → links → close).\n- Honor onScreenText and visualHint fields for each section.\n\nBrief file: exports/cosmos-platonic-academy-esoteric-brief.json\nTopic: Unwritten doctrines\n\nResearch the topic briefly for factual accuracy, then render the final MP4."
+  }
+}

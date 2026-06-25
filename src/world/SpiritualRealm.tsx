@@ -4,9 +4,11 @@ import * as THREE from 'three';
 import { MARKER_TRADITION_COLORS } from '../data/embodied/siteMarkers';
 import { sampleTerrainHeight } from '../core/embodiment';
 import { usePracticeStore } from '../core/PracticeState';
+import { useRealmDisplayStore } from '../core/RealmDisplayState';
 
 export function SpiritualRealm() {
   const spiritualDepth = usePracticeStore((s) => s.spiritualDepth);
+  const spiritualWeight = useRealmDisplayStore((s) => s.spiritualWeight);
   const dominantTradition = usePracticeStore((s) => s.dominantTradition);
   const groupRef = useRef<THREE.Group>(null);
 
@@ -23,7 +25,9 @@ export function SpiritualRealm() {
     }
   });
 
-  const opacity = 0.25 + spiritualDepth * 0.35;
+  if (spiritualWeight < 0.01) return null;
+
+  const opacity = (0.25 + spiritualDepth * 0.35) * spiritualWeight;
 
   return (
     <group ref={groupRef} position={[0, 0, 0]}>

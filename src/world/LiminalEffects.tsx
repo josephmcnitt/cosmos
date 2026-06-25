@@ -3,6 +3,7 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { MARKER_TRADITION_COLORS } from '../data/embodied/siteMarkers';
 import { usePracticeStore } from '../core/PracticeState';
+import { useRealmDisplayStore } from '../core/RealmDisplayState';
 
 const MATERIAL_FOG = new THREE.Color('#030508');
 const LIMINAL_BASE = new THREE.Color('#1a0a2e');
@@ -14,7 +15,8 @@ function hexToColor(hex: string): THREE.Color {
 export function LiminalEffects() {
   const { scene } = useThree();
   const spiritualDepth = usePracticeStore((s) => s.spiritualDepth);
-  const realmPhase = usePracticeStore((s) => s.realmPhase);
+  const liminalWeight = useRealmDisplayStore((s) => s.liminalWeight);
+  const spiritualWeight = useRealmDisplayStore((s) => s.spiritualWeight);
   const dominantTradition = usePracticeStore((s) => s.dominantTradition);
   const targetFog = useRef(new THREE.Color());
   const particles = useMemo(() => {
@@ -34,35 +36,33 @@ export function LiminalEffects() {
     ? hexToColor(MARKER_TRADITION_COLORS[dominantTradition])
     : LIMINAL_BASE;
 
+  const blend = liminalWeight + spiritualWeight * 0.5;
+
   useFrame((_, delta) => {
-    if (realmPhase === 'material' || !(scene.fog instanceof THREE.Fog)) return;
+    if (!(scene.fog instanceof THREE.Fog) || blend < 0.01) return;
 
-    const intensity =
-      realmPhase === 'spiritual'
-        ? 0.55 + spiritualDepth * 0.4
-        : 0.35 + spiritualDepth * 0.45;
+    const intensity = 0.35 + spiritualDepth * 0.45 + spiritualWeight * 0.2;
 
-    targetFog.current.copy(MATERIAL_FOG).lerp(traditionColor, intensity);
+    targetFog.current.copy(MATERIAL_FOG).lerp(traditionColor, intensity * blend);
     scene.fog.color.lerp(targetFog.current, Math.min(1, delta * 2));
   });
 
-  if (realmPhase === 'material') return null;
+  if (blend < 0.01) return null;
 
-  const particleOpacity =
-    realmPhase === 'spiritual' ? 0.55 + spiritualDepth * 0.35 : 0.28 + spiritualDepth * 0.35;
+  const particleOpacity = (0.28 + spiritualDepth * 0.35 + spiritualWeight * 0.25) * blend;
 
   return (
     <>
       <pointLight
         position={[0, 6, 0]}
         color={traditionColor}
-        intensity={0.8 + spiritualDepth * 1.2}
+        intensity={(0.8 + spiritualDepth * 1.2) * blend}
         distance={40}
       />
       <pointLight
         position={[-8, 3, 6]}
         color={traditionColor}
-        intensity={0.2 + spiritualDepth * 0.4}
+        intensity={(0.2 + spiritualDepth * 0.4) * blend}
         distance={30}
       />
       <points geometry={particles}>

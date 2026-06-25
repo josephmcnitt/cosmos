@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "pipeline": "animated-explainer",
+  "title": "The Zohar",
+  "topic": "The Zohar",
+  "hook": "The Zohar. Ten sefirot — ten emanations of divine speech.",
+  "tone": "contemplative",
+  "traditionColor": "#d4a843",
+  "durationTargetSec": 60,
+  "sections": [
+    {
+      "heading": "Opening",
+      "narration": "The Zohar. Ten sefirot — ten emanations of divine speech.",
+      "visualHint": "Slow zoom on illuminated manuscript / symbolic stone — kabbalah color accent.",
+      "onScreenText": "The Zohar"
+    },
+    {
+      "heading": "Context",
+      "narration": "In 1300 CE, within the Kabbalah stream of spiritual history — at Human scale — a door opens.",
+      "visualHint": "Era card: 1300 CE; tradition motif in kabbalah palette; subtle symbolic geometry.",
+      "onScreenText": "Kabbalah"
+    },
+    {
+      "heading": "The mystery",
+      "narration": "Attributed to Moses de León in medieval Spain, the Zohar is a vast mystical commentary on Torah cast as wanderings of Rabbi Shimon bar Yochai.",
+      "visualHint": "Abstract esoteric imagery — kabbalah; textural, luminous, not literal.",
+      "onScreenText": "The Zohar"
+    },
+    {
+      "narration": "Its mythopoetic language of sefirot, shekhinah, and exile will define Kabbalah for centuries and influence Christian Kabbalists and Hermetic orders.",
+      "visualHint": "Abstract esoteric imagery — kabbalah; textural, luminous, not literal."
+    },
+    {
+      "heading": "Cosmos",
+      "narration": "Learn more from the sources cited in Cosmos. Zoom out to the universe. Zoom in to walk the stones. The hidden streams wait.",
+      "visualHint": "Cosmos wordmark; starfield fading to a single glowing stone; contemplative outro.",
+      "onScreenText": "Cosmos"
+    }
+  ],
+  "metadata": {
+    "eventId": "zohar",
+    "track": "spiritual",
+    "tradition": "kabbalah",
+    "visibility": "esoteric",
+    "relatedEventIds": [],
+    "sourceUrl": "https://en.wikipedia.org/wiki/Zohar",
+    "exportedAt": "2026-06-24T23:28:17.296Z",
+    "epochLabel": "1300 CE",
+    "spatialBand": "Human"
+  },
+  "openMontage": {
+    "suggestedPipeline": "animated_explainer",
+    "stylePlaybook": "clean_professional",
+    "cursorPrompt": "Using the OpenMontage Animated Explainer pipeline, produce a 60-second video from the attached Cosmos brief.\n\nRequirements:\n- Use Piper TTS for narration (free/local path unless I provide other API keys).\n- Use Remotion image scenes with Ken Burns motion — contemplative pacing.\n- Tone: contemplative. Style playbook: clean_professional.\n- Accent color for titles and transitions: #d4a843.\n- Follow the 5 sections in the brief (hook → context → core → links → close).\n- Honor onScreenText and visualHint fields for each section.\n\nBrief file: exports/cosmos-zohar-brief.json\nTopic: The Zohar\n\nResearch the topic briefly for factual accuracy, then render the final MP4."
+  }
+}

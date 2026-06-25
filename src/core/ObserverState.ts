@@ -284,10 +284,11 @@ export const useObserverStore = create<ObserverState & ObserverActions>((set, ge
 
   scrubNormalized: (normalized, anchorSimTime) => {
     const state = get();
-    const anchor = anchorSimTime ?? state.simTimeSeconds;
+    const hasStoredBounds =
+      state.timeViewMinLog != null && state.timeViewMaxLog != null;
     const window = computeEffectiveTimeWindow(
       state.spatialExponent,
-      anchor,
+      hasStoredBounds ? state.simTimeSeconds : (anchorSimTime ?? state.simTimeSeconds),
       state.temporalExponent,
       timeWindowOptions(state),
     );

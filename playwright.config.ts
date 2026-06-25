@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = process.env.COSMOS_E2E_URL ?? 'https://cosmos-puce.vercel.app/';
+const localURL = 'http://127.0.0.1:4173';
+const baseURL = process.env.COSMOS_E2E_URL ?? localURL;
+const useLocalServer = !process.env.COSMOS_E2E_URL;
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -15,6 +17,14 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
+  webServer: useLocalServer
+    ? {
+        command: 'npm run preview -- --host 127.0.0.1 --port 4173',
+        url: localURL,
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+      }
+    : undefined,
   projects: [
     {
       name: 'chromium',

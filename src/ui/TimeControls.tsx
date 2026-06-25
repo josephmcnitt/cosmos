@@ -118,23 +118,35 @@ export function TimeControls() {
         <span className="scrubber-rail-label">
           {showSpiritual ? 'Spiritual' : 'Material'}
         </span>
-        <span className="scrubber-end-label" title={viewMinLabel}>
+        <span className="scrubber-end-label" title={viewMinLabel} data-testid="timeline-min" data-seconds={timeWindow.viewMinSeconds}>
           {viewMinLabel}
         </span>
         <div className="scrubber-track-outer">
           {showSpiritual ? <SpiritualTimelineTicks /> : <TimelineEventTicks />}
           <div
             className="scrubber-track"
+            data-testid="scrubber-track"
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
           >
             <div className="scrubber-fill" style={{ width: `${normalized * 100}%` }} />
-            <div className="scrubber-thumb" style={{ left: `${normalized * 100}%` }} />
+            <div
+              className="scrubber-thumb"
+              data-testid="timeline-playhead"
+              data-seconds={simTimeSeconds}
+              data-normalized={normalized}
+              style={{ left: `${normalized * 100}%` }}
+            />
           </div>
         </div>
-        <span className="scrubber-end-label scrubber-end-label--max" title={viewMaxLabel}>
+        <span
+          className="scrubber-end-label scrubber-end-label--max"
+          title={viewMaxLabel}
+          data-testid="timeline-max"
+          data-seconds={timeWindow.viewMaxSeconds}
+        >
           {viewMaxLabel}
         </span>
       </div>

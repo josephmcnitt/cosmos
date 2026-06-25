@@ -54,9 +54,11 @@ describe('computeEffectiveTimeWindow', () => {
   });
 
   it('keeps window edges stable when simTime moves inside stored bounds', () => {
-    const bounds = { viewMinLog: 2, viewMaxLog: 4 };
-    const early = computeEffectiveTimeWindow(25, 100, TEMPORAL_MAX / 2, bounds);
-    const later = computeEffectiveTimeWindow(25, 500, TEMPORAL_MAX / 2, bounds);
+    const temporal = TEMPORAL_MAX / 2;
+    const bounds = recomputeTimeViewBounds(25, 100, temporal)!;
+    const opts = { viewMinLog: bounds.viewMinLog, viewMaxLog: bounds.viewMaxLog };
+    const early = computeEffectiveTimeWindow(25, 100, temporal, opts);
+    const later = computeEffectiveTimeWindow(25, 500, temporal, opts);
     expect(later.viewMinLog).toBeCloseTo(early.viewMinLog, 5);
     expect(later.viewMaxLog).toBeCloseTo(early.viewMaxLog, 5);
   });

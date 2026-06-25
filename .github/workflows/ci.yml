@@ -31,8 +31,6 @@ jobs:
           node-version: '20'
           cache: npm
 
-      - run: npm ci
+      - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
-        env:
-          COSMOS_E2E_URL: ${{ secrets.COSMOS_E2E_URL || 'https://cosmos-puce.vercel.app/' }}

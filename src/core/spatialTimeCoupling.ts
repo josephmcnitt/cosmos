@@ -196,9 +196,15 @@ export function computeEffectiveTimeWindow(
     viewMinLog = options.viewMinLog;
     viewMaxLog = options.viewMaxLog;
   } else if (narrowed) {
+    const wideWindow = computeEffectiveTimeWindow(
+      spatialExponent,
+      simTimeSeconds,
+      0,
+    );
+    const fraction = normalizedFromSimTimeWindow(simTimeSeconds, wideWindow);
     ({ viewMinLog, viewMaxLog } = layoutTimeViewBounds(
       playheadLog,
-      0.5,
+      fraction,
       viewSpan,
       bandWindow,
     ));

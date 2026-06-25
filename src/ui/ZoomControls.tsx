@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useIntroStore } from '../core/IntroState';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
+import { handleWheelZoomEvent } from '../core/wheelZoom';
 
 export function ZoomControls() {
   const mode = useObserverStore((s) => s.mode);
@@ -16,24 +17,26 @@ export function ZoomControls() {
 
     const onWheel = (e: WheelEvent) => {
       if (useHistoryStore.getState().isFlying) return;
-      if (e.target instanceof HTMLElement && e.target.closest('.ui-panel')) return;
+
+      const result = handleWheelZoomEvent(
+        { target: e.target, shiftKey: e.shiftKey, deltaY: e.deltaY },
+        useObserverStore.getState().mode,
+      );
+
+      if (result.blocked) return;
 
       e.preventDefault();
-      const delta = -e.deltaY * 0.002;
 
-      if (useObserverStore.getState().mode === 'embodied') {
-        if (e.shiftKey) {
-          adjustTemporal(delta * 0.5);
-        } else {
-          adjustCameraDistance(-delta * 6);
-        }
-        return;
-      }
-
-      if (e.shiftKey) {
-        adjustTemporal(delta * 0.5);
-      } else {
-        adjustSpatial(delta);
+      switch (result.action) {
+        case 'spatial':
+          adjustSpatial(result.adjustment);
+          break;
+        case 'temporal':
+          adjustTemporal(result.adjustment);
+          break;
+        case 'camera':
+          adjustCameraDistance(result.adjustment);
+          break;
       }
     };
 

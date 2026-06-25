@@ -53,10 +53,12 @@ Phase 7 stabilizes the discover / practice loop, smooths realm transitions, and 
 **Tests**
 
 ```bash
-npm test              # Vitest — practice, embodiment, spatial coupling
+npm test              # Vitest — practice, embodiment, spatial coupling, wheel zoom
 npm run test:e2e      # Playwright smoke vs production (see below)
 npm run test:e2e:ui   # Headed debug
 ```
+
+Vitest covers wheel routing logic (`src/core/wheelZoom.test.ts`). Playwright includes `tests/e2e/scroll-zoom.spec.ts` for scroll vs time/spatial zoom after using the time slider.
 
 E2E defaults to `https://cosmos-puce.vercel.app/` (`COSMOS_E2E_URL` override). Smoke tests validate the **deployed** build; for pre-merge checks, point `COSMOS_E2E_URL` at `npm run preview` locally.
 

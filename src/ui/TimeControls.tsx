@@ -12,6 +12,7 @@ import { TimelineEventTicks } from './TimelineEventTicks';
 import { SpiritualTimelineTicks } from './SpiritualTimelineTicks';
 import { DepthOfViewToggle } from './DepthOfViewToggle';
 import { HistoryTrackToggle } from './HistoryTrackToggle';
+import { onRangeInputWheel } from './rangeInputWheelGuard';
 
 export function TimeControls() {
   const historyTrack = useHistoryStore((s) => s.historyTrack);
@@ -117,12 +118,14 @@ export function TimeControls() {
         <label className="temporal-zoom-label">
           Time zoom
           <input
+            data-testid="temporal-zoom"
             type="range"
             min={TEMPORAL_MIN}
             max={TEMPORAL_MAX}
             step={0.05}
             value={temporalExponent}
             onChange={(e) => setTemporalExponent(parseFloat(e.target.value))}
+            onWheel={onRangeInputWheel}
           />
         </label>
 

@@ -34,6 +34,7 @@ import { SpiritualRealm } from './world/SpiritualRealm';
 import { HistoryMarkers } from './world/HistoryMarkers';
 import { PlayerAvatar } from './world/PlayerAvatar';
 import { WorldRoot } from './world/WorldRoot';
+import { onRangeInputWheel } from './ui/rangeInputWheelGuard';
 
 function Scene() {
   const introPhase = useIntroStore((s) => s.phase);
@@ -109,6 +110,7 @@ function SpatialSlider() {
           step={0.05}
           value={spatialExponent}
           onChange={(e) => setSpatialExponent(parseFloat(e.target.value))}
+          onWheel={onRangeInputWheel}
         />
       </label>
       <span className="spatial-hint">Scroll to zoom · Shift+scroll for time precision</span>

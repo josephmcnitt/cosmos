@@ -12,6 +12,7 @@ import {
   storedTimeWindowOptions,
 } from '../core/spatialTimeCoupling';
 import { usePracticeStore } from '../core/PracticeState';
+import { useWorldStore } from '../core/world/WorldState';
 
 export function ScaleHUD() {
   const mode = useObserverStore((s) => s.mode);
@@ -29,7 +30,7 @@ export function ScaleHUD() {
   const isFlying = useHistoryStore((s) => s.isFlying);
   const spiritualDepth = usePracticeStore((s) => s.spiritualDepth);
   const realmPhase = usePracticeStore((s) => s.realmPhase);
-  const sessionsCompleted = usePracticeStore((s) => s.sessionsCompleted);
+  const sessionsCompleted = useWorldStore((s) => s.sessionsCompleted);
 
   const nearest = getNearestEventForBand(simTimeSeconds, spatialExponent);
   const nearLabel =

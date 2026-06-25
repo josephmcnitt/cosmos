@@ -13,6 +13,8 @@ export const EMBODIED_CAMERA_MIN = 2.5;
 export const EMBODIED_CAMERA_MAX = 8;
 export const EMBODIED_CAMERA_DEFAULT = 5;
 
+import { getSiteHalfSize } from './world/worldQueries';
+
 export const SITE_HALF_SIZE = 18;
 export const AVATAR_WALK_SPEED = 4;
 export const AVATAR_TURN_SPEED = 2.8;
@@ -52,11 +54,8 @@ export function shouldEnterEmbodied(
   if (state.mode === 'embodied') return false;
   if (!ctx.introComplete || ctx.isFlying) return false;
   if (!isInHumanEra(state.simTimeSeconds)) return false;
-  if (embodimentApproachWeight(state.spatialExponent) < 1) return false;
-  return (
-    isHumanSpatialBand(state.spatialExponent) &&
-    state.spatialExponent >= EMBODIED_ENTER_EXPONENT
-  );
+  if (!isHumanSpatialBand(state.spatialExponent)) return false;
+  return embodimentApproachWeight(state.spatialExponent) >= 1;
 }
 
 export function shouldExitEmbodiedFromSpatial(
@@ -74,9 +73,10 @@ export function shouldExitEmbodiedFromTime(
 }
 
 export function clampAvatarToSite(x: number, z: number): { x: number; z: number } {
+  const half = getSiteHalfSize();
   return {
-    x: Math.max(-SITE_HALF_SIZE, Math.min(SITE_HALF_SIZE, x)),
-    z: Math.max(-SITE_HALF_SIZE, Math.min(SITE_HALF_SIZE, z)),
+    x: Math.max(-half, Math.min(half, x)),
+    z: Math.max(-half, Math.min(half, z)),
   };
 }
 
@@ -100,7 +100,7 @@ export function spatialExponentAfterExitEmbodied(preEmbodimentExponent: number):
   return EMBODIED_EXIT_EXPONENT - 0.25;
 }
 
-/** Clears session practice / realm state when leaving walk mode. */
+/** Clears session practice / realm state when leaving walk mode. Progress persists in WorldState. */
 export function resetEmbodiedPractice(): void {
-  usePracticeStore.getState().resetPractice();
+  usePracticeStore.getState().resetSession();
 }

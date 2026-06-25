@@ -2,15 +2,16 @@ import { useMemo } from 'react';
 import * as THREE from 'three';
 import { sampleTerrainHeight } from '../core/embodiment';
 import { getEventById } from '../data/history/index';
-import {
-  MARKER_TRADITION_COLORS,
-  SITE_MARKERS,
-} from '../data/embodied/siteMarkers';
+import { MARKER_TRADITION_COLORS } from '../data/embodied/siteMarkers';
+import { getActiveAgeDefinition } from '../core/world/WorldRegistry';
+import { useWorldStore } from '../core/world/WorldState';
+import { CorrespondencePortal } from './CorrespondencePortal';
+import { VeilPoint } from './VeilPoint';
+import { PuzzleMechanism } from './PuzzleMechanism';
+import { AstralStructures } from './AstralStructures';
 
-function Terrain() {
+function Terrain({ color, size, segments }: { color: string; size: number; segments: number }) {
   const geometry = useMemo(() => {
-    const size = 40;
-    const segments = 48;
     const geo = new THREE.PlaneGeometry(size, size, segments, segments);
     geo.rotateX(-Math.PI / 2);
     const pos = geo.attributes.position;
@@ -21,11 +22,11 @@ function Terrain() {
     }
     geo.computeVertexNormals();
     return geo;
-  }, []);
+  }, [size, segments]);
 
   return (
     <mesh geometry={geometry} receiveShadow>
-      <meshStandardMaterial color="#2d5a3d" roughness={0.95} />
+      <meshStandardMaterial color={color} roughness={0.95} />
     </mesh>
   );
 }
@@ -76,42 +77,103 @@ function Bench({ position }: { position: [number, number, number] }) {
 function MarkerStone({
   position,
   color = '#8899aa',
+  discovered = false,
 }: {
   position: [number, number, number];
   color?: string;
+  discovered?: boolean;
 }) {
   const y = sampleTerrainHeight(position[0], position[2]);
   return (
     <group position={[position[0], y, position[2]]}>
       <mesh position={[0, 0.5, 0]}>
         <boxGeometry args={[0.35, 1, 0.25]} />
-        <meshStandardMaterial color={color} roughness={0.85} />
+        <meshStandardMaterial
+          color={color}
+          roughness={0.85}
+          emissive={discovered ? color : '#000000'}
+          emissiveIntensity={discovered ? 0.15 : 0}
+        />
       </mesh>
     </group>
   );
 }
 
 export function EmbodiedSite() {
+  const currentWorldId = useWorldStore((s) => s.currentWorldId);
+  const worldLayer = useWorldStore((s) => s.worldLayers[s.currentWorldId] ?? 'material');
+  const entities = useWorldStore((s) => s.entities);
+  const discoveredEventIds = useWorldStore((s) => s.discoveredEventIds);
+
+  const age = getActiveAgeDefinition(currentWorldId);
+  const layer = worldLayer;
+
+  const markers = entities.filter(
+    (e) => e.worldId === currentWorldId && e.kind === 'marker' && e.layer === 'material',
+  );
+  const portals = entities.filter(
+    (e) => e.worldId === currentWorldId && e.kind === 'portal',
+  );
+  const veils = entities.filter(
+    (e) => e.worldId === currentWorldId && e.kind === 'veil',
+  );
+  const puzzles = entities.filter(
+    (e) => e.worldId === currentWorldId && e.kind === 'puzzle-mechanism',
+  );
+
+  const showMaterial = layer === 'material';
+  const showEsoteric = layer === 'esoteric';
+
   return (
     <group>
-      <Terrain />
-      <PathStrip width={2.2} length={28} position={[0, 0.03, 0]} />
-      <PathStrip width={2.2} length={22} position={[0, 0.03, 0]} rotationY={Math.PI / 2} />
-      <Bench position={[-4, 0, 3]} />
-      {SITE_MARKERS.map((marker) => {
-        const event = getEventById(marker.eventId);
-        const color =
-          event?.track === 'spiritual'
-            ? MARKER_TRADITION_COLORS[event.tradition]
-            : '#8899aa';
-        return (
-          <MarkerStone
-            key={marker.eventId}
-            position={[marker.position[0], 0, marker.position[1]]}
-            color={color}
-          />
-        );
-      })}
+      <Terrain
+        color={age.terrain.color}
+        size={age.terrain.size}
+        segments={age.terrain.segments}
+      />
+      {showMaterial && (
+        <>
+          {age.paths.map((p, i) => (
+            <PathStrip
+              key={`path-${i}`}
+              width={p.width}
+              length={p.length}
+              position={p.position}
+              rotationY={p.rotationY}
+            />
+          ))}
+          {age.benches.map((b, i) => (
+            <Bench key={`bench-${i}`} position={b.position} />
+          ))}
+          {markers.map((m) => {
+            const event = getEventById(m.defId);
+            const color =
+              event?.track === 'spiritual'
+                ? MARKER_TRADITION_COLORS[event.tradition]
+                : '#8899aa';
+            return (
+              <MarkerStone
+                key={m.id}
+                position={[m.transform.x, 0, m.transform.z]}
+                color={color}
+                discovered={discoveredEventIds.includes(m.defId)}
+              />
+            );
+          })}
+          {portals
+            .filter((p) => p.state.unlocked === true)
+            .map((p) => (
+              <CorrespondencePortal key={p.id} entity={p} />
+            ))}
+          {puzzles.map((p) => (
+            <PuzzleMechanism key={p.id} entity={p} />
+          ))}
+        </>
+      )}
+      {veils.map((v) => (
+        <VeilPoint key={v.id} entity={v} />
+      ))}
+      {showEsoteric && <AstralStructures worldId={currentWorldId} />}
     </group>
   );
 }

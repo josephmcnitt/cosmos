@@ -13,15 +13,18 @@ import { useRealmDisplayStore } from './RealmDisplayState';
 import { embodimentApproachWeight } from './embodiment';
 
 export function RealmTransitionSync() {
-  const realmPhase = usePracticeStore((s) => s.realmPhase);
-  const dominantTradition = usePracticeStore((s) => s.dominantTradition);
-  const mode = useObserverStore((s) => s.mode);
   const embodimentTransition = useObserverStore((s) => s.embodimentTransition);
 
   const displayWeightRef = useRef(0);
   const overlayRef = useRef(0);
   const embodimentStartRef = useRef(0);
   const lastEmbTransition = useRef(embodimentTransition);
+  const cssRef = useRef({
+    liminal: '0',
+    spiritual: '0',
+    accent: '#7868a8',
+    fade: '0',
+  });
 
   useEffect(() => {
     if (embodimentTransition !== lastEmbTransition.current && embodimentTransition !== 'none') {
@@ -38,8 +41,10 @@ export function RealmTransitionSync() {
       const dtSec = Math.min(0.1, (now - last) / 1000);
       last = now;
 
-      const embodied = useObserverStore.getState().mode === 'embodied';
-      const targetPhase = embodied ? usePracticeStore.getState().realmPhase : 'material';
+      const observer = useObserverStore.getState();
+      const practice = usePracticeStore.getState();
+      const embodied = observer.mode === 'embodied';
+      const targetPhase = embodied ? practice.realmPhase : 'material';
       const targetWeight = phaseWeight(targetPhase);
 
       displayWeightRef.current = stepToward(
@@ -52,10 +57,11 @@ export function RealmTransitionSync() {
       const weights = weightsFromDisplay(displayWeightRef.current);
 
       let overlay = 0;
-      if (embodimentTransition !== 'none') {
-        const exp = useObserverStore.getState().spatialExponent;
+      const embTransition = observer.embodimentTransition;
+      if (embTransition !== 'none') {
+        const exp = observer.spatialExponent;
         const seamlessEnter =
-          embodimentTransition === 'entering' && embodimentApproachWeight(exp) >= 0.85;
+          embTransition === 'entering' && embodimentApproachWeight(exp) >= 0.85;
         if (!seamlessEnter) {
           const elapsed = now - embodimentStartRef.current;
           const half = EMBODIMENT_TRANSITION_MS / 2;
@@ -68,19 +74,40 @@ export function RealmTransitionSync() {
       }
       overlayRef.current = overlay;
 
-      useRealmDisplayStore.getState().setDisplay({
-        displayWeight: displayWeightRef.current,
-        liminalWeight: weights.liminal,
-        spiritualWeight: weights.spiritual,
-        embodimentOverlay: overlay,
-      });
+      const display = useRealmDisplayStore.getState();
+      if (
+        display.displayWeight !== displayWeightRef.current ||
+        display.liminalWeight !== weights.liminal ||
+        display.spiritualWeight !== weights.spiritual ||
+        display.embodimentOverlay !== overlay
+      ) {
+        useRealmDisplayStore.getState().setDisplay({
+          displayWeight: displayWeightRef.current,
+          liminalWeight: weights.liminal,
+          spiritualWeight: weights.spiritual,
+          embodimentOverlay: overlay,
+        });
+      }
 
       const app = document.querySelector('.app');
       if (app instanceof HTMLElement) {
-        app.style.setProperty('--realm-liminal', String(weights.liminal));
-        app.style.setProperty('--realm-spiritual', String(weights.spiritual));
-        app.style.setProperty('--tradition-accent', traditionAccent(dominantTradition));
-        app.style.setProperty('--embodiment-fade', String(overlay));
+        const liminal = String(weights.liminal);
+        const spiritual = String(weights.spiritual);
+        const accent = traditionAccent(practice.dominantTradition);
+        const fade = String(overlay);
+        const css = cssRef.current;
+        if (
+          css.liminal !== liminal ||
+          css.spiritual !== spiritual ||
+          css.accent !== accent ||
+          css.fade !== fade
+        ) {
+          app.style.setProperty('--realm-liminal', liminal);
+          app.style.setProperty('--realm-spiritual', spiritual);
+          app.style.setProperty('--tradition-accent', accent);
+          app.style.setProperty('--embodiment-fade', fade);
+          cssRef.current = { liminal, spiritual, accent, fade };
+        }
       }
 
       raf = requestAnimationFrame(tick);
@@ -88,7 +115,7 @@ export function RealmTransitionSync() {
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [realmPhase, dominantTradition, mode, embodimentTransition]);
+  }, []);
 
   return null;
 }

@@ -1,4 +1,9 @@
 import type { SpiritualTradition } from '../history/types';
+import { GROVE_AGE } from '../ages/grove';
+import {
+  getNearestMarker as getNearestFromWorld,
+  getMarkerByEventId as getMarkerFromWorld,
+} from '../../core/world/worldQueries';
 
 export interface SiteMarker {
   eventId: string;
@@ -6,34 +11,12 @@ export interface SiteMarker {
   label: string;
 }
 
-/** Esoteric mysteries placed on the walkable site (XZ plane). */
-export const SITE_MARKERS: SiteMarker[] = [
-  {
-    eventId: 'platonic-academy-esoteric',
-    position: [7, 4],
-    label: 'Unwritten doctrines',
-  },
-  {
-    eventId: 'hermetic-corpus',
-    position: [5, -5],
-    label: 'Hermetic Corpus',
-  },
-  {
-    eventId: 'gnostic-gospels',
-    position: [-6, -4],
-    label: 'Gnostic texts',
-  },
-  {
-    eventId: 'neoplatonism-plotinus',
-    position: [-2, 7],
-    label: 'Plotinus — The One',
-  },
-  {
-    eventId: 'zohar',
-    position: [0, -8],
-    label: 'The Zohar',
-  },
-];
+/** Legacy export — Grove markers for tests. */
+export const SITE_MARKERS: SiteMarker[] = GROVE_AGE.markers.map((m) => ({
+  eventId: m.eventId,
+  position: m.position,
+  label: m.label,
+}));
 
 export const MARKER_TRADITION_COLORS: Record<SpiritualTradition, string> = {
   kabbalah: '#d4a843',
@@ -51,7 +34,9 @@ export const MARKER_TRADITION_COLORS: Record<SpiritualTradition, string> = {
 };
 
 export function getSiteMarkerByEventId(eventId: string): SiteMarker | undefined {
-  return SITE_MARKERS.find((m) => m.eventId === eventId);
+  const m = getMarkerFromWorld(eventId);
+  if (!m) return SITE_MARKERS.find((s) => s.eventId === eventId);
+  return { eventId: m.eventId, position: m.position, label: m.label };
 }
 
 export const MARKER_PRACTICE_RADIUS = 3.5;
@@ -61,16 +46,7 @@ export function getNearestSiteMarker(
   z: number,
   maxDistance = MARKER_PRACTICE_RADIUS,
 ): SiteMarker | undefined {
-  let best: SiteMarker | undefined;
-  let bestDist = maxDistance;
-  for (const marker of SITE_MARKERS) {
-    const dx = marker.position[0] - x;
-    const dz = marker.position[1] - z;
-    const d = Math.sqrt(dx * dx + dz * dz);
-    if (d < bestDist) {
-      bestDist = d;
-      best = marker;
-    }
-  }
-  return best;
+  const m = getNearestFromWorld(x, z, maxDistance);
+  if (!m) return undefined;
+  return { eventId: m.eventId, position: m.position, label: m.label };
 }

@@ -6,6 +6,8 @@ import { LogarithmicCamera } from './camera/LogarithmicCamera';
 import { EmbodimentSync } from './core/EmbodimentSync';
 import { PracticeSync } from './core/PracticeSync';
 import { RealmTransitionSync } from './core/RealmTransitionSync';
+import { WorldBootstrap } from './core/world/WorldBootstrap';
+import { WorldTravelSync } from './core/world/WorldTravelSync';
 import { useRealmDisplayStore } from './core/RealmDisplayState';
 import { fogDistances } from './core/realmTransition';
 import { IntroSkipHandler, useIntroActive } from './core/IntroSkipHandler';
@@ -34,6 +36,11 @@ import { CorrespondenceIndicator } from './ui/CorrespondenceIndicator';
 import { KnowledgeModeIndicator } from './ui/KnowledgeModeIndicator';
 import { ZoomControls } from './ui/ZoomControls';
 import { WalkApproachPrompt } from './ui/WalkApproachPrompt';
+import { LinkPanel } from './ui/LinkPanel';
+import { SenseWhisper } from './ui/SenseWhisper';
+import { JournalPanel } from './ui/JournalPanel';
+import { AgeInteractionControls } from './input/AgeInteractionControls';
+import { SplitControls } from './input/SplitControls';
 import { BigBangEffect } from './world/BigBangEffect';
 import { DebugGrid } from './world/DebugGrid';
 import { EmbodiedSite } from './world/EmbodiedSite';
@@ -49,6 +56,7 @@ import { CorrespondenceSky } from './world/CorrespondenceSky';
 import { FlightStarfield } from './world/FlightStarfield';
 import { EmbodimentApproachPreview } from './world/EmbodimentApproachPreview';
 import { embodimentApproachWeight } from './core/embodiment';
+import { useWorldStore } from './core/world/WorldState';
 import { WorldRoot } from './world/WorldRoot';
 import { onRangeInputWheel } from './ui/rangeInputWheelGuard';
 
@@ -63,6 +71,7 @@ function Scene() {
   const embodied = mode === 'embodied' && showWorld;
   const approachWeight = embodimentApproachWeight(spatialExponent);
   const realmActive = liminalWeight > 0.02 || spiritualWeight > 0.02;
+  const worldLayer = useWorldStore((s) => s.worldLayers[s.currentWorldId] ?? 'material');
   const fog = fogDistances(embodied, liminalWeight, spiritualWeight);
 
   return (
@@ -79,7 +88,7 @@ function Scene() {
           <EmbodiedSite />
           <PlayerAvatar />
           {realmActive && <LiminalEffects />}
-          {spiritualWeight > 0.02 && <SpiritualRealm />}
+          {(spiritualWeight > 0.02 || worldLayer === 'esoteric') && <SpiritualRealm />}
         </>
       ) : (
         <>
@@ -151,11 +160,14 @@ export default function App() {
   return (
     <div className={`app${isFlying ? ' app--flying' : ''}`}>
       <IntroSkipHandler />
+      <WorldBootstrap />
       <EmbodimentSync />
       <PracticeSync />
       <RealmTransitionSync />
+      <WorldTravelSync />
       <EmbodiedControls />
       <PracticeControls />
+      <AgeInteractionControls />
       <KeyboardShortcuts />
       <ZoomControls />
 
@@ -203,6 +215,10 @@ export default function App() {
           <WalkApproachPrompt />
           <EmbodiedPrompt />
           <PracticeOverlay />
+          <LinkPanel />
+          <SenseWhisper />
+          <JournalPanel />
+          <SplitControls />
           <EventDetailPanel />
           <TimelineLabel />
           <TimeControls />

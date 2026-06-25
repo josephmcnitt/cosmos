@@ -67,6 +67,15 @@ describe('shouldEnterEmbodied', () => {
       ),
     ).toBe(false);
   });
+
+  it('enters walk when zoomed deep into human band', () => {
+    expect(
+      shouldEnterEmbodied(
+        { mode: 'cosmic', spatialExponent: -0.5, simTimeSeconds: UNIVERSE_AGE_SECONDS },
+        introComplete,
+      ),
+    ).toBe(true);
+  });
 });
 
 describe('embodimentApproachWeight', () => {

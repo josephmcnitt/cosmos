@@ -1,14 +1,12 @@
 import { create } from 'zustand';
 import type { SpiritualTradition } from '../data/history/types';
 import {
-  clampResonance,
-  computeSpiritualDepth,
   DISCOVERED_BONUS,
-  dominantTradition,
   PRACTICE_DURATION_SEC,
   RESONANCE_GAIN,
   traditionForMarker,
 } from './practice';
+import { useWorldStore } from './world/WorldState';
 
 export type RealmPhase = 'material' | 'liminal' | 'spiritual';
 
@@ -20,18 +18,16 @@ export interface ActivePractice {
 }
 
 interface PracticeState {
-  resonance: Partial<Record<SpiritualTradition, number>>;
   spiritualDepth: number;
   dominantTradition: SpiritualTradition | null;
   realmPhase: RealmPhase;
   activePractice: ActivePractice | null;
-  discoveredStones: string[];
   sustainElapsedSec: number;
   avatarMoving: boolean;
   nearbyEventId: string | null;
   lastCompletedAt: number;
-  sessionsCompleted: number;
 
+  syncFromWorld: () => void;
   markDiscovered: (eventId: string) => void;
   isDiscovered: (eventId: string) => boolean;
   setAvatarMoving: (moving: boolean) => void;
@@ -40,59 +36,48 @@ interface PracticeState {
   tickPractice: (nowMs: number) => void;
   cancelPractice: () => void;
   completePractice: () => void;
-  setResonance: (resonance: Partial<Record<SpiritualTradition, number>>) => void;
   setSpiritualDepth: (depth: number) => void;
   setRealmPhase: (phase: RealmPhase) => void;
   setSustainElapsed: (sec: number) => void;
-  resetPractice: () => void;
+  resetSession: () => void;
 }
 
-const INITIAL: Pick<
+const SESSION_INITIAL: Pick<
   PracticeState,
-  | 'resonance'
-  | 'spiritualDepth'
-  | 'dominantTradition'
   | 'realmPhase'
   | 'activePractice'
-  | 'discoveredStones'
   | 'sustainElapsedSec'
   | 'avatarMoving'
   | 'nearbyEventId'
   | 'lastCompletedAt'
-  | 'sessionsCompleted'
 > = {
-  resonance: {},
-  spiritualDepth: 0,
-  dominantTradition: null,
   realmPhase: 'material',
   activePractice: null,
-  discoveredStones: [],
   sustainElapsedSec: 0,
   avatarMoving: false,
   nearbyEventId: null,
   lastCompletedAt: 0,
-  sessionsCompleted: 0,
 };
 
-function syncDepth(state: Pick<PracticeState, 'resonance'>) {
-  const depth = computeSpiritualDepth(state.resonance);
+function syncDepthFromWorld() {
+  const world = useWorldStore.getState();
   return {
-    spiritualDepth: depth,
-    dominantTradition: dominantTradition(state.resonance),
+    spiritualDepth: world.spiritualDepth,
+    dominantTradition: world.dominantTradition,
   };
 }
 
 export const usePracticeStore = create<PracticeState>((set, get) => ({
-  ...INITIAL,
+  ...SESSION_INITIAL,
+  ...syncDepthFromWorld(),
 
-  markDiscovered: (eventId) =>
-    set((s) =>
-      s.discoveredStones.includes(eventId)
-        ? s
-        : { discoveredStones: [...s.discoveredStones, eventId] },
-    ),
+  syncFromWorld: () => set(syncDepthFromWorld()),
 
-  isDiscovered: (eventId) => get().discoveredStones.includes(eventId),
+  markDiscovered: (eventId) => {
+    useWorldStore.getState().markEventDiscovered(eventId);
+  },
+
+  isDiscovered: (eventId) => useWorldStore.getState().isEventDiscovered(eventId),
 
   setAvatarMoving: (moving) => set({ avatarMoving: moving }),
 
@@ -128,31 +113,23 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   cancelPractice: () => set({ activePractice: null }),
 
   completePractice: () => {
-    const { activePractice, resonance, discoveredStones } = get();
+    const { activePractice } = get();
     if (!activePractice) return;
 
     let gain = RESONANCE_GAIN;
-    if (discoveredStones.includes(activePractice.eventId)) {
+    if (useWorldStore.getState().isEventDiscovered(activePractice.eventId)) {
       gain += DISCOVERED_BONUS;
     }
 
-    const prev = resonance[activePractice.tradition] ?? 0;
-    const nextResonance = {
-      ...resonance,
-      [activePractice.tradition]: clampResonance(prev + gain),
-    };
+    useWorldStore.getState().addResonance(activePractice.tradition, gain);
+    useWorldStore.getState().incrementSessions();
 
     set({
       activePractice: null,
-      resonance: nextResonance,
       lastCompletedAt: performance.now(),
-      sessionsCompleted: get().sessionsCompleted + 1,
-      ...syncDepth({ resonance: nextResonance }),
+      ...syncDepthFromWorld(),
     });
   },
-
-  setResonance: (resonance) =>
-    set({ resonance, ...syncDepth({ resonance }) }),
 
   setSpiritualDepth: (depth) => set({ spiritualDepth: depth }),
 
@@ -160,5 +137,18 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
 
   setSustainElapsed: (sec) => set({ sustainElapsedSec: sec }),
 
-  resetPractice: () => set({ ...INITIAL }),
+  resetSession: () => set({ ...SESSION_INITIAL, ...syncDepthFromWorld() }),
 }));
+
+/** Resonance from persisted world state. */
+export function getResonance(): Partial<Record<SpiritualTradition, number>> {
+  return useWorldStore.getState().resonance;
+}
+
+export function getSessionsCompleted(): number {
+  return useWorldStore.getState().sessionsCompleted;
+}
+
+export function getDiscoveredStones(): string[] {
+  return useWorldStore.getState().discoveredEventIds;
+}

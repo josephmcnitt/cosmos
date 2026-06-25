@@ -9,6 +9,7 @@ import { flyToEvent } from '../core/flyToEvent';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
 import { usePracticeStore } from '../core/PracticeState';
+import { useWorldStore } from '../core/world/WorldState';
 import { KNOWLEDGE_MODE_LABELS, resolveKnowledgeMode } from '../core/knowledgeMode';
 import { SPATIAL_BANDS } from '../core/ScaleSpace';
 import { formatSimTime } from '../core/TimeSpace';
@@ -22,6 +23,7 @@ export function EventDetailPanel() {
   const nearbyEventId = usePracticeStore((s) => s.nearbyEventId);
   const realmPhase = usePracticeStore((s) => s.realmPhase);
   const activePractice = usePracticeStore((s) => s.activePractice);
+  const isDiscovered = useWorldStore((s) => s.isEventDiscovered(selectedEventId ?? ''));
 
   if (!selectedEventId) return null;
 
@@ -103,6 +105,14 @@ export function EventDetailPanel() {
       {showPracticeNudge && (
         <p className="event-detail-practice-hint">
           Return to the stone and hold Q to practice.
+        </p>
+      )}
+
+      {mode === 'embodied' && isSpiritualEvent(event) && event.visibility === 'esoteric' && (
+        <p className="event-detail-age-hint" data-testid="event-age-hint">
+          {isDiscovered
+            ? 'A correspondence portal may open nearby after practice.'
+            : 'Discover this stone in walk mode (E) to reveal correspondence hints.'}
         </p>
       )}
 

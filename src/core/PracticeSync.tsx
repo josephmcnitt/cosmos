@@ -9,6 +9,7 @@ import {
 } from './practice';
 import { usePracticeStore } from './PracticeState';
 import { useObserverStore } from './ObserverState';
+import { useWorldStore } from './world/WorldState';
 
 function syncRealmPhase(
   embodied: boolean,
@@ -16,7 +17,8 @@ function syncRealmPhase(
   sustainRef: MutableRefObject<number>,
 ) {
   const practice = usePracticeStore.getState();
-  const depth = practice.spiritualDepth;
+  const world = useWorldStore.getState();
+  const depth = world.spiritualDepth;
   const atStone = isAtStoneWithHighDepth(depth, marker);
 
   if (atStone && embodied) {
@@ -33,7 +35,8 @@ function syncRealmPhase(
   );
 
   usePracticeStore.setState({
-    dominantTradition: dominantTradition(practice.resonance),
+    spiritualDepth: depth,
+    dominantTradition: world.dominantTradition,
     realmPhase: embodied ? nextPhase : 'material',
     sustainElapsedSec: sustainRef.current,
   });
@@ -61,6 +64,7 @@ export function PracticeSync() {
       lastTick.current = now;
 
       const practice = usePracticeStore.getState();
+      const world = useWorldStore.getState();
       const observer = useObserverStore.getState();
       const embodied = observer.mode === 'embodied';
 
@@ -70,13 +74,12 @@ export function PracticeSync() {
       practice.setNearbyEventId(marker?.eventId ?? null);
 
       if (practice.activePractice) {
-        const hadActive = true;
         practice.tickPractice(now);
-        if (hadActive && !usePracticeStore.getState().activePractice) {
+        if (!usePracticeStore.getState().activePractice) {
           syncRealmPhase(embodied, marker, sustainRef);
         }
       } else {
-        const decayed = applyResonanceDecay(practice.resonance, dtSec, embodied);
+        const decayed = applyResonanceDecay(world.resonance, dtSec, embodied);
         const depth = computeSpiritualDepth(decayed);
         const atStone = isAtStoneWithHighDepth(depth, marker);
 
@@ -93,8 +96,9 @@ export function PracticeSync() {
           atStone && embodied,
         );
 
+        world.setResonance(decayed);
+
         usePracticeStore.setState({
-          resonance: decayed,
           spiritualDepth: depth,
           dominantTradition: dominantTradition(decayed),
           realmPhase: embodied ? nextPhase : 'material',

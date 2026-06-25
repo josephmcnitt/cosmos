@@ -1436,6 +1436,102 @@ body,
   color: #c8b8e8;
 }
 
+.event-detail-age-hint {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: #a0b0c8;
+  font-style: italic;
+}
+
+.embodied-age-label {
+  font-size: 12px;
+  color: #c8d0e0;
+  margin-bottom: 8px;
+  letter-spacing: 0.04em;
+}
+
+.link-panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  min-width: 280px;
+  padding: 16px;
+}
+
+.sense-whisper {
+  position: absolute;
+  top: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 18;
+  padding: 10px 16px;
+  font-style: italic;
+  color: #d4c8a8;
+  border-color: rgba(200, 168, 96, 0.4);
+}
+
+.journal-toggle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 25;
+}
+
+.journal-toggle--cosmic {
+  top: 108px;
+}
+
+.journal-panel {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  max-width: 320px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.journal-panel--cosmic {
+  top: 108px;
+  max-height: calc(70vh - 92px);
+}
+
+.puzzle-hint {
+  position: absolute;
+  bottom: 280px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 14;
+  font-size: 12px;
+  color: #a8c8c0;
+}
+
+.split-controls {
+  position: absolute;
+  bottom: 340px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 14;
+  font-size: 12px;
+}
+
+.age-transition-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 16;
+  background: #000;
+  animation: age-fade 0.8s ease;
+  pointer-events: none;
+}
+
+@keyframes age-fade {
+  0% { opacity: 0; }
+  40% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 @media (max-width: 640px) {
   .spatial-slider {
     top: auto;

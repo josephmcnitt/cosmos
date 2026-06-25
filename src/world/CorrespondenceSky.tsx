@@ -3,7 +3,7 @@ import { MARKER_TRADITION_COLORS } from '../data/embodied/siteMarkers';
 import { isCorrespondenceLensActive } from '../core/traditionGates';
 import { useIntroStore } from '../core/IntroState';
 import { useObserverStore } from '../core/ObserverState';
-import { usePracticeStore } from '../core/PracticeState';
+import { useWorldStore } from '../core/world/WorldState';
 
 const RING_RADIUS = 265;
 const SEGMENTS = 12;
@@ -13,9 +13,9 @@ export function CorrespondenceSky() {
   const simTimeSeconds = useObserverStore((s) => s.simTimeSeconds);
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
   const mode = useObserverStore((s) => s.mode);
-  const spiritualDepth = usePracticeStore((s) => s.spiritualDepth);
-  const sessionsCompleted = usePracticeStore((s) => s.sessionsCompleted);
-  const dominantTradition = usePracticeStore((s) => s.dominantTradition);
+  const spiritualDepth = useWorldStore((s) => s.spiritualDepth);
+  const sessionsCompleted = useWorldStore((s) => s.sessionsCompleted);
+  const dominantTradition = useWorldStore((s) => s.dominantTradition);
 
   const active = useMemo(
     () =>

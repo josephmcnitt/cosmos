@@ -11,7 +11,7 @@ describe('computeHeavenVisuals', () => {
     const v = computeHeavenVisuals(yearsAfterBB(50e6));
     expect(v.phase).toBe('darkAges');
     expect(v.starfieldOpacity).toBeLessThan(0.15);
-    expect(v.ambientScale).toBeLessThan(0.25);
+    expect(v.ambientScale).toBeLessThan(0.3);
     expect(v.fogDensity).toBeGreaterThan(0.9);
   });
 
@@ -30,7 +30,7 @@ describe('computeHeavenVisuals', () => {
     expect(v.phase).toBe('reionized');
     expect(v.starfieldOpacity).toBeGreaterThan(0.85);
     expect(v.bandScale.galaxy).toBeGreaterThan(0.85);
-    expect(v.ambientScale).toBeCloseTo(0.35, 1);
+    expect(v.ambientScale).toBeCloseTo(0.45, 1);
   });
 
   it('starfield opacity is monotonic as time advances', () => {

@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test';
+import { PNG } from 'pngjs';
 
 export interface TimelineState {
   min: number;
@@ -10,8 +11,12 @@ export interface TimelineState {
 export async function skipIntro(page: Page): Promise<void> {
   const overlay = page.getByTestId('intro-overlay');
   await overlay.waitFor({ state: 'visible', timeout: 15_000 });
-  await page.getByTestId('intro-skip').click();
+  // Keyboard skip avoids click-through into the HUD once the overlay unmounts.
+  await page.keyboard.press('Space');
   await overlay.waitFor({ state: 'hidden', timeout: 10_000 });
+  await page.getByTestId('heaven-phase').waitFor({ state: 'attached', timeout: 10_000 });
+  await waitForCanvasFrame(page, 12);
+  await page.waitForTimeout(5000);
 }
 
 export async function setHumanSpatialScale(page: Page): Promise<void> {
@@ -105,21 +110,70 @@ export async function setSpatialExponent(page: Page, exponent: number): Promise<
   await page.waitForTimeout(400);
 }
 
+export async function waitForCanvasFrame(page: Page, frames = 4): Promise<void> {
+  await page.evaluate(
+    (count) =>
+      new Promise<void>((resolve) => {
+        let remaining = count;
+        const step = () => {
+          remaining -= 1;
+          if (remaining <= 0) resolve();
+          else requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }),
+    frames,
+  );
+}
+
+function peakCenterFromPng(png: PNG): number {
+  const x0 = Math.floor(png.width * 0.35);
+  const y0 = Math.floor(png.height * 0.18);
+  const rw = Math.floor(png.width * 0.3);
+  const rh = Math.floor(png.height * 0.42);
+  let peak = 0;
+  for (let y = y0; y < y0 + rh; y += 2) {
+    for (let x = x0; x < x0 + rw; x += 2) {
+      const i = (png.width * y + x) << 2;
+      peak = Math.max(peak, png.data[i]!, png.data[i + 1]!, png.data[i + 2]!);
+    }
+  }
+  return peak;
+}
+
+/** Sample max RGB from the central viewport (avoids HUD chrome at edges). */
+async function sampleCanvasCenterPeak(page: Page): Promise<number> {
+  const canvas = page.locator('.canvas canvas');
+  const shot = await canvas.screenshot({ type: 'png' });
+  const png = PNG.sync.read(shot);
+  return peakCenterFromPng(png);
+}
+
+/** Sample max RGB from the rendered WebGL canvas (requires preserveDrawingBuffer). */
+export async function canvasMaxBrightness(page: Page): Promise<number> {
+  const canvas = page.locator('.canvas canvas');
+  await canvas.waitFor({ state: 'visible' });
+
+  let best = 0;
+  for (let attempt = 0; attempt < 16; attempt++) {
+    if (attempt > 0) await page.waitForTimeout(300);
+    await waitForCanvasFrame(page, 2);
+    best = Math.max(best, await sampleCanvasCenterPeak(page));
+    if (best > MIN_CANVAS_BRIGHTNESS) return best;
+  }
+
+  return best;
+}
+
 export async function canvasScreenshot(page: Page): Promise<Buffer> {
-  const canvas = page.locator('.canvas');
+  await waitForCanvasFrame(page);
+  const canvas = page.locator('.canvas canvas');
   await canvas.waitFor({ state: 'visible' });
   return canvas.screenshot();
 }
 
-/** Rough check that a PNG screenshot is not a uniform black frame. */
-export function screenshotHasVisibleContent(png: Buffer): boolean {
-  if (png.length < 500) return false;
-  let brightSamples = 0;
-  for (let i = 200; i < Math.min(png.length, 8000); i += 8) {
-    if (png[i]! > 20) brightSamples++;
-  }
-  return brightSamples > 8;
-}
+/** Minimum max RGB (0–255) for a non-black WebGL frame. */
+export const MIN_CANVAS_BRIGHTNESS = 24;
 
 export function buffersDiffer(a: Buffer, b: Buffer): boolean {
   if (a.length !== b.length) return true;

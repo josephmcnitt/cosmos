@@ -2,7 +2,7 @@ import { useIntroStore } from './IntroState';
 import { useHistoryStore } from './HistoryState';
 import { usePracticeStore } from './PracticeState';
 import type { ObserverMode, ObserverState } from './ObserverState';
-import { isInHumanEra } from './spatialTimeCoupling';
+import { isHumanSpatialBand, isInHumanEra } from './spatialTimeCoupling';
 
 export const EMBODIED_ENTER_EXPONENT = 4.0;
 export const EMBODIED_EXIT_EXPONENT = 3.5;
@@ -44,7 +44,10 @@ export function shouldEnterEmbodied(
   if (state.mode === 'embodied') return false;
   if (!ctx.introComplete || ctx.isFlying) return false;
   if (!isInHumanEra(state.simTimeSeconds)) return false;
-  return state.spatialExponent >= EMBODIED_ENTER_EXPONENT;
+  return (
+    isHumanSpatialBand(state.spatialExponent) &&
+    state.spatialExponent >= EMBODIED_ENTER_EXPONENT
+  );
 }
 
 export function shouldExitEmbodiedFromSpatial(

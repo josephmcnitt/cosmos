@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 
 const localURL = 'http://127.0.0.1:4173';
 const baseURL = process.env.COSMOS_E2E_URL ?? localURL;
@@ -16,6 +16,9 @@ export default defineConfig({
     baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    launchOptions: {
+      args: ['--use-gl=angle', '--ignore-gpu-blocklist'],
+    },
   },
   webServer: useLocalServer
     ? {
@@ -28,7 +31,11 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        launchOptions: {
+          args: ['--use-gl=angle', '--ignore-gpu-blocklist'],
+        },
+      },
     },
   ],
 });

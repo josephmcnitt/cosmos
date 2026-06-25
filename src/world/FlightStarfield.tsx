@@ -1,12 +1,11 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
-import * as THREE from 'three';
 import { useIntroStore } from '../core/IntroState';
 import { useObserverStore } from '../core/ObserverState';
-import { getStarTexture } from './starPoints';
+import { StarBillboards } from './StarBillboards';
 
 interface StarLayer {
-  geometry: THREE.BufferGeometry;
+  positions: Float32Array;
   count: number;
   zMin: number;
   zMax: number;
@@ -33,17 +32,16 @@ function buildLayer(
     positions[i * 3 + 1] = (Math.random() - 0.5) * spread * 0.6;
     positions[i * 3 + 2] = -(zMin + Math.random() * (zMax - zMin));
   }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  return { geometry, count, zMin, zMax, parallax, spread, size, color, opacity };
+  return { positions, count, zMin, zMax, parallax, spread, size, color, opacity };
 }
 
 function FocusDot({ opacity }: { opacity: number }) {
   if (opacity <= 0.01) return null;
+
   return (
     <mesh position={[0, 0, -0.05]}>
       <sphereGeometry args={[0.06, 12, 12]} />
-      <meshBasicMaterial color="#fff8e8" transparent opacity={opacity} toneMapped={false} />
+      <meshBasicMaterial color="#fff8e8" transparent opacity={opacity} toneMapped={false} fog={false} />
     </mesh>
   );
 }
@@ -53,7 +51,6 @@ export function FlightStarfield() {
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
   const { camera } = useThree();
   const prevCamZ = useRef(camera.position.z);
-  const starTexture = useMemo(() => getStarTexture(), []);
 
   const layers = useMemo(
     () => [
@@ -75,20 +72,20 @@ export function FlightStarfield() {
       : Math.max(0.01, Math.abs(deltaZ) * 1.4);
 
     for (const layer of layers) {
-      const pos = layer.geometry.getAttribute('position') as THREE.BufferAttribute;
       for (let i = 0; i < layer.count; i++) {
-        let x = pos.getX(i);
-        let y = pos.getY(i);
-        let z = pos.getZ(i);
+        let x = layer.positions[i * 3]!;
+        let y = layer.positions[i * 3 + 1]!;
+        let z = layer.positions[i * 3 + 2]!;
         z += flySpeed * layer.parallax;
         if (z > camZ + 8) {
           z = -(layer.zMin + Math.random() * (layer.zMax - layer.zMin));
           x = (Math.random() - 0.5) * layer.spread;
           y = (Math.random() - 0.5) * layer.spread * 0.6;
         }
-        pos.setXYZ(i, x, y, z);
+        layer.positions[i * 3] = x;
+        layer.positions[i * 3 + 1] = y;
+        layer.positions[i * 3 + 2] = z;
       }
-      pos.needsUpdate = true;
     }
   });
 
@@ -113,19 +110,15 @@ export function FlightStarfield() {
     <group>
       <FocusDot opacity={dotOpacity} />
       {showStars &&
+        introPhase !== 'complete' &&
         layers.map((layer, i) => (
-          <points key={i} geometry={layer.geometry}>
-            <pointsMaterial
-              size={layer.size}
-              color={layer.color}
-              map={starTexture}
-              transparent
-              opacity={layer.opacity * layerScale}
-              sizeAttenuation
-              depthWrite={false}
-              blending={THREE.AdditiveBlending}
-            />
-          </points>
+          <StarBillboards
+            key={i}
+            positions={layer.positions}
+            color={layer.color}
+            opacity={layer.opacity * layerScale}
+            pixelSize={layer.size * 3.5}
+          />
         ))}
     </group>
   );

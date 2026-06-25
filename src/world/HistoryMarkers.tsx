@@ -54,6 +54,9 @@ export function HistoryMarkers() {
 
   const markers = useMemo(() => getEventsWith3DMarkers(), []);
 
+  // Skip 3D pins at universe/galaxy scale — keeps the starfield render path light.
+  if (spatialExponent >= 22) return null;
+
   return (
     <group>
       {markers.map((event) => {

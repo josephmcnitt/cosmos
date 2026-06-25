@@ -69,7 +69,7 @@ export function computeHeavenVisuals(simTimeSeconds: number): HeavenVisuals {
   const galaxyScale = lerp(0.08, 1, firstLightBlend * (0.5 + reionBlend * 0.5));
   const stellarScale = lerp(0.05, 1, reionBlend);
 
-  const ambientScale = lerp(0.2, 0.35, firstLightBlend * (0.4 + reionBlend * 0.6));
+  const ambientScale = lerp(0.28, 0.45, firstLightBlend * (0.4 + reionBlend * 0.6));
   const fogDensity = lerp(1, 0.45, firstLightBlend * (0.3 + reionBlend * 0.7));
 
   const cmbGlow = Math.max(0, 1 - smoothstep(0, FIRST_STARS_SECONDS * 0.5, t));

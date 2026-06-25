@@ -36,6 +36,7 @@ export function BigBangEffect() {
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geo.computeBoundingSphere();
     return { geometry: geo, velocities, count };
   }, []);
 
@@ -120,7 +121,8 @@ export function BigBangEffect() {
           toneMapped={false}
         />
       </mesh>
-      <points geometry={particles.geometry}>
+      <points frustumCulled={false}>
+        <primitive attach="geometry" object={particles.geometry} />
         <pointsMaterial
           ref={particlesMatRef}
           size={0.35}
@@ -132,6 +134,7 @@ export function BigBangEffect() {
           depthWrite={false}
           toneMapped={false}
           blending={THREE.AdditiveBlending}
+          fog={false}
         />
       </points>
       <pointLight color="#ffaa66" intensity={active ? 8 : 0} distance={200} decay={2} />

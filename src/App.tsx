@@ -1,5 +1,7 @@
 import { Canvas } from '@react-three/fiber';
+import { Stars } from '@react-three/drei';
 import { Suspense, useEffect } from 'react';
+import * as THREE from 'three';
 import { EmbodiedCamera } from './camera/EmbodiedCamera';
 import { LogarithmicCamera } from './camera/LogarithmicCamera';
 import { EmbodimentSync } from './core/EmbodimentSync';
@@ -32,8 +34,8 @@ import { DebugGrid } from './world/DebugGrid';
 import { EmbodiedSite } from './world/EmbodiedSite';
 import { LiminalEffects } from './world/LiminalEffects';
 import { SpiritualRealm } from './world/SpiritualRealm';
-import { HistoryMarkers } from './world/HistoryMarkers';
 import { PlayerAvatar } from './world/PlayerAvatar';
+import { HistoryMarkers } from './world/HistoryMarkers';
 import { MaterialHeavens } from './world/MaterialHeavens';
 import { FlightStarfield } from './world/FlightStarfield';
 import { WorldRoot } from './world/WorldRoot';
@@ -54,7 +56,7 @@ function Scene() {
     <>
       <color attach="background" args={['#000000']} />
       <fog attach="fog" args={['#030508', fog.near, fog.far]} />
-      <ambientLight intensity={embodied ? 0.45 : 0.15} />
+      <ambientLight intensity={embodied ? 0.45 : 0.28} />
       {embodied ? <EmbodiedCamera /> : <LogarithmicCamera />}
       <SimulationLoop />
       <BigBangEffect />
@@ -67,13 +69,20 @@ function Scene() {
           {spiritualWeight > 0.02 && <SpiritualRealm />}
         </>
       ) : (
-        showWorld && (
-          <>
-            <FlightStarfield />
-            {introComplete ? <MaterialHeavens /> : <WorldRoot />}
-            {introComplete && <HistoryMarkers />}
-          </>
-        )
+        <>
+          <Stars
+            radius={320}
+            depth={120}
+            count={9000}
+            factor={5}
+            saturation={0.15}
+            fade={false}
+            speed={0}
+          />
+          <FlightStarfield />
+          {introComplete ? <MaterialHeavens /> : introPhase === 'expansion' || introPhase === 'reveal' ? <WorldRoot /> : null}
+          {introComplete && <HistoryMarkers />}
+        </>
       )}
       <DebugGrid />
     </>
@@ -141,10 +150,12 @@ export default function App() {
 
       <Canvas
         className="canvas"
+        frameloop="always"
         camera={{ fov: 60, near: 0.01, far: 3000, position: [0, 0, 0.5] }}
-        gl={{ antialias: true, alpha: false }}
+        gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true }}
         onCreated={({ gl }) => {
           gl.setClearColor('#000000');
+          gl.toneMapping = THREE.NoToneMapping;
         }}
       >
         <Suspense fallback={null}>

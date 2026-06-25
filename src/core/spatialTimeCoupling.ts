@@ -88,6 +88,7 @@ export function computeSpatialTimeWindow(spatialExponent: number): SpatialTimeWi
 
   if (band.id === 'universe' || band.id === 'galaxy') {
     minSeconds = 0;
+    maxSeconds = UNIVERSE_AGE_SECONDS;
   }
 
   if (band.id === 'human') {

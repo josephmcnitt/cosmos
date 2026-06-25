@@ -14,6 +14,15 @@ import {
 const introComplete = { introComplete: true, isFlying: false };
 
 describe('shouldEnterEmbodied', () => {
+  it('blocks at cosmic spatial scale even in human era', () => {
+    expect(
+      shouldEnterEmbodied(
+        { mode: 'cosmic', spatialExponent: 25, simTimeSeconds: UNIVERSE_AGE_SECONDS },
+        introComplete,
+      ),
+    ).toBe(false);
+  });
+
   it('requires human era and high spatial exponent', () => {
     expect(
       shouldEnterEmbodied(

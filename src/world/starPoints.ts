@@ -29,8 +29,9 @@ export function starPointsMaterial(
     map: getStarTexture(),
     transparent: true,
     opacity,
-    sizeAttenuation: true,
+    sizeAttenuation: false,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
+    fog: false,
   });
 }

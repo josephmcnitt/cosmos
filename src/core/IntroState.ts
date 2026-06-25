@@ -22,7 +22,12 @@ export const useIntroStore = create<IntroState>((set) => ({
   startedAt: null,
   skipped: false,
 
-  start: () => set({ phase: 'void', startedAt: performance.now(), skipped: false }),
+  start: () =>
+    set((s) =>
+      s.phase === 'complete' || s.skipped
+        ? s
+        : { phase: 'void', startedAt: performance.now(), skipped: false },
+    ),
 
   setPhase: (phase) => set({ phase }),
 

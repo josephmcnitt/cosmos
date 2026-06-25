@@ -72,7 +72,7 @@ export function LogarithmicCamera() {
     const fog = scene.fog;
     if (fog instanceof THREE.Fog) {
       fog.near = Math.max(1, dist * 0.25);
-      fog.far = Math.max(fog.near + 50, dist * 2.8 + 120);
+      fog.far = Math.max(fog.near + 200, dist * 12 + 400);
     }
   });
 

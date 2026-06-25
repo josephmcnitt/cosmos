@@ -66,7 +66,7 @@ export function EventDetailPanel() {
           <span
             className={`event-visibility event-visibility--${event.visibility}`}
           >
-            {event.visibility === 'esoteric' ? 'Esoteric' : 'Exoteric'}
+            {event.visibility === 'esoteric' ? 'Rational · Esoteric' : 'Exoteric'}
           </span>
         </div>
       )}

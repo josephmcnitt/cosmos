@@ -86,8 +86,8 @@ export function TimeControls() {
         <span className="scrubber-rail-label">
           {showSpiritual ? 'Spiritual' : 'Material'}
         </span>
-        <span className="scrubber-end-label" title={timeWindow.labelMin}>
-          {timeWindow.labelMin}
+        <span className="scrubber-end-label" title={timeWindow.viewLabelMin}>
+          {timeWindow.viewLabelMin}
         </span>
         <div className="scrubber-track-outer">
           {showSpiritual ? <SpiritualTimelineTicks /> : <TimelineEventTicks />}
@@ -102,8 +102,8 @@ export function TimeControls() {
             <div className="scrubber-thumb" style={{ left: `${normalized * 100}%` }} />
           </div>
         </div>
-        <span className="scrubber-end-label" title={timeWindow.labelMax}>
-          {timeWindow.labelMax}
+        <span className="scrubber-end-label" title={timeWindow.viewLabelMax}>
+          {timeWindow.viewLabelMax}
         </span>
       </div>
 

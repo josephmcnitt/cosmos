@@ -13,7 +13,12 @@ export function EmbodiedOverlay() {
         <strong>Q</strong> hold to practice (W/S cancels practice) · <strong>scroll</strong> zoom
         out to exit walk
       </div>
-      <button type="button" className="embodied-exit-btn" onClick={exitEmbodied}>
+      <button
+        type="button"
+        className="embodied-exit-btn"
+        data-testid="exit-walk-mode"
+        onClick={() => exitEmbodied()}
+      >
         Zoom out to cosmos
       </button>
     </div>

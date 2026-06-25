@@ -66,7 +66,7 @@ describe('isWheelScrollBlockTarget', () => {
       </div>
     `;
     const input = document.querySelector('input')!;
-    expect(isWheelScrollBlockTarget(input)).toBe(false);
+    expect(isWheelScrollBlockTarget(input)).toBe(true);
   });
 
   it('covers every configured block selector', () => {

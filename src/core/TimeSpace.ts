@@ -135,47 +135,46 @@ export function formatSimTimeShort(simTimeSeconds: number): string {
   return `${ce} CE`;
 }
 
+/** Absolute time since Big Bang — used for narrowed timeline windows. */
+export function formatSimTimeAbsoluteShort(
+  simTimeSeconds: number,
+  viewLogSpan: number,
+): string {
+  if (simTimeSeconds >= UNIVERSE_AGE_SECONDS - YEAR_SECONDS * 100) return 'Present';
+  if (simTimeSeconds < 1) {
+    return `${Math.max(simTimeSeconds, 1e-30).toExponential(1)} s`;
+  }
+  if (simTimeSeconds < YEAR_SECONDS) return `${simTimeSeconds.toFixed(1)} s`;
+  if (simTimeSeconds < MYA) return `${(simTimeSeconds / YEAR_SECONDS).toFixed(1)} yr`;
+  if (simTimeSeconds < GYA) return `${(simTimeSeconds / MYA).toFixed(2)} Ma`;
+  const ga = simTimeSeconds / GYA;
+  const decimals = viewLogSpan < 0.15 ? 3 : viewLogSpan < 0.6 ? 2 : 1;
+  return `${ga.toFixed(decimals)} Ga`;
+}
+
 /** Scrubber endpoint label — adapts precision/units to the visible log-time span. */
 export function formatSimTimeWindowEdge(
   simTimeSeconds: number,
   viewLogSpan: number,
+  bandLogSpan: number,
 ): string {
-  if (viewLogSpan >= TEMPORAL_MAX * 0.85) {
-    return formatSimTimeShort(simTimeSeconds);
+  const narrowed = viewLogSpan < bandLogSpan * 0.95;
+  if (narrowed) {
+    return formatSimTimeAbsoluteShort(simTimeSeconds, viewLogSpan);
   }
+  return formatSimTimeShort(simTimeSeconds);
+}
 
-  const age = UNIVERSE_AGE_SECONDS - simTimeSeconds;
-  const yearsAgo = age / YEAR_SECONDS;
-
-  if (yearsAgo < 150) {
-    if (yearsAgo < 2) return 'Present';
-    const ce = new Date().getFullYear() - Math.round(yearsAgo);
-    return viewLogSpan < 0.25 ? `${ce} CE` : `${Math.round(yearsAgo)} yr ago`;
-  }
-
-  if (simTimeSeconds < GYA * 3) {
-    if (simTimeSeconds < 1) {
-      return `${Math.max(simTimeSeconds, 1e-30).toExponential(1)} s ABB`;
-    }
-    if (simTimeSeconds < YEAR_SECONDS) {
-      return `${simTimeSeconds.toFixed(1)} s ABB`;
-    }
-    if (simTimeSeconds < MYA) {
-      return `${(simTimeSeconds / YEAR_SECONDS).toFixed(1)} yr ABB`;
-    }
-    if (simTimeSeconds < GYA) {
-      return `${(simTimeSeconds / MYA).toFixed(2)} Ma ABB`;
-    }
-    return `${(simTimeSeconds / GYA).toFixed(3)} Ga ABB`;
-  }
-
-  const decimals =
-    viewLogSpan < 0.06 ? 3 : viewLogSpan < 0.15 ? 2 : viewLogSpan < 0.35 ? 1 : 1;
-
-  if (yearsAgo >= 1e9) return `${(yearsAgo / 1e9).toFixed(decimals)} Gya`;
-  if (yearsAgo >= 1e6) return `${(yearsAgo / 1e6).toFixed(Math.max(0, decimals - 1))} Mya`;
-  if (yearsAgo >= 1e3) return `${(yearsAgo / 1e3).toFixed(0)} kya`;
-  return `${Math.round(yearsAgo)} yr ago`;
+/** Human-readable timeline header from visible window edges. */
+export function formatTimelineHeader(
+  viewMinSeconds: number,
+  viewMaxSeconds: number,
+  viewLogSpan: number,
+  bandLogSpan: number,
+): string {
+  const minLabel = formatSimTimeWindowEdge(viewMinSeconds, viewLogSpan, bandLogSpan);
+  const maxLabel = formatSimTimeWindowEdge(viewMaxSeconds, viewLogSpan, bandLogSpan);
+  return `${minLabel} – ${maxLabel}`;
 }
 
 /** Seconds of sim time advanced per real second at playback rate 1×. */

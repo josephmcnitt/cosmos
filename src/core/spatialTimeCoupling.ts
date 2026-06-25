@@ -126,10 +126,12 @@ export function computeEffectiveTimeWindow(
 ): EffectiveTimeWindow {
   const bandWindow = computeSpatialTimeWindow(spatialExponent);
   const bandSpan = bandWindow.maxLog - bandWindow.minLog;
-  const zoom = Math.max(0, Math.min(1, temporalExponent / TEMPORAL_MAX));
+  const t = Math.max(0, Math.min(1, temporalExponent / TEMPORAL_MAX));
+  // Ease-in: more narrowing in the second half of the time-zoom slider.
+  const zoom = 1 - Math.pow(1 - t, 2);
   const viewSpan = Math.max(
     MIN_VIEW_LOG_SPAN,
-    bandSpan * Math.pow(1 - zoom, 1.4),
+    bandSpan * (1 - zoom),
   );
 
   const centerLog = Math.max(
@@ -204,4 +206,16 @@ export function clampSimTimeToSpatialBand(
 ): number {
   const { minSeconds, maxSeconds } = computeSpatialTimeWindow(spatialExponent);
   return clampSimTime(Math.max(minSeconds, Math.min(maxSeconds, simTimeSeconds)));
+}
+
+export function bandLogSpan(window: Pick<SpatialTimeWindow, 'minLog' | 'maxLog'>): number {
+  return window.maxLog - window.minLog;
+}
+
+export function isEffectiveWindowNarrowed(
+  window: Pick<EffectiveTimeWindow, 'viewMinLog' | 'viewMaxLog' | 'minLog' | 'maxLog'>,
+): boolean {
+  const viewSpan = window.viewMaxLog - window.viewMinLog;
+  const fullSpan = window.maxLog - window.minLog;
+  return viewSpan < fullSpan * 0.95;
 }

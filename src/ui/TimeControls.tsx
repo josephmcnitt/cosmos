@@ -3,11 +3,19 @@ import { PLAYBACK_PRESETS } from '../core/SimulationClock';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
 import {
-  normalizedFromSimTimeWindow,
+  bandLogSpan,
   computeEffectiveTimeWindow,
+  isEffectiveWindowNarrowed,
   isHumanSpatialBand,
+  normalizedFromSimTimeWindow,
 } from '../core/spatialTimeCoupling';
-import { TEMPORAL_MAX, TEMPORAL_MIN, formatSimTimeWindowEdge, getTemporalBand } from '../core/TimeSpace';
+import {
+  TEMPORAL_MAX,
+  TEMPORAL_MIN,
+  formatSimTimeWindowEdge,
+  formatTimelineHeader,
+  getTemporalBand,
+} from '../core/TimeSpace';
 import { TimelineEventTicks } from './TimelineEventTicks';
 import { SpiritualTimelineTicks } from './SpiritualTimelineTicks';
 import { DepthOfViewToggle } from './DepthOfViewToggle';
@@ -36,6 +44,28 @@ export function TimeControls() {
   );
 
   const normalized = normalizedFromSimTimeWindow(simTimeSeconds, timeWindow);
+  const viewLogSpan = timeWindow.viewMaxLog - timeWindow.viewMinLog;
+  const fullLogSpan = bandLogSpan(timeWindow);
+  const narrowed = isEffectiveWindowNarrowed(timeWindow);
+  const temporalBand = getTemporalBand(simTimeSeconds);
+  const viewMinLabel = formatSimTimeWindowEdge(
+    timeWindow.viewMinSeconds,
+    viewLogSpan,
+    fullLogSpan,
+  );
+  const viewMaxLabel = formatSimTimeWindowEdge(
+    timeWindow.viewMaxSeconds,
+    viewLogSpan,
+    fullLogSpan,
+  );
+  const timelineHeader = formatTimelineHeader(
+    timeWindow.viewMinSeconds,
+    timeWindow.viewMaxSeconds,
+    viewLogSpan,
+    fullLogSpan,
+  );
+  const atHumanScale = isHumanSpatialBand(spatialExponent);
+  const showSpiritual = historyTrack === 'spiritual' && atHumanScale;
 
   const handleScrub = useCallback(
     (clientX: number, rect: DOMRect) => {
@@ -63,29 +93,20 @@ export function TimeControls() {
     e.currentTarget.releasePointerCapture(e.pointerId);
   };
 
-  const zoomedIn = temporalExponent > TEMPORAL_MAX * 0.35;
-  const viewLogSpan = timeWindow.viewMaxLog - timeWindow.viewMinLog;
-  const temporalBand = getTemporalBand(simTimeSeconds);
-  const viewMinLabel = formatSimTimeWindowEdge(timeWindow.viewMinSeconds, viewLogSpan);
-  const viewMaxLabel = formatSimTimeWindowEdge(timeWindow.viewMaxSeconds, viewLogSpan);
-  const atHumanScale = isHumanSpatialBand(spatialExponent);
-  const showSpiritual = historyTrack === 'spiritual' && atHumanScale;
-
   return (
     <div className={`time-controls ui-panel${isFlying ? ' time-controls--locked' : ''}`}>
       <div className="time-controls-header">
-        <span>
-          Timeline · {temporalBand.label}
-          {zoomedIn ? ` · ${viewMinLabel} – ${viewMaxLabel}` : ''}
+        <span data-testid="timeline-header">
+          Timeline · {temporalBand.label} · {timelineHeader}
         </span>
         <HistoryTrackToggle />
         {showSpiritual && <DepthOfViewToggle />}
         <span className="time-hint">
           {showSpiritual
             ? 'Click timeline dots · toggle Full Depth for esoteric'
-            : zoomedIn
+            : narrowed
               ? 'Log scale · zoomed in — lower time zoom to widen'
-              : 'Click timeline dots · scroll to zoom space & time'}
+              : 'Scroll canvas to zoom space · Shift+scroll for time precision'}
         </span>
       </div>
 
@@ -109,7 +130,7 @@ export function TimeControls() {
             <div className="scrubber-thumb" style={{ left: `${normalized * 100}%` }} />
           </div>
         </div>
-        <span className="scrubber-end-label" title={viewMaxLabel}>
+        <span className="scrubber-end-label scrubber-end-label--max" title={viewMaxLabel}>
           {viewMaxLabel}
         </span>
       </div>

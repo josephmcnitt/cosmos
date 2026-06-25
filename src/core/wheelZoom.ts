@@ -7,6 +7,7 @@ export const WHEEL_SCROLL_BLOCK_SELECTORS = [
   '.event-detail',
   '.ui-sidebar-left',
   '.event-tradition-chips',
+  '.time-controls',
 ] as const;
 
 export interface WheelZoomInput {

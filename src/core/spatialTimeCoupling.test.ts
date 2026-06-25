@@ -43,4 +43,12 @@ describe('computeEffectiveTimeWindow', () => {
       wide.viewMaxSeconds - wide.viewMinSeconds,
     );
   });
+
+  it('narrows more aggressively in the second half of the slider', () => {
+    const mid = computeEffectiveTimeWindow(25, 1, TEMPORAL_MAX / 2);
+    const high = computeEffectiveTimeWindow(25, 1, TEMPORAL_MAX * 0.75);
+    const midSpan = mid.viewMaxLog - mid.viewMinLog;
+    const highSpan = high.viewMaxLog - high.viewMinLog;
+    expect(highSpan).toBeLessThan(midSpan);
+  });
 });

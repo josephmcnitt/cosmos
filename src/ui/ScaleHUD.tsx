@@ -1,15 +1,22 @@
 import { getEventById, getNearestEventForBand } from '../data/history/index';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
-import { formatSimTime, formatSimTimeShort } from '../core/TimeSpace';
+import { formatSimTime, formatSimTimeShort, formatTimelineHeader } from '../core/TimeSpace';
 import { getSpatialBand, metersFromExponent } from '../core/ScaleSpace';
-import { isHumanSpatialBand, isInHumanEra } from '../core/spatialTimeCoupling';
+import {
+  bandLogSpan,
+  computeEffectiveTimeWindow,
+  isEffectiveWindowNarrowed,
+  isHumanSpatialBand,
+  isInHumanEra,
+} from '../core/spatialTimeCoupling';
 import { usePracticeStore } from '../core/PracticeState';
 
 export function ScaleHUD() {
   const mode = useObserverStore((s) => s.mode);
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
   const simTimeSeconds = useObserverStore((s) => s.simTimeSeconds);
+  const temporalExponent = useObserverStore((s) => s.temporalExponent);
   const playbackRate = useObserverStore((s) => s.playbackRate);
   const showDebugGrid = useObserverStore((s) => s.showDebugGrid);
   const historyTrack = useHistoryStore((s) => s.historyTrack);
@@ -39,6 +46,23 @@ export function ScaleHUD() {
     spatialExponent >= 6
       ? `${distance.toExponential(1)} m`
       : `${distance.toFixed(distance < 10 ? 2 : 0)} m`;
+
+  const timeWindow = computeEffectiveTimeWindow(
+    spatialExponent,
+    simTimeSeconds,
+    temporalExponent,
+  );
+  const viewLogSpan = timeWindow.viewMaxLog - timeWindow.viewMinLog;
+  const fullLogSpan = bandLogSpan(timeWindow);
+  const timeNarrowed = isEffectiveWindowNarrowed(timeWindow);
+  const timeLabel = timeNarrowed
+    ? formatTimelineHeader(
+        timeWindow.viewMinSeconds,
+        timeWindow.viewMaxSeconds,
+        viewLogSpan,
+        fullLogSpan,
+      )
+    : formatSimTime(simTimeSeconds);
 
   if (mode === 'embodied') {
     const discovered = selectedEventId ? getEventById(selectedEventId) : null;
@@ -88,7 +112,7 @@ export function ScaleHUD() {
       </div>
       <div className="hud-row hud-muted">
         <span className="hud-label">Time</span>
-        <span>{formatSimTime(simTimeSeconds)}</span>
+        <span data-testid="hud-time">{timeLabel}</span>
       </div>
       <div className="hud-row">
         <span className="hud-label">Speed</span>

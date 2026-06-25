@@ -94,4 +94,34 @@ test.describe('Scroll and zoom routing', () => {
     const spatialAfter = await readSlider(page, 'spatial-slider');
     expect(spatialAfter).toBeCloseTo(spatialBefore, 1);
   });
+
+  test('timeline header and HUD time update when time zoom narrows', async ({ page }) => {
+    const header = page.getByTestId('timeline-header');
+    const hudTime = page.getByTestId('hud-time');
+    const wideHeader = await header.textContent();
+    const wideHudTime = await hudTime.textContent();
+
+    await page.getByTestId('temporal-zoom').fill(String(12));
+    await page.waitForTimeout(100);
+
+    const narrowHeader = await header.textContent();
+    const narrowHudTime = await hudTime.textContent();
+
+    expect(narrowHeader).not.toBe(wideHeader);
+    expect(narrowHudTime).not.toBe(wideHudTime);
+    expect(narrowHeader).not.toContain('13.8 Gya – 13.8 Gya');
+  });
+
+  test('wheel over timeline bar does not change spatial zoom', async ({ page }) => {
+    const spatialBefore = await readSlider(page, 'spatial-slider');
+    const bar = page.locator('.time-controls');
+    const box = await bar.boundingBox();
+    if (!box) throw new Error('Timeline bar not found');
+    await page.mouse.move(box.x + box.width / 2, box.y + 20);
+    await page.mouse.wheel(0, -120);
+    await page.waitForTimeout(100);
+
+    const spatialAfter = await readSlider(page, 'spatial-slider');
+    expect(spatialAfter).toBeCloseTo(spatialBefore, 1);
+  });
 });

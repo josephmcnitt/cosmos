@@ -289,13 +289,14 @@ body,
   flex-shrink: 0;
   font-size: 10px;
   color: #667788;
-  width: 56px;
+  min-width: 72px;
+  max-width: 110px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.scrubber-end-label:last-child {
+.scrubber-end-label--max {
   text-align: right;
 }
 

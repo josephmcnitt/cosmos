@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { TEMPORAL_MAX, formatPlayheadTime, formatSimTimeWindowEdge, formatTimelineHeader, UNIVERSE_AGE_SECONDS, yearsAgoLogSpan } from './TimeSpace';
 import {
   computeEffectiveTimeWindow,
-  normalizedFromSimTimeWindow,
   simTimeFromWindowNormalized,
 } from './spatialTimeCoupling';
 

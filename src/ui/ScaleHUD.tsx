@@ -39,7 +39,8 @@ export function ScaleHUD() {
         ? `Near: ${nearest.title}`
         : null;
 
-  const spatialBandLabel = getSpatialBand(spatialExponent).label;
+  const spatialBand = getSpatialBand(spatialExponent);
+  const spatialBandLabel = spatialBand.label;
   const atHumanScale = isHumanSpatialBand(spatialExponent);
   const inHumanEra = isInHumanEra(simTimeSeconds);
   const epochMismatch = atHumanScale && !inHumanEra && mode !== 'embodied';
@@ -104,7 +105,9 @@ export function ScaleHUD() {
       <div className="hud-title">Cosmos</div>
       <div className="hud-row">
         <span className="hud-label">Space</span>
-        <span className="hud-value">{spatialBandLabel}</span>
+        <span className="hud-value" data-testid="hud-spatial-band" data-band-id={spatialBand.id}>
+          {spatialBandLabel}
+        </span>
       </div>
       <div className="hud-row hud-muted">
         <span className="hud-label">Scale</span>

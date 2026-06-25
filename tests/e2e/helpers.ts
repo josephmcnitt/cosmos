@@ -90,6 +90,43 @@ export async function clickTimelineAt(page: Page, fraction: number): Promise<voi
 }
 
 /** Leftmost pixel — needed for pre-stellar eras on the years-ago log timeline. */
+export async function readSpatialBand(page: Page): Promise<{ label: string; id: string }> {
+  const el = page.getByTestId('hud-spatial-band');
+  await el.waitFor({ state: 'visible' });
+  const label = (await el.textContent()) ?? '';
+  const id = (await el.getAttribute('data-band-id')) ?? '';
+  return { label: label.trim(), id };
+}
+
+export async function setSpatialExponent(page: Page, exponent: number): Promise<void> {
+  const slider = page.getByTestId('spatial-slider');
+  await slider.waitFor({ state: 'visible' });
+  await slider.fill(String(exponent));
+  await page.waitForTimeout(400);
+}
+
+export async function canvasScreenshot(page: Page): Promise<Buffer> {
+  const canvas = page.locator('.canvas');
+  await canvas.waitFor({ state: 'visible' });
+  return canvas.screenshot();
+}
+
+/** Rough check that a PNG screenshot is not a uniform black frame. */
+export function screenshotHasVisibleContent(png: Buffer): boolean {
+  if (png.length < 500) return false;
+  let brightSamples = 0;
+  for (let i = 200; i < Math.min(png.length, 8000); i += 8) {
+    if (png[i]! > 20) brightSamples++;
+  }
+  return brightSamples > 8;
+}
+
+export function buffersDiffer(a: Buffer, b: Buffer): boolean {
+  if (a.length !== b.length) return true;
+  return !a.equals(b);
+}
+
+/** Leftmost pixel — needed for pre-stellar eras on the years-ago log timeline. */
 export async function clickTimelineLeftEdge(page: Page): Promise<void> {
   const track = page.getByTestId('scrubber-track');
   await track.waitFor({ state: 'visible' });

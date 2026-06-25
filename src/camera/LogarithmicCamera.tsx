@@ -35,6 +35,13 @@ export function LogarithmicCamera() {
 
   useEffect(() => {
     introPhaseStart.current = performance.now();
+    if (introPhase === 'complete') {
+      const target = sceneDistanceFromExponent(
+        useObserverStore.getState().spatialExponent,
+      );
+      targetDistance.current = target;
+      currentDistance.current = target;
+    }
   }, [introPhase]);
 
   useFrame(() => {

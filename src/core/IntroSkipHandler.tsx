@@ -13,7 +13,7 @@ export function IntroSkipHandler() {
 
   useEffect(() => {
     if (phase !== 'complete' || !skipped) return;
-    setSimTime(0.001);
+    setSimTime(UNIVERSE_AGE_SECONDS);
     setSpatialExponent(25);
     setTemporalExponent(0);
   }, [phase, skipped, setSimTime, setSpatialExponent, setTemporalExponent]);

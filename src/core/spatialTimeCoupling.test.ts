@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { UNIVERSE_AGE_SECONDS } from './TimeSpace';
+import { TEMPORAL_MAX, UNIVERSE_AGE_SECONDS } from './TimeSpace';
 import {
+  computeEffectiveTimeWindow,
   eventBelongsToSpatialBand,
   isHumanSpatialBand,
   isInHumanEra,
-  computeEffectiveTimeWindow,
 } from './spatialTimeCoupling';
-import { TEMPORAL_MAX, UNIVERSE_AGE_SECONDS } from './TimeSpace';
 
 describe('isInHumanEra', () => {
   it('is true at present', () => {

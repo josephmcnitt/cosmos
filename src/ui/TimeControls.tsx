@@ -7,7 +7,7 @@ import {
   computeEffectiveTimeWindow,
   isHumanSpatialBand,
 } from '../core/spatialTimeCoupling';
-import { TEMPORAL_MAX, TEMPORAL_MIN, formatSimTimeShort } from '../core/TimeSpace';
+import { TEMPORAL_MAX, TEMPORAL_MIN, formatSimTimeWindowEdge, getTemporalBand } from '../core/TimeSpace';
 import { TimelineEventTicks } from './TimelineEventTicks';
 import { SpiritualTimelineTicks } from './SpiritualTimelineTicks';
 import { DepthOfViewToggle } from './DepthOfViewToggle';
@@ -63,14 +63,20 @@ export function TimeControls() {
   };
 
   const zoomedIn = temporalExponent > TEMPORAL_MAX * 0.35;
-  const bandLabel = timeWindow.bandId.charAt(0).toUpperCase() + timeWindow.bandId.slice(1);
+  const viewLogSpan = timeWindow.viewMaxLog - timeWindow.viewMinLog;
+  const temporalBand = getTemporalBand(simTimeSeconds);
+  const viewMinLabel = formatSimTimeWindowEdge(timeWindow.viewMinSeconds, viewLogSpan);
+  const viewMaxLabel = formatSimTimeWindowEdge(timeWindow.viewMaxSeconds, viewLogSpan);
   const atHumanScale = isHumanSpatialBand(spatialExponent);
   const showSpiritual = historyTrack === 'spiritual' && atHumanScale;
 
   return (
     <div className={`time-controls ui-panel${isFlying ? ' time-controls--locked' : ''}`}>
       <div className="time-controls-header">
-        <span>Timeline · {bandLabel}</span>
+        <span>
+          Timeline · {temporalBand.label}
+          {zoomedIn ? ` · ${viewMinLabel} – ${viewMaxLabel}` : ''}
+        </span>
         <HistoryTrackToggle />
         {showSpiritual && <DepthOfViewToggle />}
         <span className="time-hint">
@@ -86,8 +92,8 @@ export function TimeControls() {
         <span className="scrubber-rail-label">
           {showSpiritual ? 'Spiritual' : 'Material'}
         </span>
-        <span className="scrubber-end-label" title={formatSimTimeShort(timeWindow.viewMinSeconds)}>
-          {formatSimTimeShort(timeWindow.viewMinSeconds)}
+        <span className="scrubber-end-label" title={viewMinLabel}>
+          {viewMinLabel}
         </span>
         <div className="scrubber-track-outer">
           {showSpiritual ? <SpiritualTimelineTicks /> : <TimelineEventTicks />}
@@ -102,8 +108,8 @@ export function TimeControls() {
             <div className="scrubber-thumb" style={{ left: `${normalized * 100}%` }} />
           </div>
         </div>
-        <span className="scrubber-end-label" title={formatSimTimeShort(timeWindow.viewMaxSeconds)}>
-          {formatSimTimeShort(timeWindow.viewMaxSeconds)}
+        <span className="scrubber-end-label" title={viewMaxLabel}>
+          {viewMaxLabel}
         </span>
       </div>
 

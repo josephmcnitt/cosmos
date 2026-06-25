@@ -1,9 +1,13 @@
 import { useMemo, type ComponentType } from 'react';
 import * as THREE from 'three';
 import { getBandOpacity, SPATIAL_BANDS } from '../core/ScaleSpace';
+import { sampleTerrainHeight } from '../core/embodiment';
 import { useObserverStore } from '../core/ObserverState';
 
+import { getStarTexture } from './starPoints';
+
 function UniverseBand({ opacity }: { opacity: number }) {
+  const starTexture = useMemo(() => getStarTexture(), []);
   const geometry = useMemo(() => {
     const count = 4000;
     const positions = new Float32Array(count * 3);
@@ -27,10 +31,12 @@ function UniverseBand({ opacity }: { opacity: number }) {
       <pointsMaterial
         size={1.2}
         color="#c8d4ff"
+        map={starTexture}
         transparent
         opacity={opacity * 0.9}
         sizeAttenuation
         depthWrite={false}
+        blending={THREE.AdditiveBlending}
       />
     </points>
   );
@@ -141,11 +147,25 @@ function PlanetaryBand({ opacity }: { opacity: number }) {
 }
 
 function TerrestrialBand({ opacity }: { opacity: number }) {
+  const geometry = useMemo(() => {
+    const size = 48;
+    const segments = 40;
+    const geo = new THREE.PlaneGeometry(size, size, segments, segments);
+    geo.rotateX(-Math.PI / 2);
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const z = pos.getZ(i);
+      pos.setY(i, sampleTerrainHeight(x, z) - 0.5);
+    }
+    geo.computeVertexNormals();
+    return geo;
+  }, []);
+
   if (opacity <= 0.01) return null;
 
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
-      <planeGeometry args={[40, 40, 32, 32]} />
+    <mesh geometry={geometry}>
       <meshStandardMaterial
         color="#2d5a3d"
         roughness={0.95}

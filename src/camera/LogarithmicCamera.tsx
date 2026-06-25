@@ -5,7 +5,7 @@ import { useIntroStore } from '../core/IntroState';
 import { sceneDistanceFromExponent } from '../core/ScaleSpace';
 import { useObserverStore } from '../core/ObserverState';
 
-const SMOOTH = 0.1;
+const SMOOTH = 0.12;
 
 function introCameraDistance(phase: string, elapsedMs: number): number {
   switch (phase) {
@@ -22,16 +22,15 @@ function introCameraDistance(phase: string, elapsedMs: number): number {
   }
 }
 
+/** Forward flight: camera sits on +Z looking at the origin (vanishing point). */
 export function LogarithmicCamera() {
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
-  const focusPoint = useObserverStore((s) => s.focusPoint);
   const mode = useObserverStore((s) => s.mode);
   const introPhase = useIntroStore((s) => s.phase);
   const { camera, scene } = useThree();
 
   const targetDistance = useRef(sceneDistanceFromExponent(spatialExponent));
   const currentDistance = useRef(0.3);
-  const spherical = useRef(new THREE.Spherical(1, Math.PI * 0.35, Math.PI * 0.15));
   const introPhaseStart = useRef(performance.now());
 
   useEffect(() => {
@@ -55,20 +54,18 @@ export function LogarithmicCamera() {
     );
 
     const dist = currentDistance.current;
-    const offset = new THREE.Vector3().setFromSpherical(spherical.current);
-    offset.multiplyScalar(dist);
-
-    camera.position.copy(focusPoint).add(offset);
-    camera.lookAt(focusPoint);
+    const lift = dist * 0.1;
+    camera.position.set(0, lift, dist);
+    camera.lookAt(0, 0, 0);
 
     camera.near = Math.max(0.01, dist * 0.001);
-    camera.far = Math.max(camera.near + 10, dist * 8 + 500);
+    camera.far = Math.max(camera.near + 10, dist * 8 + 800);
     camera.updateProjectionMatrix();
 
     const fog = scene.fog;
     if (fog instanceof THREE.Fog) {
-      fog.near = Math.max(1, dist * 0.35);
-      fog.far = Math.max(fog.near + 50, dist * 2.5 + 100);
+      fog.near = Math.max(1, dist * 0.25);
+      fog.far = Math.max(fog.near + 50, dist * 2.8 + 120);
     }
   });
 

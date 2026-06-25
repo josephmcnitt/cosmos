@@ -35,6 +35,8 @@ import { SpiritualRealm } from './world/SpiritualRealm';
 import { HistoryMarkers } from './world/HistoryMarkers';
 import { PlayerAvatar } from './world/PlayerAvatar';
 import { MaterialHeavens } from './world/MaterialHeavens';
+import { FlightStarfield } from './world/FlightStarfield';
+import { WorldRoot } from './world/WorldRoot';
 import { onRangeInputWheel } from './ui/rangeInputWheelGuard';
 
 function Scene() {
@@ -42,7 +44,8 @@ function Scene() {
   const mode = useObserverStore((s) => s.mode);
   const liminalWeight = useRealmDisplayStore((s) => s.liminalWeight);
   const spiritualWeight = useRealmDisplayStore((s) => s.spiritualWeight);
-  const showWorld = introPhase === 'expansion' || introPhase === 'reveal' || introPhase === 'complete';
+  const introComplete = introPhase === 'complete';
+  const showWorld = introPhase === 'expansion' || introPhase === 'reveal' || introComplete;
   const embodied = mode === 'embodied' && showWorld;
   const realmActive = liminalWeight > 0.02 || spiritualWeight > 0.02;
   const fog = fogDistances(embodied, liminalWeight, spiritualWeight);
@@ -66,8 +69,9 @@ function Scene() {
       ) : (
         showWorld && (
           <>
-            <MaterialHeavens />
-            <HistoryMarkers />
+            <FlightStarfield />
+            {introComplete ? <MaterialHeavens /> : <WorldRoot />}
+            {introComplete && <HistoryMarkers />}
           </>
         )
       )}

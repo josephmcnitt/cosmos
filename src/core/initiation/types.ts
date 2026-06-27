@@ -16,6 +16,12 @@ export interface InitiationDefinition {
   title: string;
   steps: InitiationStep[];
   completionJournal: { title: string; body: string };
+  postInitDialogue?: {
+    id: string;
+    speaker: string;
+    text: string;
+    progressFlag: string;
+  };
 }
 
 export type InitiationStatus = 'locked' | 'available' | 'in_progress' | 'completed';

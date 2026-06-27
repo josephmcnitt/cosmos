@@ -105,6 +105,12 @@ export const INITIATION_ALEXANDRIA: InitiationDefinition = {
     title: 'Hermetic initiation',
     body: 'Purified and oriented. Correspondence may now be studied in the scrolls and stones.',
   },
+  postInitDialogue: {
+    id: 'alexandria-keeper-afterword',
+    speaker: 'Keeper of the Serapeum',
+    text: 'When the library opens beyond purification, seek the side halls. Correspondence is kept between shelves as much as stars.',
+    progressFlag: 'alexandria-post-init-dialogue-ready',
+  },
 };
 
 export const INITIATION_ROME: InitiationDefinition = {

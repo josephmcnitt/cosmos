@@ -57,6 +57,20 @@ export class WorldRegistry {
           }
         }
       }
+      if (age.terrain.size < age.terrain.siteHalfSize * 2) {
+        errors.push(`Age ${age.id}: terrain size is smaller than site bounds`);
+      }
+      const buildingIds = new Set<string>();
+      for (const building of age.scenery?.buildings ?? []) {
+        if (buildingIds.has(building.id)) {
+          errors.push(`Age ${age.id}: duplicate building ${building.id}`);
+        }
+        buildingIds.add(building.id);
+        const [x, , z] = building.position;
+        if (Math.abs(x) > age.terrain.siteHalfSize || Math.abs(z) > age.terrain.siteHalfSize) {
+          errors.push(`Age ${age.id}: building ${building.id} outside site bounds`);
+        }
+      }
     }
     for (const actor of ALL_ACTORS) {
       if (!this.ages.has(actor.worldId)) {
@@ -64,6 +78,24 @@ export class WorldRegistry {
       }
       if (actor.initiationId && !ALL_INITIATIONS.find((i) => i.id === actor.initiationId)) {
         errors.push(`Actor ${actor.id}: unknown initiation ${actor.initiationId}`);
+      }
+    }
+    for (const initiation of ALL_INITIATIONS) {
+      if (!this.ages.has(initiation.worldId)) {
+        errors.push(`Initiation ${initiation.id}: unknown world ${initiation.worldId}`);
+      }
+      const postInitDialogue = initiation.postInitDialogue;
+      if (postInitDialogue) {
+        const progressFlag = postInitDialogue.progressFlag.trim();
+        if (!progressFlag) {
+          errors.push(`Initiation ${initiation.id}: post-init dialogue missing progress flag`);
+        }
+        const flagIsSet = ALL_PROGRESS_NODES.some((node) =>
+          node.effects.some((effect) => effect.type === 'setPathFlag' && effect.flag === progressFlag),
+        );
+        if (!flagIsSet) {
+          errors.push(`Initiation ${initiation.id}: post-init dialogue flag ${progressFlag} is never set`);
+        }
       }
     }
     for (const node of ALL_PROGRESS_NODES) {

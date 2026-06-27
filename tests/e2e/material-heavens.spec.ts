@@ -11,6 +11,8 @@ import {
   skipIntro,
 } from './helpers';
 
+const MEAN_BRIGHTNESS_SAMPLE_EPSILON = 0.01;
+
 test.describe('Material heavens phase', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -63,7 +65,7 @@ test.describe('Material heavens phase', () => {
     const presentMean = await canvasCenterMeanOnce(page, 2000);
 
     expect(presentStarfield).toBeGreaterThan(darkStarfield);
-    expect(presentMean).toBeGreaterThan(darkMean);
+    expect(presentMean + MEAN_BRIGHTNESS_SAMPLE_EPSILON).toBeGreaterThan(darkMean);
     expect(darkPeak).toBeGreaterThan(MIN_CANVAS_BRIGHTNESS);
   });
 

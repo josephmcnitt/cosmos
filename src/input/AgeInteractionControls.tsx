@@ -5,6 +5,7 @@ import {
   checkEraWitness,
   checkRingAlignment,
   checkThresholdStance,
+  puzzleActionHint,
   puzzleHintFor,
   rotateRing,
 } from '../core/puzzles/index';
@@ -41,16 +42,25 @@ export function AgeInteractionControls() {
       if (!isAgeInitiated) return;
       if (e.key.toLowerCase() === 'r') {
         const marker = getNearestSiteMarker(avatarPosition.x, avatarPosition.z, 5);
-        if (!marker) return;
+        if (!marker) {
+          setHint('No puzzle stone nearby — follow the golden path markers.');
+          return;
+        }
         const puzzleEntity = entities.find(
           (ent) =>
             ent.worldId === currentWorldId &&
             ent.kind === 'puzzle-mechanism' &&
             getPuzzleById(ent.defId)?.markerEventId === marker.eventId,
         );
-        if (!puzzleEntity) return;
+        if (!puzzleEntity) {
+          setHint('This marker has no ring puzzle — press E to discover its history.');
+          return;
+        }
         const template = getPuzzleById(puzzleEntity.defId);
-        if (template?.type !== 'ring-alignment') return;
+        if (template?.type !== 'ring-alignment') {
+          setHint(puzzleActionHint(puzzleEntity.defId));
+          return;
+        }
 
         const rotations = rotateRing(
           (puzzleEntity.state.ringRotations as number[]) ?? [0, 0, 0],

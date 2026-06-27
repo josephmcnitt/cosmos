@@ -161,7 +161,7 @@ export function TimeControls() {
 
       <div className="time-controls-row">
         <label className="temporal-zoom-label">
-          Time zoom
+          <span className="temporal-zoom-heading">Time zoom</span>
           <input
             data-testid="temporal-zoom"
             type="range"
@@ -172,6 +172,12 @@ export function TimeControls() {
             onChange={(e) => setTemporalExponent(parseFloat(e.target.value))}
             onWheel={onRangeInputWheel}
           />
+          <span className="temporal-zoom-value" data-testid="temporal-zoom-value">
+            {temporalExponent.toFixed(1)}
+          </span>
+          <span className="temporal-zoom-hint">
+            {narrowed ? 'Narrow window' : temporalExponent < 1 ? 'Drag right to zoom in' : 'Wide window'}
+          </span>
         </label>
 
         <div className="playback-controls">

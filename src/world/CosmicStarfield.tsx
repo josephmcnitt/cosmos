@@ -30,11 +30,11 @@ export function CosmicStarfield() {
   return (
     <Stars
       ref={pointsRef}
-      radius={480}
-      depth={200}
-      count={5000}
-      factor={4}
-      saturation={0.12}
+      radius={900}
+      depth={60}
+      count={3200}
+      factor={3}
+      saturation={0.1}
       fade
       speed={0}
     />

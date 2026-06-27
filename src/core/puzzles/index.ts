@@ -47,3 +47,19 @@ export function puzzleHintFor(puzzleId: string): string {
       return '';
   }
 }
+
+/** Short on-screen prompt for the primary interaction key at a puzzle stone. */
+export function puzzleActionHint(puzzleId: string): string {
+  const template = getPuzzleById(puzzleId);
+  if (!template) return '';
+  switch (template.type) {
+    case 'ring-alignment':
+      return 'Press R to rotate the ring sequence.';
+    case 'threshold-stance':
+      return 'This stone needs stillness — hold Q, then stand still here (R does nothing).';
+    case 'era-witness':
+      return 'Witness the linked era in cosmic view, then return to the Grove.';
+    default:
+      return '';
+  }
+}

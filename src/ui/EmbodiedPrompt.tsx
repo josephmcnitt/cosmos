@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { getPuzzleById } from '../data/ages/index';
 import { getEventById } from '../data/history/index';
 import { getNearestSiteMarker } from '../data/embodied/siteMarkers';
+import { puzzleActionHint } from '../core/puzzles/index';
 import { useNearbyNpcPrompt } from '../input/NpcInteractionControls';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
@@ -15,8 +17,23 @@ export function EmbodiedPrompt() {
   const activePractice = usePracticeStore((s) => s.activePractice);
   const isAgeInitiated = useWorldStore((s) => s.isAgeInitiated);
   const currentWorldId = useWorldStore((s) => s.currentWorldId);
+  const entities = useWorldStore((s) => s.entities);
   const [nearbyId, setNearbyId] = useState<string | null>(null);
   const npcPrompt = useNearbyNpcPrompt();
+
+  const nearbyPuzzle = useMemo(() => {
+    if (!nearbyId) return null;
+    return (
+      entities.find(
+        (ent) =>
+          ent.worldId === currentWorldId &&
+          ent.kind === 'puzzle-mechanism' &&
+          getPuzzleById(ent.defId)?.markerEventId === nearbyId,
+      ) ?? null
+    );
+  }, [entities, nearbyId, currentWorldId]);
+
+  const nearbyPuzzleType = nearbyPuzzle ? getPuzzleById(nearbyPuzzle.defId)?.type : null;
 
   useEffect(() => {
     if (mode !== 'embodied') {
@@ -76,8 +93,18 @@ export function EmbodiedPrompt() {
       </div>
       <div className="embodied-prompt-row embodied-prompt-row--secondary" data-testid="embodied-practice">
         <span className="embodied-prompt-key">Q</span>
-        <span>Hold still · hold Q to practice (~12s)</span>
+        <span>
+          {nearbyPuzzleType === 'threshold-stance'
+            ? 'Hold Q, then stand still at the stone (~5s)'
+            : 'Hold still · hold Q to practice (~12s)'}
+        </span>
       </div>
+      {nearbyPuzzleType === 'ring-alignment' && nearbyPuzzle && (
+        <div className="embodied-prompt-row embodied-prompt-row--secondary" data-testid="embodied-puzzle-r">
+          <span className="embodied-prompt-key">R</span>
+          <span>{puzzleActionHint(nearbyPuzzle.defId)}</span>
+        </div>
+      )}
     </div>
   );
 }

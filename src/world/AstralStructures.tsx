@@ -1,9 +1,15 @@
+import { useMemo } from 'react';
 import { sampleTerrainHeight } from '../core/embodiment';
 import { useWorldStore } from '../core/world/WorldState';
 
 export function AstralStructures({ worldId }: { worldId: string }) {
-  const structures = useWorldStore((s) =>
-    s.entities.filter((e) => e.worldId === worldId && e.kind === 'structure' && e.layer === 'esoteric'),
+  const entities = useWorldStore((s) => s.entities);
+  const structures = useMemo(
+    () =>
+      entities.filter(
+        (e) => e.worldId === worldId && e.kind === 'structure' && e.layer === 'esoteric',
+      ),
+    [entities, worldId],
   );
 
   return (

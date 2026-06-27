@@ -1,5 +1,7 @@
 import { getInitiationById, getStep } from '../data/initiations/index';
 import { isChooseCorrect } from '../core/initiation/runInitiation';
+import { walkToHint } from '../core/initiation/walkToHint';
+import { useObserverStore } from '../core/ObserverState';
 import { useWorldStore } from '../core/world/WorldState';
 
 export function InitiationPanel() {
@@ -7,6 +9,9 @@ export function InitiationPanel() {
   const advanceInitiationStep = useWorldStore((s) => s.advanceInitiationStep);
   const setInitiationChoice = useWorldStore((s) => s.setInitiationChoice);
   const cancelInitiation = useWorldStore((s) => s.cancelInitiation);
+  const avatarX = useObserverStore((s) => s.avatarPosition.x);
+  const avatarZ = useObserverStore((s) => s.avatarPosition.z);
+  const avatarYaw = useObserverStore((s) => s.avatarYaw);
 
   if (!activeInitiation) return null;
 
@@ -66,7 +71,26 @@ export function InitiationPanel() {
         step.type === 'hold-still' ||
         step.type === 'face-direction' ||
         step.type === 'silence') && (
-        <p data-testid="initiation-step-instruction">{step.text}</p>
+        <>
+          <p data-testid="initiation-step-instruction">{step.text}</p>
+          {step.type === 'walk-to' && (() => {
+            const hint = walkToHint(
+              avatarX,
+              avatarZ,
+              avatarYaw,
+              step.targetX,
+              step.targetZ,
+              step.radius ?? 3,
+            );
+            return (
+              <p className="initiation-walk-hint" data-testid="initiation-walk-hint">
+                {hint.atTarget
+                  ? 'You have arrived — stand in the golden ring.'
+                  : `Sacred olive tree · ${Math.round(hint.distanceM)}m ${hint.bearingLabel}`}
+              </p>
+            );
+          })()}
+        </>
       )}
     </div>
   );

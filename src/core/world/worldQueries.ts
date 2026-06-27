@@ -1,7 +1,7 @@
 import type { SpiritualTradition } from '../../data/history/types';
-import { getActiveAgeDefinition, worldRegistry } from './WorldRegistry';
+import { getActiveAgeDefinition } from './WorldRegistry';
 import type { EntityInstance, WorldId, WorldLayer } from './types';
-import { useWorldStore } from './WorldState';
+import { useWorldStore, isAgeUnlocked as isAgeUnlockedFromState } from './WorldState';
 
 export interface SiteMarkerView {
   entityId: string;
@@ -123,14 +123,7 @@ export function getUnlockedPortals(worldId: WorldId): EntityInstance[] {
 }
 
 export function isAgeUnlocked(ageId: string): boolean {
-  const age = worldRegistry.getAge(ageId);
-  if (!age) return false;
-  if (!age.unlock) return true;
-  const state = useWorldStore.getState();
-  if (age.unlock.requiresPuzzleIds?.some((pid) => !state.completedPuzzleIds.includes(pid))) {
-    return false;
-  }
-  return true;
+  return isAgeUnlockedFromState(ageId);
 }
 
 export function getDominantTraditionFromResonance(): SpiritualTradition | null {

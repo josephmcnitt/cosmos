@@ -14,6 +14,8 @@ export interface AgeMarkerDef {
   eventId: string;
   position: [number, number];
   label: string;
+  /** Hidden until a progress node reveals this marker. */
+  hiddenUntilNode?: string;
 }
 
 export interface AgePathDef {
@@ -55,6 +57,9 @@ export interface AgeBuildingDef {
   position: [number, number, number];
   rotationY?: number;
   scale?: number;
+  /** Emphasize for quests / initiation (e.g. sacred olive tree). */
+  highlight?: boolean;
+  label?: string;
 }
 
 export interface AgeSceneryConfig {

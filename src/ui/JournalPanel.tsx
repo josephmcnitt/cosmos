@@ -2,6 +2,18 @@ import { useState } from 'react';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
 import { useWorldStore } from '../core/world/WorldState';
+import { worldRegistry } from '../core/world/WorldRegistry';
+import { getEventById } from '../data/history/index';
+import { getProgressNodeById } from '../data/progression/index';
+import { getInitiationForWorld } from '../data/initiations/index';
+
+function ageTitle(id: string): string {
+  return worldRegistry.getAge(id)?.title ?? id;
+}
+
+function eventTitle(id: string): string {
+  return getEventById(id)?.title ?? id;
+}
 
 export function JournalPanel() {
   const [open, setOpen] = useState(false);
@@ -12,6 +24,7 @@ export function JournalPanel() {
   const completedPuzzleIds = useWorldStore((s) => s.completedPuzzleIds);
   const visitedWorldIds = useWorldStore((s) => s.visitedWorldIds);
   const initiationStatus = useWorldStore((s) => s.initiationStatus);
+  const completedProgressNodeIds = useWorldStore((s) => s.completedProgressNodeIds);
 
   if (isFlying) return null;
 
@@ -47,15 +60,23 @@ export function JournalPanel() {
           {Object.entries(initiationStatus)
             .filter(([, s]) => s === 'completed')
             .map(([id]) => (
-              <li key={id}>{id}</li>
+              <li key={id}>{getInitiationForWorld(id)?.title ?? ageTitle(id)}</li>
             ))}
+        </ul>
+      </section>
+      <section>
+        <h4>Path milestones</h4>
+        <ul>
+          {completedProgressNodeIds.map((id) => (
+            <li key={id}>{getProgressNodeById(id)?.title ?? id}</li>
+          ))}
         </ul>
       </section>
       <section>
         <h4>Discovered ({discoveredEventIds.length})</h4>
         <ul>
           {discoveredEventIds.map((id) => (
-            <li key={id}>{id}</li>
+            <li key={id}>{eventTitle(id)}</li>
           ))}
         </ul>
       </section>
@@ -63,7 +84,7 @@ export function JournalPanel() {
         <h4>Ages visited</h4>
         <ul>
           {visitedWorldIds.map((id) => (
-            <li key={id}>{id}</li>
+            <li key={id}>{ageTitle(id)}</li>
           ))}
         </ul>
       </section>
@@ -71,7 +92,7 @@ export function JournalPanel() {
         <h4>Puzzles solved</h4>
         <ul>
           {completedPuzzleIds.map((id) => (
-            <li key={id}>{id}</li>
+            <li key={id}>{id.replace(/^puzzle-/, '').replace(/-/g, ' ')}</li>
           ))}
         </ul>
       </section>

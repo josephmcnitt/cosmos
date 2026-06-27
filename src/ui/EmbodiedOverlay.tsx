@@ -28,14 +28,14 @@ export function EmbodiedOverlay() {
       <div className="embodied-overlay-hint">
         {isAgeInitiated ? (
           <>
-            <strong>W/S</strong> walk · <strong>A/D</strong> turn · <strong>E</strong> discover ·{' '}
-            <strong>Q</strong> practice · <strong>Tab</strong> veil · <strong>R</strong> puzzle ·{' '}
-            <strong>F</strong> travel · scroll zoom out to exit
+            <strong>W/S</strong> walk · <strong>A/D</strong> turn · <strong>[ ]</strong> camera ·{' '}
+            <strong>E</strong> discover · <strong>Q</strong> practice · <strong>Tab</strong> veil ·{' '}
+            <strong>R</strong> puzzle · <strong>F</strong> travel · scroll zoom out to exit
           </>
         ) : (
           <>
-            <strong>W/S</strong> walk · <strong>A/D</strong> turn · <strong>T</strong> speak with guide
-            · scroll zoom out to exit
+            <strong>W/S</strong> walk · <strong>A/D</strong> turn · <strong>[ ]</strong> camera ·{' '}
+            <strong>T</strong> speak with guide · scroll zoom out to exit
           </>
         )}
       </div>

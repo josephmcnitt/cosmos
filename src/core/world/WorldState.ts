@@ -15,8 +15,12 @@ import type {
   WorldLayer,
 } from './types';
 import type { ActiveInitiation, InitiationStatus } from '../initiation/types';
-import { getInitiationById, getInitiationForWorld } from '../../data/initiations/index';
+import { getInitiationById, getInitiationForWorld, getStep } from '../../data/initiations/index';
 import { defaultInitiationStatus } from '../initiation/runInitiation';
+import type { ChoiceRecord } from '../../data/progression/types';
+import { applyProgressEffects } from '../progression/applyEffects';
+import { evaluateProgress } from '../progression/evaluateProgress';
+import { buildProgressInputFromWorld } from '../progression/buildProgressInput';
 
 interface WorldState {
   hydrated: boolean;
@@ -40,6 +44,11 @@ interface WorldState {
   pendingBlueprints: PlacedStructureBlueprint[];
   initiationStatus: Record<string, InitiationStatus>;
   activeInitiation: ActiveInitiation | null;
+  choiceHistory: ChoiceRecord[];
+  completedProgressNodeIds: string[];
+  pathFlags: Record<string, string | number | boolean>;
+  activePathId?: string;
+  revealedMarkerIds: string[];
 
   spiritualDepth: number;
   dominantTradition: SpiritualTradition | null;
@@ -80,6 +89,9 @@ interface WorldState {
   getInitiationStatus: (worldId: string) => InitiationStatus;
   isAgeInitiated: (worldId?: string) => boolean;
   cancelInitiation: () => void;
+  recordChoice: (initiationId: string, stepIndex: number, choiceId: string) => void;
+  reevaluateProgress: () => void;
+  isMarkerVisible: (markerId: string) => boolean;
 }
 
 function syncDepth(resonance: Partial<Record<SpiritualTradition, number>>) {
@@ -119,6 +131,11 @@ export const useWorldStore = create<WorldState>((set, get) => ({
       pendingBlueprints: [],
       initiationStatus: snap.initiationStatus ?? defaultInitiationStatus(),
       activeInitiation: snap.activeInitiation ?? null,
+      choiceHistory: snap.choiceHistory ?? [],
+      completedProgressNodeIds: snap.completedProgressNodeIds ?? [],
+      pathFlags: snap.pathFlags ?? {},
+      activePathId: snap.activePathId,
+      revealedMarkerIds: snap.revealedMarkerIds ?? [],
       ...syncDepth(snap.resonance as Partial<Record<SpiritualTradition, number>>),
     };
   })(),
@@ -155,6 +172,11 @@ export const useWorldStore = create<WorldState>((set, get) => ({
       lastSimTickMs: snapshot.lastSimTickMs,
       initiationStatus: snapshot.initiationStatus ?? defaultInitiationStatus(),
       activeInitiation: snapshot.activeInitiation ?? null,
+      choiceHistory: snapshot.choiceHistory ?? [],
+      completedProgressNodeIds: snapshot.completedProgressNodeIds ?? [],
+      pathFlags: snapshot.pathFlags ?? {},
+      activePathId: snapshot.activePathId,
+      revealedMarkerIds: snapshot.revealedMarkerIds ?? [],
       ...syncDepth(snapshot.resonance as Partial<Record<SpiritualTradition, number>>),
     });
   },
@@ -402,6 +424,12 @@ export const useWorldStore = create<WorldState>((set, get) => ({
     if (!active) return;
     const def = getInitiationById(active.initiationId);
     if (!def) return;
+
+    const currentStep = getStep(def, active.stepIndex);
+    if (currentStep?.type === 'choose' && active.choiceId) {
+      get().recordChoice(active.initiationId, active.stepIndex, active.choiceId);
+    }
+
     const nextIndex = active.stepIndex + 1;
     if (nextIndex >= def.steps.length) {
       get().completeInitiation(def.worldId);
@@ -418,6 +446,15 @@ export const useWorldStore = create<WorldState>((set, get) => ({
   },
 
   completeInitiation: (worldId) => {
+    const active = get().activeInitiation;
+    if (active) {
+      const def = getInitiationById(active.initiationId);
+      const step = def ? getStep(def, active.stepIndex) : undefined;
+      if (step?.type === 'choose' && active.choiceId) {
+        get().recordChoice(active.initiationId, active.stepIndex, active.choiceId);
+      }
+    }
+
     const def = getInitiationForWorld(worldId);
     set((s) => ({
       activeInitiation: null,
@@ -427,6 +464,7 @@ export const useWorldStore = create<WorldState>((set, get) => ({
       get().addJournalEntry(def.completionJournal.title, def.completionJournal.body);
     }
     worldEvents.emit({ type: 'initiation/completed', worldId });
+    get().reevaluateProgress();
     get().persist();
   },
 
@@ -461,16 +499,89 @@ export const useWorldStore = create<WorldState>((set, get) => ({
     });
     get().persist();
   },
+
+  recordChoice: (initiationId, stepIndex, choiceId) => {
+    set((s) => {
+      const exists = s.choiceHistory.some(
+        (c) =>
+          c.initiationId === initiationId &&
+          c.stepIndex === stepIndex &&
+          c.choiceId === choiceId,
+      );
+      if (exists) return s;
+      return {
+        choiceHistory: [
+          ...s.choiceHistory,
+          { initiationId, stepIndex, choiceId, at: Date.now() },
+        ],
+      };
+    });
+    get().reevaluateProgress();
+    get().persist();
+  },
+
+  reevaluateProgress: () => {
+    const state = get();
+    const input = buildProgressInputFromWorld(state);
+    const result = evaluateProgress(input);
+    if (result.newlyCompletedNodeIds.length === 0) return;
+
+    const applied = applyProgressEffects(
+      {
+        pathFlags: state.pathFlags,
+        activePathId: state.activePathId,
+        revealedMarkerIds: state.revealedMarkerIds,
+        unlockedWorldIds: state.unlockedWorldIds,
+        entities: state.entities,
+        journal: state.journal,
+      },
+      result.newlyCompletedNodeIds,
+    );
+
+    set({
+      completedProgressNodeIds: result.allCompletedNodeIds,
+      pathFlags: applied.pathFlags,
+      activePathId: applied.activePathId,
+      revealedMarkerIds: applied.revealedMarkerIds,
+      unlockedWorldIds: applied.unlockedWorldIds,
+      entities: applied.entities,
+      journal: applied.journal,
+    });
+    get().persist();
+  },
+
+  isMarkerVisible: (markerId) => {
+    const entity = get().entities.find((e) => e.id === markerId && e.kind === 'marker');
+    if (!entity) return false;
+    if (entity.state.progressHidden !== true) return true;
+    return entity.state.progressRevealed === true || get().revealedMarkerIds.includes(markerId);
+  },
 }));
 
 function isAgeUnlockedInternal(
-  state: Pick<WorldState, 'unlockedWorldIds' | 'completedPuzzleIds'>,
+  state: Pick<
+    WorldState,
+    'unlockedWorldIds' | 'completedPuzzleIds' | 'visitedWorldIds'
+  >,
   ageId: string,
 ): boolean {
   if (state.unlockedWorldIds.includes(ageId)) return true;
   const age = worldRegistry.getAge(ageId);
-  if (!age?.unlock?.requiresPuzzleIds) return ageId === 'grove';
-  return age.unlock.requiresPuzzleIds.every((pid) => state.completedPuzzleIds.includes(pid));
+  if (!age) return false;
+  if (ageId === 'grove') return true;
+
+  if (age.unlock?.requiresAgeIds?.length) {
+    const agesMet = age.unlock.requiresAgeIds.every(
+      (id) => state.unlockedWorldIds.includes(id) || state.visitedWorldIds.includes(id),
+    );
+    if (!agesMet) return false;
+  }
+
+  if (age.unlock?.requiresPuzzleIds?.length) {
+    return age.unlock.requiresPuzzleIds.every((pid) => state.completedPuzzleIds.includes(pid));
+  }
+
+  return false;
 }
 
 export function isAgeUnlocked(ageId: string): boolean {

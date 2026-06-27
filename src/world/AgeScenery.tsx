@@ -1,10 +1,32 @@
 import { sampleTerrainHeight } from '../core/embodiment';
 import type { AgeBuildingDef } from '../data/ages/types';
 
-function OliveTree({ x, z, scale = 1 }: { x: number; z: number; scale?: number }) {
+function OliveTree({
+  x,
+  z,
+  scale = 1,
+  highlight = false,
+}: {
+  x: number;
+  z: number;
+  scale?: number;
+  highlight?: boolean;
+}) {
   const y = sampleTerrainHeight(x, z);
+  const foliageColor = highlight ? '#6a8c48' : '#3d5c34';
+  const emissive = highlight ? '#c8e088' : '#000000';
+  const emissiveIntensity = highlight ? 0.35 : 0;
   return (
     <group position={[x, y, z]} scale={scale}>
+      {highlight && (
+        <>
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]}>
+            <ringGeometry args={[0.9, 1.15, 32]} />
+            <meshBasicMaterial color="#d4e8a0" transparent opacity={0.45} depthWrite={false} />
+          </mesh>
+          <pointLight color="#c8e088" intensity={2.5} distance={10} decay={2} position={[0, 2.2, 0]} />
+        </>
+      )}
       <mesh position={[0, 0.6, 0]}>
         <cylinderGeometry args={[0.12, 0.16, 1.2, 6]} />
         <meshStandardMaterial color="#4a3828" roughness={0.95} />
@@ -15,7 +37,12 @@ function OliveTree({ x, z, scale = 1 }: { x: number; z: number; scale?: number }
           position={[Math.sin(i * 1.6) * 0.35, 1.35 + i * 0.08, Math.cos(i * 1.6) * 0.35]}
         >
           <sphereGeometry args={[0.45 - i * 0.06, 8, 8]} />
-          <meshStandardMaterial color="#3d5c34" roughness={0.9} />
+          <meshStandardMaterial
+            color={foliageColor}
+            roughness={0.9}
+            emissive={emissive}
+            emissiveIntensity={emissiveIntensity}
+          />
         </mesh>
       ))}
     </group>
@@ -122,7 +149,7 @@ function Building({ def }: { def: AgeBuildingDef }) {
   const props = { x, z, rotationY: def.rotationY ?? 0, scale: def.scale ?? 1 };
   switch (def.preset) {
     case 'olive-tree':
-      return <OliveTree {...props} />;
+      return <OliveTree {...props} highlight={def.highlight} />;
     case 'stoa':
       return <Stoa {...props} />;
     case 'temple-distant':

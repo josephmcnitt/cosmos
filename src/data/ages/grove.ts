@@ -20,7 +20,7 @@ export const GROVE_AGE: AgeDefinition = {
       { id: 'grove-tree-2', preset: 'olive-tree', position: [6, 0, 8], scale: 0.95 },
       { id: 'grove-tree-3', preset: 'olive-tree', position: [-5, 0, -7], scale: 1.05 },
       { id: 'grove-tree-4', preset: 'olive-tree', position: [9, 0, -4], scale: 1 },
-      { id: 'grove-tree-init', preset: 'olive-tree', position: [-8, 0, 2], scale: 1.2 },
+      { id: 'grove-tree-init', preset: 'olive-tree', position: [-8, 0, 2], scale: 1.35, highlight: true, label: 'Sacred olive tree' },
       { id: 'grove-temple-n', preset: 'temple-distant', position: [0, 0, -24], scale: 1.4 },
       { id: 'grove-columns-e', preset: 'column-row', position: [22, 0, 0], rotationY: -Math.PI / 2, scale: 1.2 },
       { id: 'grove-stoa-w', preset: 'stoa', position: [-20, 0, -4], rotationY: Math.PI / 2, scale: 0.9 },
@@ -38,6 +38,13 @@ export const GROVE_AGE: AgeDefinition = {
     { id: 'grove-gnostic', eventId: 'gnostic-gospels', position: [-6, -4], label: 'Gnostic texts' },
     { id: 'grove-plotinus', eventId: 'neoplatonism-plotinus', position: [-2, 7], label: 'Plotinus — The One' },
     { id: 'grove-zohar', eventId: 'zohar', position: [0, -8], label: 'The Zohar' },
+    {
+      id: 'grove-rosicrucian',
+      eventId: 'rosicrucian',
+      position: [8, 6],
+      label: 'Rosicrucian manifestos',
+      hiddenUntilNode: 'grove-choice-rational',
+    },
   ],
   portals: [
     {

@@ -14,7 +14,7 @@ describe('WorldRegistry', () => {
 
   it('spawns marker and actor entities for grove', () => {
     const entities = spawnEntitiesForAge(GROVE_AGE);
-    expect(entities.filter((e) => e.kind === 'marker').length).toBe(5);
+    expect(entities.filter((e) => e.kind === 'marker').length).toBe(6);
     expect(entities.filter((e) => e.kind === 'actor').length).toBe(1);
     expect(entities.some((e) => e.kind === 'portal')).toBe(true);
   });
@@ -24,7 +24,7 @@ describe('save migrations', () => {
   it('round-trips default snapshot', () => {
     const snap = createDefaultSnapshot();
     const migrated = migrateSave(snap);
-    expect(migrated.saveVersion).toBe(2);
+    expect(migrated.saveVersion).toBe(3);
     expect(migrated.currentWorldId).toBe('grove');
   });
 
@@ -68,6 +68,8 @@ describe('exportSnapshot shape', () => {
     expect(snap.discoveredEventIds).toEqual([]);
     expect(snap.entities.length).toBeGreaterThan(0);
     expect(snap.simInstances[0]?.id).toBe('player-material');
+    expect(snap.choiceHistory).toEqual([]);
+    expect(snap.completedProgressNodeIds).toEqual([]);
   });
 });
 

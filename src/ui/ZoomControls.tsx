@@ -2,9 +2,15 @@ import { useEffect } from 'react';
 import { useIntroStore } from '../core/IntroState';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
+import {
+  isKeyboardZoomBlocked,
+  KEYBOARD_WHEEL_DELTA,
+  resolveKeyboardZoomAction,
+  resolveKeyboardZoomDirection,
+} from '../core/keyboardZoom';
 import { computeEffectiveTimeWindow, isEffectiveWindowNarrowed, storedTimeWindowOptions } from '../core/spatialTimeCoupling';
 import { yearsAgoLogSpan } from '../core/TimeSpace';
-import { handleWheelZoomEvent } from '../core/wheelZoom';
+import { handleWheelZoomEvent, wheelDeltaToAdjustment } from '../core/wheelZoom';
 
 export function ZoomControls() {
   const mode = useObserverStore((s) => s.mode);
@@ -17,6 +23,40 @@ export function ZoomControls() {
 
   useEffect(() => {
     if (!introComplete || isFlying) return;
+
+    const applyZoom = (
+      action: ReturnType<typeof resolveKeyboardZoomAction>,
+      deltaY: number,
+      shiftKey: boolean,
+    ) => {
+      if (action === 'temporal' && shiftKey) {
+        const observer = useObserverStore.getState();
+        const window = computeEffectiveTimeWindow(
+          observer.spatialExponent,
+          observer.simTimeSeconds,
+          observer.temporalExponent,
+          storedTimeWindowOptions(observer.timeViewMinLog, observer.timeViewMaxLog),
+        );
+        if (isEffectiveWindowNarrowed(window)) {
+          const viewSpan = yearsAgoLogSpan(window.viewMinSeconds, window.viewMaxSeconds);
+          panTimeViewAnchor(-deltaY * 0.002 * viewSpan);
+          return;
+        }
+      }
+
+      const adjustment = wheelDeltaToAdjustment(deltaY, action);
+      switch (action) {
+        case 'spatial':
+          adjustSpatial(adjustment);
+          break;
+        case 'temporal':
+          adjustTemporal(adjustment);
+          break;
+        case 'camera':
+          adjustCameraDistance(adjustment);
+          break;
+      }
+    };
 
     const onWheel = (e: WheelEvent) => {
       if (useHistoryStore.getState().isFlying) return;
@@ -58,8 +98,29 @@ export function ZoomControls() {
       }
     };
 
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (useHistoryStore.getState().isFlying) return;
+      if (e.repeat) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (isKeyboardZoomBlocked(e.target)) return;
+
+      const direction = resolveKeyboardZoomDirection(e.key);
+      if (!direction) return;
+
+      const observerMode = useObserverStore.getState().mode;
+      const action = resolveKeyboardZoomAction(e.shiftKey, observerMode);
+      const deltaY = KEYBOARD_WHEEL_DELTA[direction];
+
+      e.preventDefault();
+      applyZoom(action, deltaY, e.shiftKey);
+    };
+
     window.addEventListener('wheel', onWheel, { passive: false });
-    return () => window.removeEventListener('wheel', onWheel);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('keydown', onKeyDown);
+    };
   }, [
     adjustSpatial,
     adjustTemporal,

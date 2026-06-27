@@ -6,6 +6,7 @@ import { MARKER_TRADITION_COLORS } from '../data/embodied/siteMarkers';
 import { getActiveAgeDefinition } from '../core/world/WorldRegistry';
 import { useWorldStore } from '../core/world/WorldState';
 import { AgeScenery } from './AgeScenery';
+import { InitiationWalkBeacon } from './InitiationWalkBeacon';
 import { CorrespondencePortal } from './CorrespondencePortal';
 import { VeilPoint } from './VeilPoint';
 import { PuzzleMechanism } from './PuzzleMechanism';
@@ -83,6 +84,7 @@ export function EmbodiedSite() {
   const entities = useWorldStore((s) => s.entities);
   const discoveredEventIds = useWorldStore((s) => s.discoveredEventIds);
   const initiated = useWorldStore((s) => s.isAgeInitiated(currentWorldId));
+  const isMarkerVisible = useWorldStore((s) => s.isMarkerVisible);
 
   const age = getActiveAgeDefinition(currentWorldId);
   const layer = worldLayer;
@@ -109,6 +111,7 @@ export function EmbodiedSite() {
         segments={age.terrain.segments}
       />
       {age.scenery && <AgeScenery buildings={age.scenery.buildings} />}
+      <InitiationWalkBeacon />
       {showMaterial && (
         <>
           {age.paths.map((p, i) => (
@@ -124,7 +127,9 @@ export function EmbodiedSite() {
             <NpcAvatar key={a.id} entity={a} />
           ))}
           {showSupernatural &&
-            markers.map((m) => {
+            markers
+              .filter((m) => isMarkerVisible(m.id))
+              .map((m) => {
               const event = getEventById(m.defId);
               const color =
                 event?.track === 'spiritual'

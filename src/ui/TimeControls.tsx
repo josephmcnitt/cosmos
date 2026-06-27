@@ -118,7 +118,7 @@ export function TimeControls() {
             ? 'Click timeline dots · toggle Full Depth for esoteric'
             : narrowed
               ? 'Log scale (years ago) · zoomed in — Shift+scroll to pan time'
-              : 'Scroll canvas to zoom space · Shift+scroll for time precision'}
+              : 'Scroll or [ ] to zoom space · Shift+scroll or Shift+[ ] for time'}
         </span>
       </div>
 

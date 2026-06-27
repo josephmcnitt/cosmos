@@ -54,20 +54,35 @@ export function isChooseCorrect(
   choiceId: string,
 ): boolean {
   const opt = step.options.find((o) => o.id === choiceId);
-  return opt?.correct === true;
+  if (!opt) return false;
+  if (hasCorrectAnswer(step)) return opt.correct === true;
+  return true;
+}
+
+function hasCorrectAnswer(step: Extract<InitiationStep, { type: 'choose' }>): boolean {
+  return step.options.some((o) => o.correct === true);
+}
+
+/** Branching choices advance on any selection; quiz steps require the correct option. */
+export function isChooseResolved(
+  step: Extract<InitiationStep, { type: 'choose' }>,
+  choiceId: string,
+): boolean {
+  return isChooseCorrect(step, choiceId);
 }
 
 export function canAutoAdvance(step: InitiationStep): boolean {
   return step.type === 'dialogue';
 }
 
+import { ALL_AGES } from '../../data/ages/index';
+
 export function defaultInitiationStatus(): Record<string, import('./types').InitiationStatus> {
-  return {
-    grove: 'available',
-    alexandria: 'locked',
-    rome: 'locked',
-    desert: 'locked',
-  };
+  const status: Record<string, import('./types').InitiationStatus> = {};
+  for (const age of ALL_AGES) {
+    status[age.id] = age.id === 'grove' ? 'available' : 'locked';
+  }
+  return status;
 }
 
 export function migrateInitiationStatus(

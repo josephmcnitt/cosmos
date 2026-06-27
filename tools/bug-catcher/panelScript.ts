@@ -171,10 +171,11 @@ export function buildPanelScript(config: PanelConfig): string {
 
   const GUIDANCE_TIPS = [
     'Click anywhere or press a key to skip the opening.',
-    'Mouse wheel — zoom from universe down to human scale.',
+    'Mouse wheel or [ ] keys — zoom from universe down to human scale.',
     'Bottom timeline — scrub history (left = distant past, right = now).',
-    'Shift + wheel — finer timeline scrubbing.',
+    'Shift + wheel or Shift + [ ] — finer timeline scrubbing.',
     'Zoom to human at present to walk (WASD).',
+    'During initiation, follow the golden ring to the sacred olive tree.',
     'E to interact, Q (hold) to practice near stones.',
     'Journal (top-right) tracks discoveries.',
     'No wrong way to explore — note confusion or delight anytime.',

@@ -21,11 +21,11 @@ export const INITIATION_GROVE: InitiationDefinition = {
     {
       type: 'dialogue',
       speaker: 'The Scholarch',
-      text: 'So the ancients report. Walk to the old olive tree. There the unwritten doctrines were whispered, not inscribed.',
+      text: 'So the ancients report. Walk to the sacred olive tree — look for the golden glow on the ground.',
     },
     {
       type: 'walk-to',
-      text: 'Walk to the olive tree.',
+      text: 'Walk to the sacred olive tree (golden ring on the ground).',
       targetX: -8,
       targetZ: 2,
       radius: 3,
@@ -38,7 +38,26 @@ export const INITIATION_GROVE: InitiationDefinition = {
     {
       type: 'dialogue',
       speaker: 'The Scholarch',
-      text: 'Mathematics is the ladder; the One is the summit. You may now perceive what was always here — if you are ready to discover and to practice.',
+      text: 'Mathematics is the ladder; the One is the summit. Before you approach the Hermetic stones, choose your first gate.',
+    },
+    {
+      type: 'choose',
+      text: 'The Hermetic stream offers two gates. Which calls to you first?',
+      options: [
+        {
+          id: 'hermetic-rational',
+          label: 'Correspondence in text and symbol — rational inquiry',
+        },
+        {
+          id: 'hermetic-experiential',
+          label: 'Correspondence in breath and stance — experiential ascent',
+        },
+      ],
+    },
+    {
+      type: 'dialogue',
+      speaker: 'The Scholarch',
+      text: 'You may now perceive what was always here — if you are ready to discover and to practice.',
     },
   ],
   completionJournal: {

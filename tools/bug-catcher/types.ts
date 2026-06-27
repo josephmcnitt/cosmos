@@ -49,10 +49,11 @@ export const FEEDBACK_KIND_LABELS: Record<FeedbackKind, string> = {
 
 export const GUIDANCE_TIPS = [
   'Click anywhere or press a key to skip the opening.',
-  'Mouse wheel — zoom from universe down to human scale.',
+  'Mouse wheel or [ ] keys — zoom from universe down to human scale.',
   'Bottom timeline — scrub through cosmic history (left = distant past, right = now).',
-  'Shift + wheel — zoom the timeline for finer scrubbing.',
+  'Shift + wheel or Shift + [ ] — zoom the timeline for finer scrubbing.',
   'Zoom to human at the present era to enter walk mode (WASD to move).',
+  'During initiation, follow the golden ring to the sacred olive tree.',
   'Near stones or objects: E to interact, Q (hold) to practice.',
   'Use Journal (top-right) to see what you have discovered.',
   'There is no wrong way to explore — note anything that confuses or delights you.',

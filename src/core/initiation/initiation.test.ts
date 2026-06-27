@@ -4,12 +4,13 @@ import {
   defaultInitiationStatus,
   distanceXZ,
   isChooseCorrect,
+  isChooseResolved,
   isStepComplete,
   migrateInitiationStatus,
   yawMatches,
 } from './runInitiation';
 import { INITIATION_GROVE } from '../../data/initiations/index';
-import { migrateSave } from '../save/migrations';
+import { migrateSave, createDefaultSnapshot } from '../save/migrations';
 import { SAVE_VERSION } from '../save/saveSchema';
 import { spawnEntitiesForAge } from '../world/WorldRegistry';
 import { GROVE_AGE } from '../../data/ages/grove';
@@ -26,6 +27,30 @@ describe('initiation runInitiation', () => {
     const migrated = migrateSave({ saveVersion: 1, currentWorldId: 'grove' });
     expect(migrated.saveVersion).toBe(SAVE_VERSION);
     expect(migrated.initiationStatus.grove).toBe('available');
+    expect(migrated.choiceHistory).toEqual([]);
+  });
+
+  it('hermetic branch choices resolve without correct flag', () => {
+    const step = INITIATION_GROVE.steps.find((s) => s.type === 'choose' && s.options.some((o) => o.id === 'hermetic-rational'));
+    if (!step || step.type !== 'choose') return;
+    expect(isChooseResolved(step, 'hermetic-rational')).toBe(true);
+    expect(isChooseResolved(step, 'hermetic-experiential')).toBe(true);
+    expect(isChooseCorrect(step, 'hermetic-rational')).toBe(true);
+  });
+
+  it('records choice to choiceHistory', () => {
+    useWorldStore.setState({
+      choiceHistory: [],
+      completedProgressNodeIds: [],
+      pathFlags: {},
+      revealedMarkerIds: [],
+      entities: spawnEntitiesForAge(GROVE_AGE),
+      journal: [],
+      unlockedWorldIds: ['grove'],
+    });
+    useWorldStore.getState().recordChoice('initiation-grove', 6, 'hermetic-rational');
+    expect(useWorldStore.getState().choiceHistory).toHaveLength(1);
+    expect(useWorldStore.getState().choiceHistory[0]?.choiceId).toBe('hermetic-rational');
   });
 
   it('checks walk-to step', () => {
@@ -82,6 +107,29 @@ describe('WorldRegistry actors', () => {
   it('spawns actor for grove', () => {
     const entities = spawnEntitiesForAge(GROVE_AGE);
     expect(entities.some((e) => e.kind === 'actor')).toBe(true);
+  });
+});
+
+describe('WorldStore reevaluateProgress', () => {
+  it('unlocks rational branch from save-shaped input', () => {
+    const snap = createDefaultSnapshot();
+    useWorldStore.getState().applySnapshotData({
+      ...snap,
+      initiationStatus: { grove: 'completed', alexandria: 'locked', rome: 'locked', desert: 'locked' },
+      choiceHistory: [
+        {
+          initiationId: 'initiation-grove',
+          stepIndex: 6,
+          choiceId: 'hermetic-rational',
+          at: Date.now(),
+        },
+      ],
+      completedProgressNodeIds: ['grove-hermetic-intro'],
+    });
+    useWorldStore.getState().reevaluateProgress();
+    const state = useWorldStore.getState();
+    expect(state.completedProgressNodeIds).toContain('grove-choice-rational');
+    expect(state.revealedMarkerIds).toContain('grove-rosicrucian');
   });
 });
 

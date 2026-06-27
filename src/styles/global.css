@@ -1483,6 +1483,45 @@ body,
   top: 108px;
 }
 
+.path-toggle {
+  position: absolute;
+  top: 56px;
+  right: 16px;
+  z-index: 25;
+}
+
+.path-toggle--cosmic {
+  top: 148px;
+}
+
+.path-panel {
+  position: absolute;
+  top: 56px;
+  right: 16px;
+  z-index: 20;
+  max-width: 320px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.path-panel--cosmic {
+  top: 148px;
+  max-height: calc(60vh - 92px);
+}
+
+.path-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.path-active {
+  font-size: 0.9rem;
+  opacity: 0.85;
+  margin: 0 0 8px;
+}
+
 .journal-panel {
   position: absolute;
   top: 16px;
@@ -1562,6 +1601,13 @@ body,
   font-size: 11px;
   color: #c8a878;
   font-style: italic;
+}
+
+.initiation-walk-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #d4e8a0;
+  letter-spacing: 0.02em;
 }
 
 .embodied-initiation-hint {

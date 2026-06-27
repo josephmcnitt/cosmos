@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { getInitiationById, getStep } from '../../data/initiations/index';
-import { isChooseCorrect, isStepComplete } from '../initiation/runInitiation';
+import { isChooseResolved, isStepComplete } from '../initiation/runInitiation';
 import { useObserverStore } from '../ObserverState';
 import { usePracticeStore } from '../PracticeState';
 import { useWorldStore } from '../world/WorldState';
@@ -44,7 +44,7 @@ export function InitiationSync() {
       }
 
       if (step.type === 'choose') {
-        if (active.choiceId && isChooseCorrect(step, active.choiceId)) {
+        if (active.choiceId && isChooseResolved(step, active.choiceId)) {
           useWorldStore.getState().advanceInitiationStep();
           return;
         }

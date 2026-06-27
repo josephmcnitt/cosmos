@@ -32,6 +32,21 @@ export function createDefaultSnapshot(): PersistedWorldSnapshot {
     lastSimTickMs: Date.now(),
     initiationStatus: defaultInitiationStatus(),
     activeInitiation: null,
+    choiceHistory: [],
+    completedProgressNodeIds: [],
+    pathFlags: {},
+    activePathId: undefined,
+    revealedMarkerIds: [],
+  };
+}
+
+function migrateV2ToV3(data: Partial<PersistedWorldSnapshot>): Partial<PersistedWorldSnapshot> {
+  return {
+    choiceHistory: data.choiceHistory ?? [],
+    completedProgressNodeIds: data.completedProgressNodeIds ?? [],
+    pathFlags: data.pathFlags ?? {},
+    activePathId: data.activePathId,
+    revealedMarkerIds: data.revealedMarkerIds ?? [],
   };
 }
 
@@ -52,7 +67,19 @@ export function migrateSave(raw: unknown): PersistedWorldSnapshot {
         data.initiationStatus as Record<string, import('../initiation/types').InitiationStatus> | undefined,
       ),
       activeInitiation: null,
+      ...migrateV2ToV3(data),
     };
+  }
+
+  if (data.saveVersion < 3) {
+    return {
+      ...defaults,
+      ...data,
+      saveVersion: SAVE_VERSION,
+      initiationStatus: migrateInitiationStatus(data.initiationStatus),
+      activeInitiation: data.activeInitiation ?? null,
+      ...migrateV2ToV3(data),
+    } as PersistedWorldSnapshot;
   }
 
   return {
@@ -61,6 +88,11 @@ export function migrateSave(raw: unknown): PersistedWorldSnapshot {
     saveVersion: SAVE_VERSION,
     initiationStatus: migrateInitiationStatus(data.initiationStatus),
     activeInitiation: data.activeInitiation ?? null,
+    choiceHistory: data.choiceHistory ?? [],
+    completedProgressNodeIds: data.completedProgressNodeIds ?? [],
+    pathFlags: data.pathFlags ?? {},
+    activePathId: data.activePathId,
+    revealedMarkerIds: data.revealedMarkerIds ?? [],
   } as PersistedWorldSnapshot;
 }
 

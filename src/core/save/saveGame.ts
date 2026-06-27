@@ -50,6 +50,11 @@ export function exportSnapshot(state: ReturnType<typeof import('../world/WorldSt
     lastSimTickMs: state.lastSimTickMs,
     initiationStatus: state.initiationStatus,
     activeInitiation: state.activeInitiation,
+    choiceHistory: state.choiceHistory,
+    completedProgressNodeIds: state.completedProgressNodeIds,
+    pathFlags: state.pathFlags,
+    activePathId: state.activePathId,
+    revealedMarkerIds: state.revealedMarkerIds,
   };
 }
 

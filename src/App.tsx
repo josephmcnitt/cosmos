@@ -9,6 +9,7 @@ import { RealmTransitionSync } from './core/RealmTransitionSync';
 import { WorldBootstrap } from './core/world/WorldBootstrap';
 import { WorldTravelSync } from './core/world/WorldTravelSync';
 import { InitiationSync } from './core/initiation/InitiationSync';
+import { ProgressionSync } from './core/progression/ProgressionSync';
 import { useRealmDisplayStore } from './core/RealmDisplayState';
 import { fogDistances } from './core/realmTransition';
 import { IntroSkipHandler, useIntroActive } from './core/IntroSkipHandler';
@@ -41,6 +42,7 @@ import { LinkPanel } from './ui/LinkPanel';
 import { InitiationPanel } from './ui/InitiationPanel';
 import { SenseWhisper } from './ui/SenseWhisper';
 import { JournalPanel } from './ui/JournalPanel';
+import { PathPanel } from './ui/PathPanel';
 import { AgeInteractionControls } from './input/AgeInteractionControls';
 import { NpcInteractionControls } from './input/NpcInteractionControls';
 import { SplitControls } from './input/SplitControls';
@@ -150,7 +152,7 @@ function SpatialSlider() {
           onWheel={onRangeInputWheel}
         />
       </label>
-      <span className="spatial-hint">Scroll to zoom · Shift+scroll for time precision</span>
+      <span className="spatial-hint">Scroll or [ ] to zoom · Shift+scroll or Shift+[ ] for time</span>
     </div>
   );
 }
@@ -169,6 +171,7 @@ export default function App() {
       <RealmTransitionSync />
       <WorldTravelSync />
       <InitiationSync />
+      <ProgressionSync />
       <EmbodiedControls />
       <PracticeControls />
       <AgeInteractionControls />
@@ -202,7 +205,10 @@ export default function App() {
       )}
 
       {introComplete && (
-        <div className={`ui-overlay${isFlying ? ' ui-overlay--flying' : ''}`}>
+        <div
+          className={`ui-overlay${isFlying ? ' ui-overlay--flying' : ''}`}
+          data-testid="ui-overlay"
+        >
           <HeavenPhaseIndicator />
           <StarfieldIndicator />
           <BigBangReplayIndicator />
@@ -224,6 +230,7 @@ export default function App() {
           <LinkPanel />
           <SenseWhisper />
           <JournalPanel />
+          <PathPanel />
           <SplitControls />
           <EventDetailPanel />
           <TimelineLabel />

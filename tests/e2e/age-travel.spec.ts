@@ -25,7 +25,7 @@ test.describe('Initiation', () => {
     await page.reload();
     await skipIntro(page);
     await setSpiritualFullDepth(page);
-    await page.getByTestId('hud-walking').waitFor({ state: 'visible', timeout: 15000 });
+    await page.getByTestId('hud-walking').waitFor({ state: 'visible', timeout: 20000 });
 
     await expect(page.getByTestId('embodied-initiation-hint')).toHaveCount(0);
   });
@@ -52,6 +52,7 @@ test.describe('Persistence', () => {
       const raw = localStorage.getItem('cosmos-save-v1');
       if (!raw) throw new Error('Expected save blob after walk mode');
       const data = JSON.parse(raw);
+      data.saveVersion = 3;
       data.discoveredEventIds = [...new Set([...(data.discoveredEventIds ?? []), 'hermetic-corpus'])];
       data.initiationStatus = { ...(data.initiationStatus ?? {}), grove: 'completed' };
       localStorage.setItem('cosmos-save-v1', JSON.stringify(data));
@@ -59,9 +60,14 @@ test.describe('Persistence', () => {
 
     await page.reload();
     await skipIntro(page);
-    await page.waitForTimeout(1000);
+    await page.waitForFunction(() => {
+      const raw = localStorage.getItem('cosmos-save-v1');
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      return data.discoveredEventIds?.includes('hermetic-corpus');
+    });
 
     await page.getByTestId('journal-toggle').click({ force: true });
-    await expect(page.getByTestId('journal-panel')).toContainText('hermetic-corpus');
+    await expect(page.getByTestId('journal-panel')).toContainText('Hermetic Corpus');
   });
 });

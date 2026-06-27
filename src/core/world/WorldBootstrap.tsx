@@ -6,6 +6,7 @@ import { useWorldStore } from './WorldState';
 export function WorldBootstrap() {
   useEffect(() => {
     useWorldStore.getState().hydrate();
+    useWorldStore.getState().reevaluateProgress();
     bootstrapSimInstances();
 
     const persistInterval = setInterval(() => {

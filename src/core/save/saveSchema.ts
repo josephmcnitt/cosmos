@@ -1,4 +1,6 @@
-export const SAVE_VERSION = 1;
+import type { ActiveInitiation, InitiationStatus } from '../initiation/types';
+
+export const SAVE_VERSION = 2;
 export const SAVE_KEY = 'cosmos-save-v1';
 
 export interface PersistedWorldSnapshot {
@@ -19,4 +21,6 @@ export interface PersistedWorldSnapshot {
   journal: import('../world/types').JournalEntry[];
   eraWitnessFlags: string[];
   lastSimTickMs: number;
+  initiationStatus: Record<string, InitiationStatus>;
+  activeInitiation: ActiveInitiation | null;
 }

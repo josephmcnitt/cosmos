@@ -3,22 +3,35 @@ import type { AgeDefinition } from './types';
 
 export const GROVE_AGE: AgeDefinition = {
   id: 'grove',
-  title: 'The Grove',
+  title: "Plato's Grove",
   eraLabel: 'Present',
   eraAnchorEventId: 'writing',
   simTimeSeconds: UNIVERSE_AGE_SECONDS,
-  spawn: { position: [0, 0], yaw: 0 },
+  spawn: { position: [0, 14], yaw: Math.PI },
   terrain: {
-    size: 40,
-    segments: 48,
+    size: 64,
+    segments: 56,
     color: '#2d5a3d',
-    siteHalfSize: 18,
+    siteHalfSize: 28,
+  },
+  scenery: {
+    buildings: [
+      { id: 'grove-tree-1', preset: 'olive-tree', position: [-8, 0, 6], scale: 1.1 },
+      { id: 'grove-tree-2', preset: 'olive-tree', position: [6, 0, 8], scale: 0.95 },
+      { id: 'grove-tree-3', preset: 'olive-tree', position: [-5, 0, -7], scale: 1.05 },
+      { id: 'grove-tree-4', preset: 'olive-tree', position: [9, 0, -4], scale: 1 },
+      { id: 'grove-tree-init', preset: 'olive-tree', position: [-8, 0, 2], scale: 1.2 },
+      { id: 'grove-temple-n', preset: 'temple-distant', position: [0, 0, -24], scale: 1.4 },
+      { id: 'grove-columns-e', preset: 'column-row', position: [22, 0, 0], rotationY: -Math.PI / 2, scale: 1.2 },
+      { id: 'grove-stoa-w', preset: 'stoa', position: [-20, 0, -4], rotationY: Math.PI / 2, scale: 0.9 },
+    ],
   },
   paths: [
-    { width: 2.2, length: 28, position: [0, 0.03, 0] },
-    { width: 2.2, length: 22, position: [0, 0.03, 0], rotationY: Math.PI / 2 },
+    { width: 2, length: 18, position: [0, 0.03, 7], rotationY: 0 },
+    { width: 2, length: 14, position: [0, 0.03, 0], rotationY: 0 },
+    { width: 1.6, length: 10, position: [0, 0.03, -6], rotationY: Math.PI / 8 },
   ],
-  benches: [{ position: [-4, 0, 3] }],
+  benches: [],
   markers: [
     { id: 'grove-plato', eventId: 'platonic-academy-esoteric', position: [7, 4], label: 'Unwritten doctrines' },
     { id: 'grove-hermetic', eventId: 'hermetic-corpus', position: [5, -5], label: 'Hermetic Corpus' },

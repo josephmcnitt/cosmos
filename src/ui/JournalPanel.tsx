@@ -11,6 +11,7 @@ export function JournalPanel() {
   const discoveredEventIds = useWorldStore((s) => s.discoveredEventIds);
   const completedPuzzleIds = useWorldStore((s) => s.completedPuzzleIds);
   const visitedWorldIds = useWorldStore((s) => s.visitedWorldIds);
+  const initiationStatus = useWorldStore((s) => s.initiationStatus);
 
   if (isFlying) return null;
 
@@ -40,6 +41,16 @@ export function JournalPanel() {
           Close
         </button>
       </div>
+      <section>
+        <h4>Initiations</h4>
+        <ul>
+          {Object.entries(initiationStatus)
+            .filter(([, s]) => s === 'completed')
+            .map(([id]) => (
+              <li key={id}>{id}</li>
+            ))}
+        </ul>
+      </section>
       <section>
         <h4>Discovered ({discoveredEventIds.length})</h4>
         <ul>

@@ -23,6 +23,7 @@ export function AgeInteractionControls() {
   const sustainElapsedSec = usePracticeStore((s) => s.sustainElapsedSec);
   const spiritualDepth = useWorldStore((s) => s.spiritualDepth);
   const currentWorldId = useWorldStore((s) => s.currentWorldId);
+  const isAgeInitiated = useWorldStore((s) => s.isAgeInitiated(currentWorldId));
   const entities = useWorldStore((s) => s.entities);
   const completePuzzle = useWorldStore((s) => s.completePuzzle);
   const isPuzzleCompleted = useWorldStore((s) => s.isPuzzleCompleted);
@@ -37,6 +38,7 @@ export function AgeInteractionControls() {
     if (mode !== 'embodied' || introActive) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
+      if (!isAgeInitiated) return;
       if (e.key.toLowerCase() === 'r') {
         const marker = getNearestSiteMarker(avatarPosition.x, avatarPosition.z, 5);
         if (!marker) return;
@@ -70,6 +72,7 @@ export function AgeInteractionControls() {
 
       if (e.key.toLowerCase() === 'tab') {
         e.preventDefault();
+        if (!isAgeInitiated) return;
         const layer = useWorldStore.getState().getWorldLayer(currentWorldId);
         if (spiritualDepth >= 0.35 || layer === 'esoteric') {
           useWorldStore
@@ -91,10 +94,11 @@ export function AgeInteractionControls() {
     completePuzzle,
     updateEntity,
     spiritualDepth,
+    isAgeInitiated,
   ]);
 
   useEffect(() => {
-    if (mode !== 'embodied') return;
+    if (mode !== 'embodied' || !isAgeInitiated) return;
     const marker = getNearestSiteMarker(avatarPosition.x, avatarPosition.z, 5);
     if (!marker) {
       stanceStart.current = null;

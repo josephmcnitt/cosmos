@@ -1,5 +1,5 @@
 import { migrateSave } from './migrations';
-import { SAVE_KEY, type PersistedWorldSnapshot } from './saveSchema';
+import { SAVE_KEY, SAVE_VERSION, type PersistedWorldSnapshot } from './saveSchema';
 
 export function loadSave(): PersistedWorldSnapshot | null {
   if (typeof localStorage === 'undefined') return null;
@@ -31,7 +31,7 @@ export function clearSave(): void {
 
 export function exportSnapshot(state: ReturnType<typeof import('../world/WorldState').useWorldStore.getState>): PersistedWorldSnapshot {
   return {
-    saveVersion: 1,
+    saveVersion: SAVE_VERSION,
     savedAt: Date.now(),
     currentWorldId: state.currentWorldId,
     unlockedWorldIds: state.unlockedWorldIds,
@@ -48,6 +48,8 @@ export function exportSnapshot(state: ReturnType<typeof import('../world/WorldSt
     journal: state.journal,
     eraWitnessFlags: state.eraWitnessFlags,
     lastSimTickMs: state.lastSimTickMs,
+    initiationStatus: state.initiationStatus,
+    activeInitiation: state.activeInitiation,
   };
 }
 

@@ -14,8 +14,34 @@ export function getCurrentWorldId(): WorldId {
   return useWorldStore.getState().currentWorldId;
 }
 
+export function isAgeInitiated(worldId?: WorldId): boolean {
+  return useWorldStore.getState().isAgeInitiated(worldId);
+}
+
+export function getNearestActor(
+  x: number,
+  z: number,
+  maxDistance = 3.5,
+): EntityInstance | undefined {
+  const worldId = getCurrentWorldId();
+  let best: EntityInstance | undefined;
+  let bestDist = maxDistance;
+  for (const e of useWorldStore.getState().entities) {
+    if (e.worldId !== worldId || e.kind !== 'actor') continue;
+    const dx = e.transform.x - x;
+    const dz = e.transform.z - z;
+    const d = Math.sqrt(dx * dx + dz * dz);
+    if (d < bestDist) {
+      bestDist = d;
+      best = e;
+    }
+  }
+  return best;
+}
+
 export function getCurrentAgeMarkers(): SiteMarkerView[] {
   const worldId = getCurrentWorldId();
+  if (!isAgeInitiated(worldId)) return [];
   const age = getActiveAgeDefinition(worldId);
   return useWorldStore
     .getState()

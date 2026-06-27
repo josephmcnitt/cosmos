@@ -8,9 +8,9 @@ import {
   shouldEnterEmbodied,
   shouldExitEmbodiedFromSpatial,
   shouldExitEmbodiedFromTime,
-  SITE_HALF_SIZE,
   spatialExponentAfterExitEmbodied,
 } from './embodiment';
+import { getSiteHalfSize } from './world/worldQueries';
 
 const introComplete = { introComplete: true, isFlying: false };
 
@@ -116,9 +116,10 @@ describe('shouldExitEmbodiedFromTime', () => {
 
 describe('clampAvatarToSite', () => {
   it('clamps to site bounds', () => {
-    const out = clampAvatarToSite(SITE_HALF_SIZE + 10, -(SITE_HALF_SIZE + 10));
-    expect(out.x).toBe(SITE_HALF_SIZE);
-    expect(out.z).toBe(-SITE_HALF_SIZE);
+    const half = getSiteHalfSize();
+    const out = clampAvatarToSite(half + 10, -(half + 10));
+    expect(out.x).toBe(half);
+    expect(out.z).toBe(-half);
   });
 });
 

@@ -1,6 +1,8 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { SessionAnalysis } from './buildAnalysis';
+import { FEEDBACK_KIND_LABELS } from './types';
+import type { FeedbackKind } from './types';
 
 function escapeHtml(text: string): string {
   return text
@@ -29,10 +31,15 @@ export function buildHtmlReport(analysis: SessionAnalysis): string {
         ...issue.errors.network.map((line) => `<li class="network">${escapeHtml(line)}</li>`),
       ].join('');
 
+      const kind = issue.issue.meta.feedbackKind;
+      const kindBadge = kind
+        ? `<span class="kind kind-${kind}">${escapeHtml(FEEDBACK_KIND_LABELS[kind as FeedbackKind] ?? kind)}</span> `
+        : '';
+
       return `
 <section class="issue" id="${escapeHtml(issue.issue.id)}">
   <header>
-    <h2>${index + 1}. ${escapeHtml(issue.issue.meta.note)}</h2>
+    <h2>${index + 1}. ${kindBadge}${escapeHtml(issue.issue.meta.note)}</h2>
     <p class="meta">${escapeHtml(issue.issue.meta.loggedAt)} · ${escapeHtml(issue.hudSummary)}${
       issue.imageDiff.available
         ? ` · ${issue.imageDiff.changedPercent.toFixed(1)}% visual delta`
@@ -64,19 +71,28 @@ export function buildHtmlReport(analysis: SessionAnalysis): string {
     })
     .join('\n');
 
+  const isGuidance = analysis.session.meta.mode === 'guidance';
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bug session ${escapeHtml(analysis.session.id)}</title>
+  <title>${isGuidance ? 'Playtest' : 'Bug'} session ${escapeHtml(analysis.session.id)}</title>
   <style>
     :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #0d1018; color: #edf1ff; }
     body { margin: 0 auto; max-width: 1200px; padding: 24px; }
     h1, h2, h3 { font-weight: 600; }
     .summary { opacity: 0.85; margin-bottom: 32px; }
+    .wrap-up { margin-bottom: 24px; padding: 14px; border-radius: 10px; background: rgba(120,180,140,0.08); border: 1px solid rgba(120,180,140,0.2); }
     .issue { margin: 40px 0; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.08); }
     .meta { opacity: 0.75; font-size: 14px; }
+    .kind { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,0.08); font-weight: 500; }
+    .kind-bug { background: rgba(255,100,100,0.2); }
+    .kind-confused { background: rgba(255,180,80,0.2); }
+    .kind-suggestion { background: rgba(100,160,255,0.2); }
+    .kind-liked { background: rgba(100,200,120,0.2); }
+    .kind-general { background: rgba(255,255,255,0.08); }
     .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 16px 0; }
     figure { margin: 0; }
     img { width: 100%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); background: #000; }
@@ -91,15 +107,20 @@ export function buildHtmlReport(analysis: SessionAnalysis): string {
   </style>
 </head>
 <body>
-  <h1>Bug session analysis</h1>
+  <h1>${isGuidance ? 'Playtest session analysis' : 'Bug session analysis'}</h1>
   <p class="summary">
     ${escapeHtml(analysis.session.meta.startedAt)}${
       analysis.session.meta.endedAt ? ` → ${escapeHtml(analysis.session.meta.endedAt)}` : ''
     }
-    · ${analysis.session.issues.length} issues${
+    · ${analysis.session.issues.length} ${isGuidance ? 'notes' : 'issues'}${
       analysis.durationMinutes !== null ? ` · ${analysis.durationMinutes.toFixed(1)} min` : ''
-    }
+    }${analysis.session.meta.playerName ? ` · ${escapeHtml(analysis.session.meta.playerName)}` : ''}
   </p>
+  ${
+    analysis.session.meta.wrapUp
+      ? `<div class="wrap-up"><h3>Overall wrap-up</h3><p>${escapeHtml(analysis.session.meta.wrapUp)}</p></div>`
+      : ''
+  }
   <nav>
     ${analysis.issues
       .map(
@@ -115,19 +136,24 @@ export function buildHtmlReport(analysis: SessionAnalysis): string {
 </html>`;
 }
 
-export function writeAnalysisOutputs(analysis: SessionAnalysis, markdown: string, agentPrompt: string): {
+export function writeAnalysisOutputs(
+  analysis: SessionAnalysis,
+  markdown: string,
+  sessionPrompt: string,
+): {
   analysisPath: string;
-  agentPromptPath: string;
+  promptPath: string;
   htmlPath: string;
 } {
   const sessionDir = analysis.session.dir;
+  const isGuidance = analysis.session.meta.mode === 'guidance';
   const analysisPath = join(sessionDir, 'ANALYSIS.md');
-  const agentPromptPath = join(sessionDir, 'AGENT_PROMPT.md');
+  const promptPath = join(sessionDir, isGuidance ? 'PLAYTEST_PROMPT.md' : 'AGENT_PROMPT.md');
   const htmlPath = join(sessionDir, 'report.html');
 
   writeFileSync(analysisPath, markdown, 'utf8');
-  writeFileSync(agentPromptPath, agentPrompt, 'utf8');
+  writeFileSync(promptPath, sessionPrompt, 'utf8');
   writeFileSync(htmlPath, buildHtmlReport(analysis), 'utf8');
 
-  return { analysisPath, agentPromptPath, htmlPath };
+  return { analysisPath, promptPath, htmlPath };
 }

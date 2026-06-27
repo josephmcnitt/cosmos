@@ -1,5 +1,6 @@
 import { join } from 'node:path';
-import type { BugCatcherActivity } from './types';
+import type { BugCatcherActivity, FeedbackKind } from './types';
+import { FEEDBACK_KIND_LABELS } from './types';
 import { extractHudState, formatHudState, summarizeHudState } from './extractHudState';
 import { diffImages, isMeaningfulActivityKey } from './imageDiff';
 import {
@@ -123,15 +124,24 @@ export function analyzeSession(session: SessionRecord): SessionAnalysis {
   return { session, durationMinutes, issues, sessionErrors };
 }
 
+function feedbackLabel(kind?: FeedbackKind): string {
+  if (!kind) return '';
+  return FEEDBACK_KIND_LABELS[kind] ?? kind;
+}
+
 export function formatIssueMarkdown(analysis: IssueAnalysis, index: number): string {
+  const kind = analysis.issue.meta.feedbackKind;
   const lines = [
     `## ${index + 1}. ${analysis.issue.meta.note}`,
     '',
     `- **ID:** \`${analysis.issue.id}\``,
+  ];
+  if (kind) lines.push(`- **Category:** ${feedbackLabel(kind)} (\`${kind}\`)`);
+  lines.push(
     `- **Logged:** ${analysis.issue.meta.loggedAt}`,
     `- **URL:** ${analysis.issue.meta.url}`,
     `- **HUD:** ${analysis.hudSummary}`,
-  ];
+  );
 
   if (analysis.imageDiff.available) {
     lines.push(
@@ -175,29 +185,124 @@ export function formatIssueMarkdown(analysis: IssueAnalysis, index: number): str
 
 export function formatSessionMarkdown(analysis: SessionAnalysis): string {
   const { session, durationMinutes, sessionErrors } = analysis;
+  const isGuidance = session.meta.mode === 'guidance';
   const lines = [
-    '# Bug session analysis',
+    isGuidance ? '# Playtest session analysis' : '# Bug session analysis',
     '',
     `- **Session:** \`${session.id}\``,
     `- **Folder:** \`${session.dir}\``,
-    `- **Started:** ${session.meta.startedAt}`,
+    `- **Mode:** ${session.meta.mode ?? 'qa'}`,
   ];
+  if (session.meta.playerName) lines.push(`- **Player:** ${session.meta.playerName}`);
+  lines.push(`- **Started:** ${session.meta.startedAt}`);
 
   if (session.meta.endedAt) lines.push(`- **Ended:** ${session.meta.endedAt}`);
   if (durationMinutes !== null) lines.push(`- **Duration:** ${durationMinutes.toFixed(1)} min`);
   lines.push(
-    `- **Issues:** ${session.issues.length}`,
+    `- **Notes:** ${session.issues.length}`,
     `- **Errors captured:** console ${sessionErrors.console}, page ${sessionErrors.page}, network ${sessionErrors.network}`,
-    '',
-    '---',
-    '',
   );
+
+  if (isGuidance) {
+    const byKind = groupByFeedbackKind(analysis);
+    lines.push('', '**Feedback breakdown**', '');
+    for (const [kind, items] of Object.entries(byKind)) {
+      if (items.length === 0) continue;
+      lines.push(`- ${feedbackLabel(kind as FeedbackKind) || kind}: ${items.length}`);
+    }
+  }
+
+  if (session.meta.wrapUp) {
+    lines.push('', '**Overall wrap-up**', '', session.meta.wrapUp);
+  }
+
+  lines.push('', '---', '');
 
   analysis.issues.forEach((issue, index) => {
     lines.push(formatIssueMarkdown(issue, index), '', '---', '');
   });
 
   return lines.join('\n').trim() + '\n';
+}
+
+function groupByFeedbackKind(analysis: SessionAnalysis): Partial<Record<FeedbackKind, IssueAnalysis[]>> {
+  const groups: Partial<Record<FeedbackKind, IssueAnalysis[]>> = {};
+  for (const issue of analysis.issues) {
+    const kind = issue.issue.meta.feedbackKind ?? 'general';
+    groups[kind] ??= [];
+    groups[kind]!.push(issue);
+  }
+  return groups;
+}
+
+export function buildPlaytestPrompt(analysis: SessionAnalysis, issueId?: string): string {
+  const selected = issueId
+    ? analysis.issues.filter((item) => item.issue.id.startsWith(issueId) || item.issue.id.includes(issueId))
+    : analysis.issues;
+
+  if (selected.length === 0) {
+    throw new Error(`No notes matched: ${issueId}`);
+  }
+
+  const lines = [
+    'Synthesize feedback from a Cosmos **playtest session** (new-player guidance mode).',
+    'Treat notes as player voice — bugs, confusion, ideas, and praise are all in scope.',
+    '',
+    `Session folder: ${analysis.session.dir}`,
+    `Session started: ${analysis.session.meta.startedAt}`,
+    `App URL: ${analysis.session.meta.startUrl}`,
+  ];
+  if (analysis.session.meta.playerName) {
+    lines.push(`Player: ${analysis.session.meta.playerName}`);
+  }
+  if (analysis.session.meta.wrapUp) {
+    lines.push('', '**Overall wrap-up from player:**', analysis.session.meta.wrapUp);
+  }
+
+  lines.push(
+    '',
+    'Deliverables:',
+    '1. **Onboarding / guidance** — Where did the player get lost? What should the in-app guide teach earlier?',
+    '2. **UX polish** — Confusion and suggestion notes that are not strict bugs.',
+    '3. **Bugs / crashes** — Concrete fixes with file paths; prioritize blockers.',
+    '4. **Keep** — Things the player liked; do not regress these.',
+    '5. **Priority list** — Ordered next steps for the dev team.',
+    '',
+    'Use screenshots and HUD snapshots in each note folder. Group related notes when they describe the same moment.',
+    '',
+    '---',
+    '',
+  );
+
+  selected.forEach((issue, index) => {
+    const kind = issue.issue.meta.feedbackKind;
+    lines.push(
+      `### Note ${index + 1}${kind ? ` (${feedbackLabel(kind)})` : ''}: ${issue.issue.meta.note}`,
+    );
+    lines.push('');
+    lines.push(`Folder: ${issue.issue.dir}`);
+    if (issue.hudSummary !== 'unknown') lines.push(`HUD: ${issue.hudSummary}`);
+    if (issue.errors.page.length > 0) {
+      lines.push('Page errors:');
+      for (const item of issue.errors.page) lines.push(`- ${item}`);
+    }
+    if (issue.activityTrail.length > 0) {
+      lines.push('Recent actions:');
+      for (const item of formatActivity(issue.activityTrail).slice(-12)) {
+        lines.push(`- ${item}`);
+      }
+    }
+    lines.push('', '---', '');
+  });
+
+  return lines.join('\n').trim() + '\n';
+}
+
+export function buildSessionPrompt(analysis: SessionAnalysis, issueId?: string): string {
+  if (analysis.session.meta.mode === 'guidance') {
+    return buildPlaytestPrompt(analysis, issueId);
+  }
+  return buildAgentPrompt(analysis, issueId);
 }
 
 export function buildAgentPrompt(analysis: SessionAnalysis, issueId?: string): string {
@@ -273,6 +378,9 @@ export function formatSessionJson(analysis: SessionAnalysis): string {
     {
       sessionId: analysis.session.id,
       sessionDir: analysis.session.dir,
+      mode: analysis.session.meta.mode ?? 'qa',
+      playerName: analysis.session.meta.playerName,
+      wrapUp: analysis.session.meta.wrapUp,
       startedAt: analysis.session.meta.startedAt,
       endedAt: analysis.session.meta.endedAt,
       issueCount: analysis.session.issues.length,
@@ -281,6 +389,7 @@ export function formatSessionJson(analysis: SessionAnalysis): string {
       issues: analysis.issues.map((issue) => ({
         id: issue.issue.id,
         note: issue.issue.meta.note,
+        feedbackKind: issue.issue.meta.feedbackKind,
         loggedAt: issue.issue.meta.loggedAt,
         url: issue.issue.meta.url,
         hudSummary: issue.hudSummary,

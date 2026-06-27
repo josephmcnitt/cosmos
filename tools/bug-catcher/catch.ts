@@ -9,21 +9,57 @@ import {
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium, type Browser, type Page } from '@playwright/test';
-import { BUG_CATCHER_PANEL_SCRIPT } from './panelScript';
-import type { BugCatcherActivity, BugCatcherIssueMeta, BugCatcherSessionMeta } from './types';
+import { buildPanelScript } from './panelScript';
+import {
+  captureCanvasOrViewport,
+  captureCanvasToFile,
+  defaultCaptureMode,
+  RollingCapture,
+  type CaptureMode,
+} from './rollingCapture';
+import type {
+  BugCatcherActivity,
+  BugCatcherIssueMeta,
+  BugCatcherSessionMeta,
+  FeedbackKind,
+  PanelConfig,
+  SessionMode,
+} from './types';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 interface CliOptions {
   url: string;
   outDir: string;
-  serve: 'none' | 'dev' | 'preview';
+  /** `auto` = start dev/preview when localhost URL is down (default) */
+  serve: 'auto' | 'none' | 'dev' | 'preview';
+  mode: SessionMode;
+  playerName?: string;
+  capture: CaptureMode;
+}
+
+function inferLocalServe(url: string): 'dev' | 'preview' | null {
+  try {
+    const u = new URL(url);
+    const local = u.hostname === '127.0.0.1' || u.hostname === 'localhost';
+    if (!local) return null;
+    const port = u.port || (u.protocol === 'https:' ? '443' : '80');
+    if (port === '5173') return 'dev';
+    if (port === '4173') return 'preview';
+  } catch {
+    // ignore
+  }
+  return null;
 }
 
 function parseArgs(argv: string[]): CliOptions {
   let url = process.env.COSMOS_BUG_CATCH_URL ?? 'http://127.0.0.1:5173';
   let outDir = join(root, 'bug-sessions');
-  let serve: CliOptions['serve'] = 'none';
+  let serve: CliOptions['serve'] = 'auto';
+  let mode: SessionMode =
+    process.env.COSMOS_BUG_CATCH_MODE === 'guidance' ? 'guidance' : 'qa';
+  let playerName = process.env.COSMOS_BUG_CATCH_PLAYER;
+  let capture: CaptureMode | undefined;
 
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -32,36 +68,65 @@ function parseArgs(argv: string[]): CliOptions {
     } else if (arg === '--out' && argv[i + 1]) {
       outDir = argv[++i]!;
     } else if (arg === '--serve' && argv[i + 1]) {
-      const mode = argv[++i]!;
-      if (mode === 'dev' || mode === 'preview' || mode === 'none') serve = mode;
-      else throw new Error(`Unknown --serve value: ${mode}`);
+      const serveMode = argv[++i]!;
+      if (serveMode === 'auto' || serveMode === 'dev' || serveMode === 'preview' || serveMode === 'none') {
+        serve = serveMode;
+      } else throw new Error(`Unknown --serve value: ${serveMode}`);
+    } else if (arg === '--mode' && argv[i + 1]) {
+      const parsed = argv[++i]!;
+      if (parsed === 'qa' || parsed === 'guidance') mode = parsed;
+      else throw new Error(`Unknown --mode value: ${parsed}`);
+    } else if (arg === '--player' && argv[i + 1]) {
+      playerName = argv[++i]!;
+    } else if (arg === '--capture' && argv[i + 1]) {
+      const parsed = argv[++i]!;
+      if (parsed === 'debounced' || parsed === 'on-log' || parsed === 'interval') capture = parsed;
+      else throw new Error(`Unknown --capture value: ${parsed}`);
     } else if (arg === '--help' || arg === '-h') {
       printHelp();
       process.exit(0);
     }
   }
 
-  return { url, outDir, serve };
+  return {
+    url,
+    outDir,
+    serve,
+    mode,
+    playerName,
+    capture: capture ?? defaultCaptureMode(mode),
+  };
 }
 
 function printHelp(): void {
-  console.log(`Cosmos Bug Catcher — manual QA session recorder
+  console.log(`Cosmos Bug Catcher — manual QA / playtest session recorder
 
 Usage:
-  npm run bug-catch [-- options]
+  bug-catch.cmd [options]
+  playtest.cmd [options]          # same as --mode guidance
 
 Options:
-  --url <url>       App URL (default: http://127.0.0.1:5173)
-  --out <dir>       Session output root (default: ./bug-sessions)
-  --serve dev       Start "npm run dev" if URL is unreachable
-  --serve preview   Start "npm run preview" on 127.0.0.1:4173
-  --serve none      Do not start a server (default)
+  --mode qa|guidance  qa = bug-focused (default); guidance = new-player playtest
+  --player <name>     Optional playtester name (guidance mode)
+  --capture <mode>    on-log | debounced | interval (default: on-log — no HUD blink)
+                      debounced = canvas capture after app clicks; interval = legacy (avoid)
+  --serve auto|dev|preview|none
+                      auto = start dev/preview if localhost is down (default)
+  --url <url>         App URL (default: http://127.0.0.1:5173)
+  --out <dir>         Session output root (default: ./bug-sessions)
 
-While the browser is open:
-  • Drag the panel by its header to move it out of the way
-  • Type issues in the text box; click Log issue or Ctrl+Enter
-  • Each issue saves before/after screenshots, HTML, console logs, and recent activity
-  • Click End session (or close the browser) to write the session report
+QA mode:
+  • Log bugs/issues with Ctrl+Enter
+
+Guidance mode (for new players):
+  • Friendly panel with quick guide and note categories
+  • Categories: confused, bug, suggestion, liked, general
+  • Optional wrap-up when finishing the session
+  • Same screenshots/artifacts captured for each note
+
+Environment:
+  COSMOS_BUG_CATCH_MODE=guidance
+  COSMOS_BUG_CATCH_PLAYER=Alice
 `);
 }
 
@@ -85,15 +150,51 @@ function sessionDirName(): string {
 async function waitForUrl(url: string, timeoutMs = 15_000): Promise<boolean> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    try {
-      const res = await fetch(url, { method: 'HEAD' });
-      if (res.ok || res.status < 500) return true;
-    } catch {
-      // retry
+    for (const method of ['GET', 'HEAD'] as const) {
+      try {
+        const res = await fetch(url, { method });
+        if (res.ok || res.status < 500) return true;
+      } catch {
+        // retry
+      }
     }
     await new Promise((r) => setTimeout(r, 500));
   }
   return false;
+}
+
+async function ensureAppServer(options: CliOptions): Promise<ChildProcess | null> {
+  if (await waitForUrl(options.url, 1500)) return null;
+
+  let serve = options.serve;
+  if (serve === 'auto') {
+    const inferred = inferLocalServe(options.url);
+    if (inferred) {
+      serve = inferred;
+    } else {
+      serve = 'none';
+    }
+  }
+
+  if (serve === 'none') {
+    throw new Error(
+      [
+        `Cannot reach ${options.url}.`,
+        'Start the app in another terminal: .\\dev.cmd',
+        'Or run: .\\bug-catch.cmd -- --serve dev',
+      ].join('\n'),
+    );
+  }
+
+  console.log(`App not running — starting ${serve} server (this may take a moment)…`);
+  const proc = startServer(serve);
+  const ok = await waitForUrl(options.url, 120_000);
+  if (!ok) {
+    proc.kill();
+    throw new Error(`Timed out waiting for ${options.url} after starting ${serve}`);
+  }
+  console.log(`App ready at ${options.url}\n`);
+  return proc;
 }
 
 function startServer(mode: 'dev' | 'preview'): ChildProcess {
@@ -109,19 +210,24 @@ function startServer(mode: 'dev' | 'preview'): ChildProcess {
 class BugCatcherSession {
   readonly dir: string;
   readonly issuesDir: string;
+  readonly mode: SessionMode;
+  readonly captureMode: CaptureMode;
+  readonly playerName?: string;
   readonly timeline: BugCatcherActivity[] = [];
   readonly startedAt = isoNow();
   issueCount = 0;
-  beforeScreenshot: Buffer | null = null;
+  wrapUp?: string;
   consoleBuffer: string[] = [];
   pageErrorBuffer: string[] = [];
   consoleSinceLastIssue: string[] = [];
   pageErrorsSinceLastIssue: string[] = [];
   networkSinceLastIssue: string[] = [];
-  screenshotTimer: ReturnType<typeof setInterval> | null = null;
   ending = false;
 
-  constructor(outRoot: string) {
+  constructor(outRoot: string, mode: SessionMode, captureMode: CaptureMode, playerName?: string) {
+    this.mode = mode;
+    this.captureMode = captureMode;
+    this.playerName = playerName;
     this.dir = join(outRoot, sessionDirName());
     this.issuesDir = join(this.dir, 'issues');
     mkdirSync(this.issuesDir, { recursive: true });
@@ -133,6 +239,9 @@ class BugCatcherSession {
           startUrl: '',
           issueCount: 0,
           timeline: [],
+          mode,
+          captureMode,
+          playerName,
         } satisfies BugCatcherSessionMeta,
         null,
         2,
@@ -162,25 +271,34 @@ class BugCatcherSession {
       startUrl,
       issueCount: this.issueCount,
       timeline: this.timeline,
+      mode: this.mode,
+      playerName: this.playerName,
+      wrapUp: this.wrapUp,
+      captureMode: this.captureMode,
     };
     writeFileSync(join(this.dir, 'session.json'), JSON.stringify(meta, null, 2));
   }
 
   writeReport(startUrl: string): void {
+    const isGuidance = this.mode === 'guidance';
     const lines = [
-      '# Bug Catcher session',
+      isGuidance ? '# Playtest session' : '# Bug Catcher session',
       '',
       `- Started: ${this.startedAt}`,
       `- URL: ${startUrl}`,
-      `- Issues: ${this.issueCount}`,
-      `- Folder: ${this.dir}`,
-      '',
+      `- Mode: ${this.mode}`,
     ];
+    if (this.playerName) lines.push(`- Player: ${this.playerName}`);
+    lines.push(`- Notes: ${this.issueCount}`, `- Folder: ${this.dir}`, '');
+
+    if (this.wrapUp) {
+      lines.push('## Overall wrap-up', '', this.wrapUp, '');
+    }
 
     if (this.issueCount === 0) {
-      lines.push('_No issues logged._');
+      lines.push(isGuidance ? '_No notes saved._' : '_No issues logged._');
     } else {
-      lines.push('## Issues', '');
+      lines.push(isGuidance ? '## Notes' : '## Issues', '');
       const folders = readdirSync(this.issuesDir, { withFileTypes: true })
         .filter((d) => d.isDirectory())
         .map((d) => d.name)
@@ -189,7 +307,8 @@ class BugCatcherSession {
         const metaPath = join(this.issuesDir, folder, 'meta.json');
         if (!existsSync(metaPath)) continue;
         const meta = JSON.parse(readFileSync(metaPath, 'utf8')) as BugCatcherIssueMeta;
-        lines.push(`### ${meta.id}`, '', meta.note, '', `- URL: ${meta.url}`, `- Logged: ${meta.loggedAt}`, '');
+        const kind = meta.feedbackKind ? ` [${meta.feedbackKind}]` : '';
+        lines.push(`### ${meta.id}${kind}`, '', meta.note, '', `- URL: ${meta.url}`, `- Logged: ${meta.loggedAt}`, '');
       }
     }
 
@@ -197,49 +316,44 @@ class BugCatcherSession {
   }
 }
 
-async function captureCanvasIfPresent(page: Page, path: string): Promise<boolean> {
-  const canvas = page.locator('.canvas canvas');
-  if (!(await canvas.count())) return false;
-  try {
-    await canvas.first().waitFor({ state: 'visible', timeout: 2000 });
-    await page.evaluate(
-      () =>
-        new Promise<void>((resolve) => {
-          let remaining = 4;
-          const step = () => {
-            remaining -= 1;
-            if (remaining <= 0) resolve();
-            else requestAnimationFrame(step);
-          };
-          requestAnimationFrame(step);
-        }),
-    );
-    await canvas.first().screenshot({ path });
-    return true;
-  } catch {
-    return false;
-  }
+interface LogIssuePayload {
+  note: string;
+  feedbackKind?: FeedbackKind;
 }
 
-async function saveIssue(page: Page, session: BugCatcherSession, note: string): Promise<void> {
+async function saveIssue(
+  page: Page,
+  session: BugCatcherSession,
+  rolling: RollingCapture,
+  payload: string | LogIssuePayload,
+): Promise<void> {
+  const note = typeof payload === 'string' ? payload : payload.note;
+  const feedbackKind = typeof payload === 'string' ? undefined : payload.feedbackKind;
+
+  await rolling.ensureBeforeBuffer();
+  const before = rolling.buffer;
+
   session.issueCount += 1;
   const id = `${String(session.issueCount).padStart(3, '0')}-${slugify(note)}`;
   const issueDir = join(session.issuesDir, id);
   mkdirSync(issueDir, { recursive: true });
 
   const viewport = page.viewportSize() ?? { width: 1280, height: 720 };
-  const before = session.beforeScreenshot;
   if (before) {
     writeFileSync(join(issueDir, 'before.png'), before);
   }
 
-  await page.screenshot({ path: join(issueDir, 'after.png'), fullPage: true });
-  await captureCanvasIfPresent(page, join(issueDir, 'canvas-after.png'));
+  const afterShot = await captureCanvasOrViewport(page);
+  writeFileSync(join(issueDir, 'after.png'), afterShot);
+  await captureCanvasToFile(page, join(issueDir, 'canvas-after.png'));
 
   const html = await page.content();
   writeFileSync(join(issueDir, 'page.html'), html, 'utf8');
 
   writeFileSync(join(issueDir, 'note.txt'), note, 'utf8');
+  if (feedbackKind) {
+    writeFileSync(join(issueDir, 'feedback-kind.txt'), feedbackKind, 'utf8');
+  }
   writeFileSync(join(issueDir, 'console.log'), session.consoleSinceLastIssue.join('\n'), 'utf8');
   writeFileSync(
     join(issueDir, 'page-errors.log'),
@@ -262,43 +376,45 @@ async function saveIssue(page: Page, session: BugCatcherSession, note: string): 
     consoleSinceLastIssue: [...session.consoleSinceLastIssue],
     pageErrorsSinceLastIssue: [...session.pageErrorsSinceLastIssue],
     networkSinceLastIssue: [...session.networkSinceLastIssue],
+    feedbackKind,
   };
   writeFileSync(join(issueDir, 'meta.json'), JSON.stringify(meta, null, 2));
 
   session.consoleSinceLastIssue = [];
   session.pageErrorsSinceLastIssue = [];
   session.networkSinceLastIssue = [];
-  session.beforeScreenshot = await page.screenshot({ fullPage: false });
+  rolling.buffer = afterShot;
 
-  await page.evaluate((count) => {
+  await page.evaluate(({ count, isGuidance }) => {
     window.__bugCatcherIssueLogged?.();
-    window.__bugCatcherSetStatus?.(`Saved issue #${count} · watching…`);
-  }, session.issueCount);
+    window.__bugCatcherSetStatus?.(
+      isGuidance ? `${count} note${count === 1 ? '' : 's'} saved` : `Saved issue #${count} · watching…`,
+    );
+  }, { count: session.issueCount, isGuidance: session.mode === 'guidance' });
 
-  console.log(`Saved issue #${session.issueCount}: ${issueDir}`);
+  const label = session.mode === 'guidance' ? 'Note' : 'Issue';
+  console.log(`Saved ${label} #${session.issueCount}: ${issueDir}`);
 }
 
 async function runSession(options: CliOptions): Promise<void> {
-  let serverProc: ChildProcess | null = null;
+  const serverProc = await ensureAppServer(options);
 
-  if (options.serve !== 'none') {
-    const ready = await waitForUrl(options.url, 1500);
-    if (!ready) {
-      serverProc = startServer(options.serve);
-      const ok = await waitForUrl(options.url, 120_000);
-      if (!ok) {
-        serverProc.kill();
-        throw new Error(`Timed out waiting for ${options.url}`);
-      }
-    }
-  }
-
-  const session = new BugCatcherSession(options.outDir);
+  const session = new BugCatcherSession(options.outDir, options.mode, options.capture, options.playerName);
+  const panelConfig: PanelConfig = { mode: options.mode, playerName: options.playerName };
   console.log(`Session folder: ${session.dir}`);
+  console.log(
+    `Mode: ${options.mode} · capture: ${options.capture}${options.playerName ? ` · player: ${options.playerName}` : ''}`,
+  );
   console.log(`Opening ${options.url}`);
-  console.log('Use the floating panel to log issues. End session when done.\n');
+  console.log(
+    options.mode === 'guidance'
+      ? 'Share the quick guide with your player. Save notes as they explore.\n'
+      : 'Use the floating panel to log issues. End session when done.\n',
+  );
 
   let browser: Browser | null = null;
+  let rolling: RollingCapture | null = null;
+  let navigated = false;
   let resolveEnd: (() => void) | null = null;
   const ended = new Promise<void>((resolve) => {
     resolveEnd = resolve;
@@ -314,6 +430,7 @@ async function runSession(options: CliOptions): Promise<void> {
       ignoreHTTPSErrors: true,
     });
     const page = await context.newPage();
+    rolling = new RollingCapture(page, { mode: options.capture });
 
     page.on('console', (msg) => {
       const line = `[${msg.type()}] ${msg.text()}`;
@@ -370,35 +487,36 @@ async function runSession(options: CliOptions): Promise<void> {
       t: number;
     }) => {
       session.pushActivity(raw);
+      rolling.onActivity();
     });
 
-    await page.exposeFunction('__bugCatcherLogIssue', async (note: string) => {
-      await saveIssue(page, session, note);
+    await page.exposeFunction('__bugCatcherLogIssue', async (payload: string | LogIssuePayload) => {
+      await saveIssue(page, session, rolling, payload);
     });
 
-    await page.exposeFunction('__bugCatcherEndSession', async () => {
+    await page.exposeFunction('__bugCatcherEndSession', async (wrapUp?: string) => {
       if (session.ending) return;
+      if (wrapUp?.trim()) {
+        session.wrapUp = wrapUp.trim();
+        writeFileSync(join(session.dir, 'wrap-up.txt'), session.wrapUp, 'utf8');
+      }
       session.ending = true;
       resolveEnd?.();
     });
 
-    await page.addInitScript(BUG_CATCHER_PANEL_SCRIPT);
+    await page.addInitScript(buildPanelScript(panelConfig));
 
-    await page.goto(options.url, { waitUntil: 'domcontentloaded' });
+    await page.goto(options.url, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    navigated = true;
     session.flushSessionMeta(options.url);
-    session.beforeScreenshot = await page.screenshot({ fullPage: false });
+    rolling.start();
+    await rolling.captureNow();
 
-    session.screenshotTimer = setInterval(async () => {
-      try {
-        session.beforeScreenshot = await page.screenshot({ fullPage: false });
-      } catch {
-        // page may be closing
-      }
-    }, 2500);
-
-    await page.evaluate(() => {
-      window.__bugCatcherSetStatus?.('Watching · 0 issues');
-    });
+    await page.evaluate(({ isGuidance }) => {
+      window.__bugCatcherSetStatus?.(
+        isGuidance ? '0 notes saved · explore and jot thoughts' : 'Watching · 0 issues',
+      );
+    }, { isGuidance: options.mode === 'guidance' });
 
     page.on('close', () => {
       if (!session.ending) resolveEnd?.();
@@ -406,21 +524,23 @@ async function runSession(options: CliOptions): Promise<void> {
 
     await ended;
   } finally {
-    if (session.screenshotTimer) clearInterval(session.screenshotTimer);
-    session.flushSessionMeta(options.url, true);
-    session.writeReport(options.url);
+    rolling?.stop();
+    if (navigated) {
+      session.flushSessionMeta(options.url, true);
+      session.writeReport(options.url);
+      console.log(`\nSession saved to ${session.dir}`);
+      console.log(`Report: ${join(session.dir, 'REPORT.md')}`);
+    }
     if (browser) await browser.close().catch(() => undefined);
     if (serverProc) serverProc.kill();
-    console.log(`\nSession saved to ${session.dir}`);
-    console.log(`Report: ${join(session.dir, 'REPORT.md')}`);
   }
 }
 
 declare global {
   interface Window {
     __bugCatcherInstalled?: boolean;
-    __bugCatcherLogIssue?: (note: string) => Promise<void>;
-    __bugCatcherEndSession?: () => Promise<void>;
+    __bugCatcherLogIssue?: (payload: string | LogIssuePayload) => Promise<void>;
+    __bugCatcherEndSession?: (wrapUp?: string) => Promise<void>;
     __bugCatcherActivity?: (raw: {
       kind: BugCatcherActivity['kind'];
       detail: string;

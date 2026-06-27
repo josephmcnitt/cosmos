@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SITE_MARKERS } from '../data/embodied/siteMarkers';
+import { useWorldStore } from './world/WorldState';
 import {
   applyResonanceDecay,
   canStartPractice,
@@ -82,8 +83,20 @@ describe('applyResonanceDecay', () => {
 describe('canStartPractice', () => {
   const zohar = SITE_MARKERS.find((m) => m.eventId === 'zohar')!;
 
-  it('allows at esoteric stone in embodied mode', () => {
+  it('allows at esoteric stone in embodied mode when initiated', () => {
+    useWorldStore.setState({
+      initiationStatus: { grove: 'completed', alexandria: 'locked', rome: 'locked', desert: 'locked' },
+      currentWorldId: 'grove',
+    });
     expect(canStartPractice('embodied', zohar, false)).toBe(true);
+  });
+
+  it('blocks before initiation', () => {
+    useWorldStore.setState({
+      initiationStatus: { grove: 'available', alexandria: 'locked', rome: 'locked', desert: 'locked' },
+      currentWorldId: 'grove',
+    });
+    expect(canStartPractice('embodied', zohar, false)).toBe(false);
   });
 
   it('blocks when moving', () => {

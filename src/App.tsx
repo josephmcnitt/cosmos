@@ -8,6 +8,7 @@ import { PracticeSync } from './core/PracticeSync';
 import { RealmTransitionSync } from './core/RealmTransitionSync';
 import { WorldBootstrap } from './core/world/WorldBootstrap';
 import { WorldTravelSync } from './core/world/WorldTravelSync';
+import { InitiationSync } from './core/initiation/InitiationSync';
 import { useRealmDisplayStore } from './core/RealmDisplayState';
 import { fogDistances } from './core/realmTransition';
 import { IntroSkipHandler, useIntroActive } from './core/IntroSkipHandler';
@@ -37,9 +38,11 @@ import { KnowledgeModeIndicator } from './ui/KnowledgeModeIndicator';
 import { ZoomControls } from './ui/ZoomControls';
 import { WalkApproachPrompt } from './ui/WalkApproachPrompt';
 import { LinkPanel } from './ui/LinkPanel';
+import { InitiationPanel } from './ui/InitiationPanel';
 import { SenseWhisper } from './ui/SenseWhisper';
 import { JournalPanel } from './ui/JournalPanel';
 import { AgeInteractionControls } from './input/AgeInteractionControls';
+import { NpcInteractionControls } from './input/NpcInteractionControls';
 import { SplitControls } from './input/SplitControls';
 import { BigBangEffect } from './world/BigBangEffect';
 import { DebugGrid } from './world/DebugGrid';
@@ -165,9 +168,11 @@ export default function App() {
       <PracticeSync />
       <RealmTransitionSync />
       <WorldTravelSync />
+      <InitiationSync />
       <EmbodiedControls />
       <PracticeControls />
       <AgeInteractionControls />
+      <NpcInteractionControls />
       <KeyboardShortcuts />
       <ZoomControls />
 
@@ -214,6 +219,7 @@ export default function App() {
           <EmbodiedOverlay />
           <WalkApproachPrompt />
           <EmbodiedPrompt />
+          <InitiationPanel />
           <PracticeOverlay />
           <LinkPanel />
           <SenseWhisper />

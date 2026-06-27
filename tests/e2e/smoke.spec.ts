@@ -28,8 +28,21 @@ test.describe('Cosmos production smoke', () => {
     await expect(page.getByTestId('hud-walking')).toHaveText('Walking');
   });
 
-  test('embodied prompt rows visible in walk mode', async ({ page }) => {
+  test('embodied prompt rows visible after initiation', async ({ page }) => {
     await enterWalkMode(page);
+
+    await page.evaluate(() => {
+      const raw = localStorage.getItem('cosmos-save-v1');
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      data.initiationStatus = { ...(data.initiationStatus ?? {}), grove: 'completed' };
+      localStorage.setItem('cosmos-save-v1', JSON.stringify(data));
+    });
+    await page.reload();
+    await skipIntro(page);
+    await setSpiritualFullDepth(page);
+    await page.getByTestId('hud-walking').waitFor({ state: 'visible', timeout: 15000 });
+
     await page.waitForTimeout(500);
     const prompt = page.getByTestId('embodied-prompt');
     const count = await prompt.count();
@@ -39,7 +52,7 @@ test.describe('Cosmos production smoke', () => {
     } else {
       test.info().annotations.push({
         type: 'note',
-        description: 'No stone in range — walk mode entered successfully',
+        description: 'No stone in range — walk mode entered successfully after initiation',
       });
     }
   });

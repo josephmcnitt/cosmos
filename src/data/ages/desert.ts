@@ -14,6 +14,12 @@ export const DESERT_AGE: AgeDefinition = {
     color: '#5a5040',
     siteHalfSize: 17,
   },
+  scenery: {
+    buildings: [
+      { id: 'desert-cave-mouth', preset: 'desert-cave', position: [-4, 0, -10], scale: 1.1 },
+      { id: 'desert-tree', preset: 'olive-tree', position: [8, 0, 6], scale: 0.7 },
+    ],
+  },
   paths: [{ width: 1.6, length: 26, position: [0, 0.03, 0], rotationY: Math.PI / 6 }],
   benches: [{ position: [4, 0, -4] }],
   markers: [

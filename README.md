@@ -14,8 +14,8 @@ Multi-scale visual exploration: zoom from the universe to an individual, scrub h
 PowerShell may block `npm` scripts. Use either:
 
 ```bash
-# Option A — double-click or run from cmd/PowerShell:
-dev.cmd
+# Option A — from project root in PowerShell or cmd (note the .\ prefix in PowerShell):
+.\dev.cmd
 
 # Option B — call npm.cmd directly:
 "C:\Program Files\nodejs\npm.cmd" install

@@ -12,7 +12,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "bug-catch": "vite-node tools/bug-catcher/catch.ts",
-    "bug-analyze": "vite-node tools/bug-catcher/analyze.ts"
+    "bug-analyze": "vite-node tools/bug-catcher/analyze.ts",
+    "playtest": "vite-node tools/bug-catcher/catch.ts --mode guidance"
   },
   "dependencies": {
     "@react-three/drei": "^9.117.3",

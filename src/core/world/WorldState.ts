@@ -14,6 +14,9 @@ import type {
   SimInstance,
   WorldLayer,
 } from './types';
+import type { ActiveInitiation, InitiationStatus } from '../initiation/types';
+import { getInitiationById, getInitiationForWorld } from '../../data/initiations/index';
+import { defaultInitiationStatus } from '../initiation/runInitiation';
 
 interface WorldState {
   hydrated: boolean;
@@ -35,6 +38,8 @@ interface WorldState {
   ageTransitionActive: boolean;
   controlFocus: 'material' | 'astral';
   pendingBlueprints: PlacedStructureBlueprint[];
+  initiationStatus: Record<string, InitiationStatus>;
+  activeInitiation: ActiveInitiation | null;
 
   spiritualDepth: number;
   dominantTradition: SpiritualTradition | null;
@@ -67,6 +72,14 @@ interface WorldState {
   removeEntanglement: (id: string) => void;
   updateEntanglement: (id: string, patch: Partial<EntanglementPair>) => void;
   applySnapshotData: (snapshot: PersistedWorldSnapshot) => void;
+  startInitiation: (initiationId: string) => boolean;
+  setInitiationChoice: (choiceId: string) => void;
+  advanceInitiationStep: () => void;
+  completeInitiation: (worldId: string) => void;
+  setInitiationAvailable: (worldId: string) => void;
+  getInitiationStatus: (worldId: string) => InitiationStatus;
+  isAgeInitiated: (worldId?: string) => boolean;
+  cancelInitiation: () => void;
 }
 
 function syncDepth(resonance: Partial<Record<SpiritualTradition, number>>) {
@@ -104,6 +117,8 @@ export const useWorldStore = create<WorldState>((set, get) => ({
       ageTransitionActive: false,
       controlFocus: 'material' as const,
       pendingBlueprints: [],
+      initiationStatus: snap.initiationStatus ?? defaultInitiationStatus(),
+      activeInitiation: snap.activeInitiation ?? null,
       ...syncDepth(snap.resonance as Partial<Record<SpiritualTradition, number>>),
     };
   })(),
@@ -138,6 +153,8 @@ export const useWorldStore = create<WorldState>((set, get) => ({
       journal: snapshot.journal,
       eraWitnessFlags: snapshot.eraWitnessFlags,
       lastSimTickMs: snapshot.lastSimTickMs,
+      initiationStatus: snapshot.initiationStatus ?? defaultInitiationStatus(),
+      activeInitiation: snapshot.activeInitiation ?? null,
       ...syncDepth(snapshot.resonance as Partial<Record<SpiritualTradition, number>>),
     });
   },
@@ -191,13 +208,21 @@ export const useWorldStore = create<WorldState>((set, get) => ({
     if (!isAgeUnlockedInternal(get(), worldId)) return false;
 
     const from = get().currentWorldId;
-    set((s) => ({
-      currentWorldId: worldId,
-      visitedWorldIds: s.visitedWorldIds.includes(worldId)
-        ? s.visitedWorldIds
-        : [...s.visitedWorldIds, worldId],
-      unlockedWorldIds: unlockAgeForPortal(worldId, s.unlockedWorldIds),
-    }));
+    set((s) => {
+      const status = { ...s.initiationStatus };
+      if (status[worldId] === 'locked') {
+        status[worldId] = 'available';
+      }
+      return {
+        currentWorldId: worldId,
+        visitedWorldIds: s.visitedWorldIds.includes(worldId)
+          ? s.visitedWorldIds
+          : [...s.visitedWorldIds, worldId],
+        unlockedWorldIds: unlockAgeForPortal(worldId, s.unlockedWorldIds),
+        initiationStatus: status,
+        activeInitiation: null,
+      };
+    });
     worldEvents.emit({ type: 'world/traveled', fromWorldId: from, toWorldId: worldId });
     get().persist();
     return true;
@@ -341,6 +366,99 @@ export const useWorldStore = create<WorldState>((set, get) => ({
     set((s) => ({
       entanglements: s.entanglements.map((p) => (p.id === id ? { ...p, ...patch } : p)),
     }));
+    get().persist();
+  },
+
+  startInitiation: (initiationId) => {
+    const def = getInitiationById(initiationId);
+    if (!def) return false;
+    const status = get().initiationStatus[def.worldId];
+    if (status !== 'available' && status !== 'in_progress') return false;
+    set({
+      activeInitiation: {
+        initiationId,
+        stepIndex: 0,
+        stepStartedAt: performance.now(),
+      },
+      initiationStatus: {
+        ...get().initiationStatus,
+        [def.worldId]: 'in_progress',
+      },
+    });
+    get().persist();
+    return true;
+  },
+
+  setInitiationChoice: (choiceId) => {
+    const active = get().activeInitiation;
+    if (!active) return;
+    set({
+      activeInitiation: { ...active, choiceId, stepStartedAt: performance.now() },
+    });
+  },
+
+  advanceInitiationStep: () => {
+    const active = get().activeInitiation;
+    if (!active) return;
+    const def = getInitiationById(active.initiationId);
+    if (!def) return;
+    const nextIndex = active.stepIndex + 1;
+    if (nextIndex >= def.steps.length) {
+      get().completeInitiation(def.worldId);
+      return;
+    }
+    set({
+      activeInitiation: {
+        initiationId: active.initiationId,
+        stepIndex: nextIndex,
+        stepStartedAt: performance.now(),
+      },
+    });
+    get().persist();
+  },
+
+  completeInitiation: (worldId) => {
+    const def = getInitiationForWorld(worldId);
+    set((s) => ({
+      activeInitiation: null,
+      initiationStatus: { ...s.initiationStatus, [worldId]: 'completed' },
+    }));
+    if (def) {
+      get().addJournalEntry(def.completionJournal.title, def.completionJournal.body);
+    }
+    worldEvents.emit({ type: 'initiation/completed', worldId });
+    get().persist();
+  },
+
+  setInitiationAvailable: (worldId) => {
+    set((s) => {
+      if (s.initiationStatus[worldId] !== 'locked') return s;
+      return {
+        initiationStatus: { ...s.initiationStatus, [worldId]: 'available' },
+      };
+    });
+    get().persist();
+  },
+
+  getInitiationStatus: (worldId) => {
+    return get().initiationStatus[worldId] ?? 'locked';
+  },
+
+  isAgeInitiated: (worldId) => {
+    const id = worldId ?? get().currentWorldId;
+    return get().initiationStatus[id] === 'completed';
+  },
+
+  cancelInitiation: () => {
+    const active = get().activeInitiation;
+    if (!active) return;
+    const def = getInitiationById(active.initiationId);
+    set({
+      activeInitiation: null,
+      initiationStatus: def
+        ? { ...get().initiationStatus, [def.worldId]: 'available' }
+        : get().initiationStatus,
+    });
     get().persist();
   },
 }));

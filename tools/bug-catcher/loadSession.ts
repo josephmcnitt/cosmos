@@ -25,6 +25,7 @@ const ISSUE_ARTIFACTS = [
   'console.log',
   'page-errors.log',
   'network.log',
+  'feedback-kind.txt',
 ] as const;
 
 export function defaultSessionsRoot(root: string): string {

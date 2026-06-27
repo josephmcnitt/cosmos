@@ -14,6 +14,12 @@ export const ROME_AGE: AgeDefinition = {
     color: '#4a4038',
     siteHalfSize: 15,
   },
+  scenery: {
+    buildings: [
+      { id: 'rome-stoa', preset: 'stoa', position: [0, 0, -10], scale: 0.85 },
+      { id: 'rome-temple', preset: 'temple-distant', position: [12, 0, 8], scale: 1 },
+    ],
+  },
   paths: [{ width: 2, length: 20, position: [0, 0.03, 0] }],
   benches: [{ position: [-3, 0, 2] }],
   markers: [

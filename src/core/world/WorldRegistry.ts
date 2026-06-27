@@ -1,11 +1,14 @@
 import type { AgeDefinition } from '../../data/ages/types';
+import { ALL_ACTORS } from '../../data/actors/index';
 import { getEventById } from '../../data/history/index';
 import { STRUCTURE_KINDS } from '../../data/astral/structures';
 import { ALL_AGES, PUZZLE_TEMPLATES } from '../../data/ages/index';
+import type { ActorDefinition } from '../../data/ages/types';
 import type { EntityInstance, WorldId } from './types';
 
 export class WorldRegistry {
   readonly ages = new Map<string, AgeDefinition>();
+  readonly actorDefs = new Map<string, ActorDefinition>();
   readonly structureKinds = new Map(STRUCTURE_KINDS.map((s) => [s.id, s]));
   readonly puzzleTemplates = new Map(PUZZLE_TEMPLATES.map((p) => [p.id, p]));
 
@@ -13,11 +16,18 @@ export class WorldRegistry {
     for (const age of ALL_AGES) {
       this.ages.set(age.id, age);
     }
+    for (const actor of ALL_ACTORS) {
+      this.actorDefs.set(actor.id, actor);
+    }
     this.validate();
   }
 
   getAge(id: string): AgeDefinition | undefined {
     return this.ages.get(id);
+  }
+
+  getActor(id: string): ActorDefinition | undefined {
+    return this.actorDefs.get(id);
   }
 
   validate(): string[] {
@@ -44,12 +54,29 @@ export class WorldRegistry {
         }
       }
     }
+    for (const actor of ALL_ACTORS) {
+      if (!this.ages.has(actor.worldId)) {
+        errors.push(`Actor ${actor.id}: unknown world ${actor.worldId}`);
+      }
+    }
     return errors;
   }
 }
 
 export function spawnEntitiesForAge(age: AgeDefinition): EntityInstance[] {
   const entities: EntityInstance[] = [];
+  const actor = ALL_ACTORS.find((a) => a.worldId === age.id);
+  if (actor) {
+    entities.push({
+      id: actor.id,
+      kind: 'actor',
+      defId: actor.id,
+      worldId: age.id,
+      layer: 'material',
+      transform: { x: actor.position[0], z: actor.position[1], yaw: actor.yaw ?? 0 },
+      state: { displayName: actor.displayName, robeColor: actor.robeColor },
+    });
+  }
   for (const m of age.markers) {
     entities.push({
       id: m.id,
@@ -72,7 +99,7 @@ export function spawnEntitiesForAge(age: AgeDefinition): EntityInstance[] {
       transform: marker
         ? { x: marker.position[0], z: marker.position[1] }
         : { x: 0, z: 0 },
-      state: { label: p.label, puzzleId: p.puzzleId ?? null, unlocked: !p.puzzleId },
+      state: { label: p.label, puzzleId: p.puzzleId ?? null, unlocked: false },
     });
   }
   for (const v of age.veils) {

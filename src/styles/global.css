@@ -1517,6 +1517,59 @@ body,
   font-size: 12px;
 }
 
+.initiation-panel {
+  position: absolute;
+  bottom: 200px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 18;
+  min-width: 320px;
+  max-width: 480px;
+  padding: 14px 16px;
+}
+
+.initiation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.initiation-close {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.initiation-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.initiation-choice {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.initiation-choice.selected {
+  border-color: rgba(200, 168, 96, 0.6);
+}
+
+.initiation-hint {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #c8a878;
+  font-style: italic;
+}
+
+.embodied-initiation-hint {
+  font-size: 12px;
+  color: #c8d0c0;
+  margin-bottom: 6px;
+}
+
 .age-transition-overlay {
   position: absolute;
   inset: 0;

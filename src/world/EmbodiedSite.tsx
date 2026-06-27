@@ -5,10 +5,12 @@ import { getEventById } from '../data/history/index';
 import { MARKER_TRADITION_COLORS } from '../data/embodied/siteMarkers';
 import { getActiveAgeDefinition } from '../core/world/WorldRegistry';
 import { useWorldStore } from '../core/world/WorldState';
+import { AgeScenery } from './AgeScenery';
 import { CorrespondencePortal } from './CorrespondencePortal';
 import { VeilPoint } from './VeilPoint';
 import { PuzzleMechanism } from './PuzzleMechanism';
 import { AstralStructures } from './AstralStructures';
+import { NpcAvatar } from './NpcAvatar';
 
 function Terrain({ color, size, segments }: { color: string; size: number; segments: number }) {
   const geometry = useMemo(() => {
@@ -50,30 +52,6 @@ function PathStrip({
   );
 }
 
-function Bench({ position }: { position: [number, number, number] }) {
-  const y = sampleTerrainHeight(position[0], position[2]);
-  return (
-    <group position={[position[0], y, position[2]]}>
-      <mesh position={[0, 0.25, 0]}>
-        <boxGeometry args={[1.2, 0.08, 0.4]} />
-        <meshStandardMaterial color="#5a4030" roughness={0.9} />
-      </mesh>
-      <mesh position={[0, 0.12, -0.15]}>
-        <boxGeometry args={[1.2, 0.24, 0.08]} />
-        <meshStandardMaterial color="#5a4030" roughness={0.9} />
-      </mesh>
-      <mesh position={[-0.45, 0.12, 0.1]}>
-        <boxGeometry args={[0.08, 0.24, 0.35]} />
-        <meshStandardMaterial color="#4a3528" roughness={0.9} />
-      </mesh>
-      <mesh position={[0.45, 0.12, 0.1]}>
-        <boxGeometry args={[0.08, 0.24, 0.35]} />
-        <meshStandardMaterial color="#4a3528" roughness={0.9} />
-      </mesh>
-    </group>
-  );
-}
-
 function MarkerStone({
   position,
   color = '#8899aa',
@@ -104,25 +82,24 @@ export function EmbodiedSite() {
   const worldLayer = useWorldStore((s) => s.worldLayers[s.currentWorldId] ?? 'material');
   const entities = useWorldStore((s) => s.entities);
   const discoveredEventIds = useWorldStore((s) => s.discoveredEventIds);
+  const initiated = useWorldStore((s) => s.isAgeInitiated(currentWorldId));
 
   const age = getActiveAgeDefinition(currentWorldId);
   const layer = worldLayer;
 
+  const actors = entities.filter((e) => e.worldId === currentWorldId && e.kind === 'actor');
   const markers = entities.filter(
     (e) => e.worldId === currentWorldId && e.kind === 'marker' && e.layer === 'material',
   );
-  const portals = entities.filter(
-    (e) => e.worldId === currentWorldId && e.kind === 'portal',
-  );
-  const veils = entities.filter(
-    (e) => e.worldId === currentWorldId && e.kind === 'veil',
-  );
+  const portals = entities.filter((e) => e.worldId === currentWorldId && e.kind === 'portal');
+  const veils = entities.filter((e) => e.worldId === currentWorldId && e.kind === 'veil');
   const puzzles = entities.filter(
     (e) => e.worldId === currentWorldId && e.kind === 'puzzle-mechanism',
   );
 
   const showMaterial = layer === 'material';
   const showEsoteric = layer === 'esoteric';
+  const showSupernatural = initiated;
 
   return (
     <group>
@@ -131,6 +108,7 @@ export function EmbodiedSite() {
         size={age.terrain.size}
         segments={age.terrain.segments}
       />
+      {age.scenery && <AgeScenery buildings={age.scenery.buildings} />}
       {showMaterial && (
         <>
           {age.paths.map((p, i) => (
@@ -142,37 +120,35 @@ export function EmbodiedSite() {
               rotationY={p.rotationY}
             />
           ))}
-          {age.benches.map((b, i) => (
-            <Bench key={`bench-${i}`} position={b.position} />
+          {actors.map((a) => (
+            <NpcAvatar key={a.id} entity={a} />
           ))}
-          {markers.map((m) => {
-            const event = getEventById(m.defId);
-            const color =
-              event?.track === 'spiritual'
-                ? MARKER_TRADITION_COLORS[event.tradition]
-                : '#8899aa';
-            return (
-              <MarkerStone
-                key={m.id}
-                position={[m.transform.x, 0, m.transform.z]}
-                color={color}
-                discovered={discoveredEventIds.includes(m.defId)}
-              />
-            );
-          })}
-          {portals
-            .filter((p) => p.state.unlocked === true)
-            .map((p) => (
-              <CorrespondencePortal key={p.id} entity={p} />
-            ))}
-          {puzzles.map((p) => (
-            <PuzzleMechanism key={p.id} entity={p} />
-          ))}
+          {showSupernatural &&
+            markers.map((m) => {
+              const event = getEventById(m.defId);
+              const color =
+                event?.track === 'spiritual'
+                  ? MARKER_TRADITION_COLORS[event.tradition]
+                  : '#8899aa';
+              return (
+                <MarkerStone
+                  key={m.id}
+                  position={[m.transform.x, 0, m.transform.z]}
+                  color={color}
+                  discovered={discoveredEventIds.includes(m.defId)}
+                />
+              );
+            })}
+          {showSupernatural &&
+            portals
+              .filter((p) => p.state.unlocked === true)
+              .map((p) => (
+                <CorrespondencePortal key={p.id} entity={p} />
+              ))}
+          {showSupernatural && puzzles.map((p) => <PuzzleMechanism key={p.id} entity={p} />)}
         </>
       )}
-      {veils.map((v) => (
-        <VeilPoint key={v.id} entity={v} />
-      ))}
+      {showSupernatural && veils.map((v) => <VeilPoint key={v.id} entity={v} />)}
       {showEsoteric && <AstralStructures worldId={currentWorldId} />}
     </group>
   );

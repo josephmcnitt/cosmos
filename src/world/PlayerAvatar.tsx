@@ -7,6 +7,7 @@ import {
   sampleTerrainHeight,
 } from '../core/embodiment';
 import { useObserverStore } from '../core/ObserverState';
+import { HumanoidFigure } from './HumanoidFigure';
 
 export function PlayerAvatar() {
   const groupRef = useRef<THREE.Group>(null);
@@ -23,10 +24,7 @@ export function PlayerAvatar() {
 
   return (
     <group ref={groupRef}>
-      <mesh castShadow>
-        <capsuleGeometry args={[0.25, 0.55, 8, 16]} />
-        <meshStandardMaterial color="#e8c4a0" roughness={0.7} />
-      </mesh>
+      <HumanoidFigure bodyColor="#e8c4a0" showEyes />
     </group>
   );
 }

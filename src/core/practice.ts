@@ -4,6 +4,7 @@ import { isSpiritualEvent } from '../data/history/types';
 import type { SiteMarker } from '../data/embodied/siteMarkers';
 import type { ObserverMode } from './ObserverState';
 import type { RealmPhase } from './PracticeState';
+import { useWorldStore } from './world/WorldState';
 
 export const PRACTICE_DURATION_SEC = 12;
 export const RESONANCE_GAIN = 0.18;
@@ -59,6 +60,7 @@ export function canStartPractice(
   avatarMoving: boolean,
 ): boolean {
   if (mode !== 'embodied' || avatarMoving || !marker) return false;
+  if (!useWorldStore.getState().isAgeInitiated()) return false;
   const tradition = traditionForMarker(marker.eventId);
   if (!tradition) return false;
   const event = getEventById(marker.eventId);

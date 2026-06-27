@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   analyzeSession,
-  buildAgentPrompt,
+  buildSessionPrompt,
   formatSessionJson,
   formatSessionMarkdown,
 } from './buildAnalysis';
@@ -119,8 +119,9 @@ function printSessionList(sessionsRoot: string): void {
 
   for (const session of sessions) {
     const ended = session.meta.endedAt ? 'complete' : 'in progress';
+    const mode = session.meta.mode ?? 'qa';
     console.log(
-      `${session.id} · ${session.issues.length} issues · ${ended} · ${session.meta.startedAt}`,
+      `${session.id} · ${mode} · ${session.issues.length} notes · ${ended} · ${session.meta.startedAt}`,
     );
   }
 }
@@ -141,7 +142,7 @@ function main(): void {
   }
 
   const markdown = formatSessionMarkdown(analysis);
-  const agentPrompt = buildAgentPrompt(analysis, options.issue);
+  const sessionPrompt = buildSessionPrompt(analysis, options.issue);
 
   if (options.json) {
     if (options.issue) {
@@ -155,14 +156,14 @@ function main(): void {
   }
 
   if (options.prompt) {
-    console.log(agentPrompt);
+    console.log(sessionPrompt);
     return;
   }
 
   if (options.write || options.html) {
-    const paths = writeAnalysisOutputs(analysis, markdown, agentPrompt);
+    const paths = writeAnalysisOutputs(analysis, markdown, sessionPrompt);
     console.log(`Wrote ${paths.analysisPath}`);
-    console.log(`Wrote ${paths.agentPromptPath}`);
+    console.log(`Wrote ${paths.promptPath}`);
     if (options.html) {
       console.log(`Wrote ${paths.htmlPath}`);
       if (options.open) openFile(paths.htmlPath);

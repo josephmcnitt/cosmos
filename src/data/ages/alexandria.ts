@@ -14,6 +14,12 @@ export const ALEXANDRIA_AGE: AgeDefinition = {
     color: '#3a4a38',
     siteHalfSize: 16,
   },
+  scenery: {
+    buildings: [
+      { id: 'alex-library-block', preset: 'library-block', position: [0, 0, -8], scale: 1 },
+      { id: 'alex-columns', preset: 'column-row', position: [-14, 0, 4], rotationY: Math.PI / 4, scale: 0.85 },
+    ],
+  },
   paths: [
     { width: 2.5, length: 24, position: [0, 0.03, 2] },
     { width: 1.8, length: 14, position: [-5, 0.03, -3], rotationY: Math.PI / 4 },

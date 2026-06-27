@@ -12,9 +12,10 @@ describe('WorldRegistry', () => {
     expect(worldRegistry.validate()).toEqual([]);
   });
 
-  it('spawns marker entities for grove', () => {
+  it('spawns marker and actor entities for grove', () => {
     const entities = spawnEntitiesForAge(GROVE_AGE);
     expect(entities.filter((e) => e.kind === 'marker').length).toBe(5);
+    expect(entities.filter((e) => e.kind === 'actor').length).toBe(1);
     expect(entities.some((e) => e.kind === 'portal')).toBe(true);
   });
 });
@@ -23,7 +24,7 @@ describe('save migrations', () => {
   it('round-trips default snapshot', () => {
     const snap = createDefaultSnapshot();
     const migrated = migrateSave(snap);
-    expect(migrated.saveVersion).toBe(1);
+    expect(migrated.saveVersion).toBe(2);
     expect(migrated.currentWorldId).toBe('grove');
   });
 

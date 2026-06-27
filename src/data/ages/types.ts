@@ -41,6 +41,27 @@ export interface AgeVeilDef {
   label: string;
 }
 
+export type AgeBuildingPreset =
+  | 'stoa'
+  | 'temple-distant'
+  | 'olive-tree'
+  | 'column-row'
+  | 'library-block'
+  | 'desert-cave';
+
+export interface AgeBuildingDef {
+  id: string;
+  preset: AgeBuildingPreset;
+  position: [number, number, number];
+  rotationY?: number;
+  scale?: number;
+}
+
+export interface AgeSceneryConfig {
+  buildings: AgeBuildingDef[];
+  skyTint?: string;
+}
+
 export interface EsotericLayerPreset {
   tradition: SpiritualTradition;
   geometry: 'torus-knot' | 'hermetic-spheres' | 'neoplatonic-rings' | 'gnostic-dual';
@@ -60,6 +81,7 @@ export interface AgeDefinition {
   portals: AgePortalDef[];
   veils: AgeVeilDef[];
   esotericLayer: EsotericLayerPreset;
+  scenery?: AgeSceneryConfig;
   unlock?: { requiresAgeIds?: string[]; requiresPuzzleIds?: string[] };
   astralBuildPalette?: string[];
 }
@@ -67,7 +89,13 @@ export interface AgeDefinition {
 export interface ActorDefinition {
   id: string;
   label: string;
-  tradition?: SpiritualTradition;
+  displayName: string;
+  tradition: SpiritualTradition;
+  worldId: string;
+  position: [number, number];
+  yaw?: number;
+  robeColor: string;
+  initiationId: string;
 }
 
 export interface StructureKindDefinition {

@@ -30,6 +30,7 @@ export type WorldEvent =
   | { type: 'puzzle/completed'; puzzleId: string }
   | { type: 'split/created'; pairId: string }
   | { type: 'split/rejoined'; pairId: string }
-  | { type: 'world/traveled'; fromWorldId: string; toWorldId: string };
+  | { type: 'world/traveled'; fromWorldId: string; toWorldId: string }
+  | { type: 'initiation/completed'; worldId: string };
 
 export type WorldEventHandler = (event: WorldEvent) => void;

@@ -9,14 +9,16 @@ export const ALEXANDRIA_AGE: AgeDefinition = {
   simTimeSeconds: ceYear(-300),
   spawn: { position: [0, 4], yaw: Math.PI },
   terrain: {
-    size: 36,
-    segments: 40,
+    size: 72,
+    segments: 64,
     color: '#3a4a38',
-    siteHalfSize: 16,
+    siteHalfSize: 32,
   },
   scenery: {
     buildings: [
       { id: 'alex-library-block', preset: 'library-block', position: [0, 0, -8], scale: 1 },
+      { id: 'alex-library-east-wing', preset: 'library-block', position: [9, 0, -12], rotationY: Math.PI / 10, scale: 0.8 },
+      { id: 'alex-library-west-wing', preset: 'library-block', position: [-9, 0, -12], rotationY: -Math.PI / 10, scale: 0.8 },
       { id: 'alex-columns', preset: 'column-row', position: [-14, 0, 4], rotationY: Math.PI / 4, scale: 0.85 },
     ],
   },

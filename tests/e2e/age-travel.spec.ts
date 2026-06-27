@@ -37,6 +37,53 @@ test.describe('Age travel', () => {
     await expect(page.getByTestId('embodied-age-label')).toContainText("Plato's Grove");
   });
 
+  test('stale save in another age returns to Grove before initiation', async ({ page }) => {
+    await page.goto('/');
+    await skipIntro(page);
+
+    await page.evaluate(() => {
+      localStorage.setItem(
+        'cosmos-save-v1',
+        JSON.stringify({
+          saveVersion: 3,
+          savedAt: Date.now(),
+          currentWorldId: 'rome',
+          unlockedWorldIds: ['grove', 'rome'],
+          visitedWorldIds: ['grove', 'rome'],
+          worldLayers: { grove: 'material', rome: 'material' },
+          discoveredEventIds: [],
+          resonance: {},
+          sessionsCompleted: 0,
+          entities: [],
+          completedPuzzleIds: [],
+          puzzleState: {},
+          simInstances: [],
+          entanglements: [],
+          journal: [],
+          eraWitnessFlags: [],
+          lastSimTickMs: Date.now(),
+          initiationStatus: {
+            grove: 'available',
+            alexandria: 'locked',
+            rome: 'available',
+            desert: 'locked',
+          },
+          activeInitiation: null,
+          choiceHistory: [],
+          completedProgressNodeIds: [],
+          pathFlags: {},
+          revealedMarkerIds: [],
+        }),
+      );
+    });
+
+    await page.reload();
+    await skipIntro(page);
+    await setSpiritualFullDepth(page);
+    await page.getByTestId('hud-walking').waitFor({ state: 'visible', timeout: 15000 });
+    await expect(page.getByTestId('embodied-age-label')).toContainText("Plato's Grove");
+  });
+
   test('journal toggle opens panel', async ({ page }) => {
     await enterWalkMode(page);
     await page.getByTestId('journal-toggle').click({ force: true });

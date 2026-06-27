@@ -50,23 +50,34 @@ function migrateV2ToV3(data: Partial<PersistedWorldSnapshot>): Partial<Persisted
   };
 }
 
+function resolveOnboardingWorldId(data: Partial<PersistedWorldSnapshot>): string {
+  const initiationStatus = migrateInitiationStatus(data.initiationStatus);
+  if (initiationStatus.grove === 'completed') {
+    return data.currentWorldId ?? 'grove';
+  }
+  return 'grove';
+}
+
 export function migrateSave(raw: unknown): PersistedWorldSnapshot {
   if (!raw || typeof raw !== 'object') {
     return createDefaultSnapshot();
   }
   const data = raw as Partial<PersistedWorldSnapshot>;
   const defaults = createDefaultSnapshot();
+  const currentWorldId = resolveOnboardingWorldId(data);
+  const resetOnboardingWorld = currentWorldId !== data.currentWorldId;
 
   if (!data.saveVersion || data.saveVersion < 2) {
     return {
       ...defaults,
       ...data,
       saveVersion: SAVE_VERSION,
+      currentWorldId,
+      activeInitiation: null,
       entities: data.entities?.length ? data.entities : defaults.entities,
       initiationStatus: migrateInitiationStatus(
         data.initiationStatus as Record<string, import('../initiation/types').InitiationStatus> | undefined,
       ),
-      activeInitiation: null,
       ...migrateV2ToV3(data),
     };
   }
@@ -76,8 +87,9 @@ export function migrateSave(raw: unknown): PersistedWorldSnapshot {
       ...defaults,
       ...data,
       saveVersion: SAVE_VERSION,
+      currentWorldId,
       initiationStatus: migrateInitiationStatus(data.initiationStatus),
-      activeInitiation: data.activeInitiation ?? null,
+      activeInitiation: resetOnboardingWorld ? null : (data.activeInitiation ?? null),
       ...migrateV2ToV3(data),
     } as PersistedWorldSnapshot;
   }
@@ -86,8 +98,9 @@ export function migrateSave(raw: unknown): PersistedWorldSnapshot {
     ...defaults,
     ...data,
     saveVersion: SAVE_VERSION,
+    currentWorldId,
     initiationStatus: migrateInitiationStatus(data.initiationStatus),
-    activeInitiation: data.activeInitiation ?? null,
+    activeInitiation: resetOnboardingWorld ? null : (data.activeInitiation ?? null),
     choiceHistory: data.choiceHistory ?? [],
     completedProgressNodeIds: data.completedProgressNodeIds ?? [],
     pathFlags: data.pathFlags ?? {},

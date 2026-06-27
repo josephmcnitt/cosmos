@@ -5,11 +5,13 @@ import {
   EMBODIED_ENTER_EXPONENT,
   EMBODIED_EXIT_EXPONENT,
   embodimentApproachWeight,
+  ensureOnboardingEmbodiedWorld,
   shouldEnterEmbodied,
   shouldExitEmbodiedFromSpatial,
   shouldExitEmbodiedFromTime,
   spatialExponentAfterExitEmbodied,
 } from './embodiment';
+import { useWorldStore } from './world/WorldState';
 import { getSiteHalfSize } from './world/worldQueries';
 
 const introComplete = { introComplete: true, isFlying: false };
@@ -132,5 +134,35 @@ describe('spatialExponentAfterExitEmbodied', () => {
 
   it('preserves pre-embodiment when already below walk entry', () => {
     expect(spatialExponentAfterExitEmbodied(3)).toBe(3);
+  });
+});
+
+describe('ensureOnboardingEmbodiedWorld', () => {
+  it('returns stale saves to grove before initiation completes', () => {
+    useWorldStore.setState({
+      currentWorldId: 'rome',
+      initiationStatus: {
+        grove: 'available',
+        alexandria: 'locked',
+        rome: 'available',
+        desert: 'locked',
+      },
+    });
+    ensureOnboardingEmbodiedWorld();
+    expect(useWorldStore.getState().currentWorldId).toBe('grove');
+  });
+
+  it('does not move players who finished grove initiation', () => {
+    useWorldStore.setState({
+      currentWorldId: 'rome',
+      initiationStatus: {
+        grove: 'completed',
+        alexandria: 'locked',
+        rome: 'available',
+        desert: 'locked',
+      },
+    });
+    ensureOnboardingEmbodiedWorld();
+    expect(useWorldStore.getState().currentWorldId).toBe('rome');
   });
 });

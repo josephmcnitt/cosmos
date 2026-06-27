@@ -13,6 +13,7 @@ export const EMBODIED_CAMERA_MIN = 2.5;
 export const EMBODIED_CAMERA_MAX = 8;
 export const EMBODIED_CAMERA_DEFAULT = 5;
 
+import { useWorldStore } from './world/WorldState';
 import { getSiteHalfSize } from './world/worldQueries';
 
 export const SITE_HALF_SIZE = 18;
@@ -20,8 +21,17 @@ export const AVATAR_WALK_SPEED = 4;
 export const AVATAR_TURN_SPEED = 2.8;
 export const AVATAR_HEIGHT = 0.9;
 
+/** Until Grove initiation is done, walk mode always starts in Plato's Grove. */
+export function ensureOnboardingEmbodiedWorld(): void {
+  const world = useWorldStore.getState();
+  if (world.getInitiationStatus('grove') === 'completed') return;
+  if (world.currentWorldId === 'grove') return;
+  world.travelToWorld('grove');
+}
+
 /** Walk mode is for uncovering hidden spiritual / esoteric history. */
 export function prepareEmbodiedDiscovery(): void {
+  ensureOnboardingEmbodiedWorld();
   const history = useHistoryStore.getState();
   history.setHistoryTrack('spiritual');
   history.setDepthOfView('full');

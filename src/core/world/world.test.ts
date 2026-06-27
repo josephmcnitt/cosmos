@@ -32,6 +32,35 @@ describe('save migrations', () => {
     const migrated = migrateSave(null);
     expect(migrated.entities.length).toBeGreaterThan(0);
   });
+
+  it('returns onboarding players to grove when initiation is incomplete', () => {
+    const migrated = migrateSave({
+      saveVersion: 3,
+      currentWorldId: 'rome',
+      initiationStatus: {
+        grove: 'available',
+        alexandria: 'locked',
+        rome: 'available',
+        desert: 'locked',
+      },
+    });
+    expect(migrated.currentWorldId).toBe('grove');
+    expect(migrated.activeInitiation).toBeNull();
+  });
+
+  it('keeps current world after grove initiation is completed', () => {
+    const migrated = migrateSave({
+      saveVersion: 3,
+      currentWorldId: 'rome',
+      initiationStatus: {
+        grove: 'completed',
+        alexandria: 'locked',
+        rome: 'available',
+        desert: 'locked',
+      },
+    });
+    expect(migrated.currentWorldId).toBe('rome');
+  });
 });
 
 describe('WorldEvents', () => {

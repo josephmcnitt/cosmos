@@ -193,6 +193,22 @@ export function spawnEntitiesForAge(age: AgeDefinition): EntityInstance[] {
   return entities;
 }
 
+/** Merge saved entities with the current spawn catalog — adds missing NPCs/markers without wiping progress. */
+export function repairWorldEntities(existing: EntityInstance[] | undefined): EntityInstance[] {
+  const fresh = spawnAllWorldEntities();
+  if (!existing?.length) return fresh;
+
+  const byId = new Map(existing.map((entity) => [entity.id, entity]));
+  return fresh.map((entity) => {
+    const saved = byId.get(entity.id);
+    if (!saved) return entity;
+    if (entity.kind === 'actor') {
+      return { ...saved, transform: entity.transform, state: { ...entity.state, ...saved.state } };
+    }
+    return saved;
+  });
+}
+
 export function spawnAllWorldEntities(): EntityInstance[] {
   const all: EntityInstance[] = [];
   for (const age of ALL_AGES) {

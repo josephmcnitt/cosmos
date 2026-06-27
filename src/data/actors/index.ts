@@ -9,7 +9,7 @@ export const ALL_ACTORS: ActorDefinition[] = [
     displayName: 'The Scholarch',
     tradition: 'platonism',
     worldId: 'grove',
-    position: [0, 2],
+    position: [0, 9],
     yaw: Math.PI,
     robeColor: '#e8e0d0',
     initiationId: 'initiation-grove',

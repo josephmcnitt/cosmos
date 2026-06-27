@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { SpiritualTradition } from '../../data/history/types';
 import { clampResonance, computeSpiritualDepth, dominantTradition } from '../practice';
 import { applySnapshot, createDefaultSnapshot } from '../save/migrations';
+import { repairWorldEntities } from './WorldRegistry';
 import { exportSnapshot, loadSave, saveGame } from '../save/saveGame';
 import type { PersistedWorldSnapshot } from '../save/saveSchema';
 import { worldEvents } from './WorldEvents';
@@ -162,7 +163,7 @@ export const useWorldStore = create<WorldState>((set, get) => ({
       discoveredEventIds: snapshot.discoveredEventIds,
       resonance: snapshot.resonance as Partial<Record<SpiritualTradition, number>>,
       sessionsCompleted: snapshot.sessionsCompleted,
-      entities: snapshot.entities,
+      entities: repairWorldEntities(snapshot.entities),
       completedPuzzleIds: snapshot.completedPuzzleIds,
       puzzleState: snapshot.puzzleState,
       simInstances: snapshot.simInstances,

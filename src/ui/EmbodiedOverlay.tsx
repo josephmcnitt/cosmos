@@ -22,7 +22,7 @@ export function EmbodiedOverlay() {
       </div>
       {seekGuide && !isAgeInitiated && (
         <div className="embodied-initiation-hint" data-testid="embodied-initiation-hint">
-          Seek the guide in the clearing · Press <strong>T</strong> to speak
+          Walk toward the guide on the path — golden ring · Press <strong>T</strong> to speak
         </div>
       )}
       <div className="embodied-overlay-hint">

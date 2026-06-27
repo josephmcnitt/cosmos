@@ -1,6 +1,6 @@
 import type { PersistedWorldSnapshot } from './saveSchema';
 import { SAVE_VERSION } from './saveSchema';
-import { spawnAllWorldEntities } from '../world/WorldRegistry';
+import { spawnAllWorldEntities, repairWorldEntities } from '../world/WorldRegistry';
 import { defaultInitiationStatus, migrateInitiationStatus } from '../initiation/runInitiation';
 
 export function createDefaultSnapshot(): PersistedWorldSnapshot {
@@ -66,6 +66,7 @@ export function migrateSave(raw: unknown): PersistedWorldSnapshot {
   const defaults = createDefaultSnapshot();
   const currentWorldId = resolveOnboardingWorldId(data);
   const resetOnboardingWorld = currentWorldId !== data.currentWorldId;
+  const entities = repairWorldEntities(data.entities);
 
   if (!data.saveVersion || data.saveVersion < 2) {
     return {
@@ -73,8 +74,8 @@ export function migrateSave(raw: unknown): PersistedWorldSnapshot {
       ...data,
       saveVersion: SAVE_VERSION,
       currentWorldId,
+      entities,
       activeInitiation: null,
-      entities: data.entities?.length ? data.entities : defaults.entities,
       initiationStatus: migrateInitiationStatus(
         data.initiationStatus as Record<string, import('../initiation/types').InitiationStatus> | undefined,
       ),
@@ -88,6 +89,7 @@ export function migrateSave(raw: unknown): PersistedWorldSnapshot {
       ...data,
       saveVersion: SAVE_VERSION,
       currentWorldId,
+      entities,
       initiationStatus: migrateInitiationStatus(data.initiationStatus),
       activeInitiation: resetOnboardingWorld ? null : (data.activeInitiation ?? null),
       ...migrateV2ToV3(data),
@@ -99,6 +101,7 @@ export function migrateSave(raw: unknown): PersistedWorldSnapshot {
     ...data,
     saveVersion: SAVE_VERSION,
     currentWorldId,
+    entities,
     initiationStatus: migrateInitiationStatus(data.initiationStatus),
     activeInitiation: resetOnboardingWorld ? null : (data.activeInitiation ?? null),
     choiceHistory: data.choiceHistory ?? [],

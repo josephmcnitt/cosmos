@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { worldRegistry, spawnEntitiesForAge } from './WorldRegistry';
+import { worldRegistry, spawnEntitiesForAge, repairWorldEntities } from './WorldRegistry';
 import { GROVE_AGE } from '../../data/ages/grove';
 import { createDefaultSnapshot, migrateSave } from '../save/migrations';
 import { loadSave } from '../save/saveGame';
@@ -17,6 +17,16 @@ describe('WorldRegistry', () => {
     expect(entities.filter((e) => e.kind === 'marker').length).toBe(6);
     expect(entities.filter((e) => e.kind === 'actor').length).toBe(1);
     expect(entities.some((e) => e.kind === 'portal')).toBe(true);
+  });
+
+  it('repairWorldEntities adds missing actors without dropping saved marker state', () => {
+    const fresh = spawnEntitiesForAge(GROVE_AGE);
+    const marker = fresh.find((e) => e.id === 'grove-plato')!;
+    const repaired = repairWorldEntities([
+      { ...marker, state: { ...marker.state, discovered: true } },
+    ]);
+    expect(repaired.some((e) => e.id === 'academy-guide')).toBe(true);
+    expect(repaired.find((e) => e.id === 'grove-plato')?.state.discovered).toBe(true);
   });
 });
 
@@ -60,6 +70,21 @@ describe('save migrations', () => {
       },
     });
     expect(migrated.currentWorldId).toBe('rome');
+  });
+
+  it('restores missing guide NPC from empty entity list', () => {
+    const migrated = migrateSave({
+      saveVersion: 3,
+      currentWorldId: 'grove',
+      entities: [],
+      initiationStatus: {
+        grove: 'available',
+        alexandria: 'locked',
+        rome: 'locked',
+        desert: 'locked',
+      },
+    });
+    expect(migrated.entities.some((e) => e.id === 'academy-guide')).toBe(true);
   });
 });
 

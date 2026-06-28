@@ -9,7 +9,7 @@ import {
   migrateInitiationStatus,
   yawMatches,
 } from './runInitiation';
-import { INITIATION_GROVE } from '../../data/initiations/index';
+import { INITIATION_ALEXANDRIA, INITIATION_GROVE } from '../../data/initiations/index';
 import { migrateSave, createDefaultSnapshot } from '../save/migrations';
 import { SAVE_VERSION } from '../save/saveSchema';
 import { spawnEntitiesForAge } from '../world/WorldRegistry';
@@ -36,6 +36,16 @@ describe('initiation runInitiation', () => {
     expect(isChooseResolved(step, 'hermetic-rational')).toBe(true);
     expect(isChooseResolved(step, 'hermetic-experiential')).toBe(true);
     expect(isChooseCorrect(step, 'hermetic-rational')).toBe(true);
+  });
+
+  it('alexandria purification branch choices resolve without correct flag', () => {
+    const step = INITIATION_ALEXANDRIA.steps.find(
+      (s) => s.type === 'choose' && s.options.some((o) => o.id === 'alexandria-correspondence'),
+    );
+    if (!step || step.type !== 'choose') return;
+    expect(isChooseResolved(step, 'alexandria-correspondence')).toBe(true);
+    expect(isChooseResolved(step, 'alexandria-silence')).toBe(true);
+    expect(isChooseCorrect(step, 'alexandria-silence')).toBe(true);
   });
 
   it('records choice to choiceHistory', () => {

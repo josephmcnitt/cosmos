@@ -93,6 +93,30 @@ export const INITIATION_ALEXANDRIA: InitiationDefinition = {
       durationSec: 10,
     },
     {
+      type: 'dialogue',
+      speaker: 'Keeper of the Serapeum',
+      text: 'Purification opens two ways in this city of scrolls and silence. One studies correspondence; one refuses to spend the divine names too quickly.',
+    },
+    {
+      type: 'choose',
+      text: 'Which Alexandrian purification path will you follow?',
+      options: [
+        {
+          id: 'alexandria-correspondence',
+          label: 'Read the scrolls for correspondence between heaven and earth',
+        },
+        {
+          id: 'alexandria-silence',
+          label: 'Keep silence before the hidden names',
+        },
+      ],
+    },
+    {
+      type: 'dialogue',
+      speaker: 'Keeper of the Serapeum',
+      text: 'Chosen rightly, either gate purifies: one by pattern, one by restraint. Now name the key without trying to possess it.',
+    },
+    {
       type: 'choose',
       text: 'What is the Hermetic key?',
       options: [

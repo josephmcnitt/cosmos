@@ -108,4 +108,39 @@ test.describe('progression path — Hermetic fork', () => {
     await expect(page.getByTestId('progress-node-grove-choice-rational-completed')).toBeVisible();
     await expect(page.getByTestId('path-active-id')).toContainText('hermetic rational');
   });
+
+  test('alexandria correspondence path reveals marker and path panel state', async ({ page }) => {
+    await page.goto('/');
+    await skipIntro(page);
+    await injectProgressSave(page, {
+      initiationStatus: { grove: 'completed', alexandria: 'completed', rome: 'locked', desert: 'locked' },
+      choiceHistory: [
+        {
+          initiationId: 'initiation-alexandria',
+          stepIndex: 5,
+          choiceId: 'alexandria-correspondence',
+          at: Date.now(),
+        },
+      ],
+      completedProgressNodeIds: ['alexandria-purification-intro'],
+      unlockedWorldIds: ['grove', 'alexandria'],
+    });
+    await page.reload();
+    await skipIntro(page);
+    await waitForProgressNode(page, 'alexandria-choice-correspondence');
+
+    const save = await page.evaluate(() => {
+      const raw = localStorage.getItem('cosmos-save-v1');
+      return raw ? JSON.parse(raw) : null;
+    });
+
+    expect(save.completedProgressNodeIds).toContain('alexandria-choice-correspondence');
+    expect(save.revealedMarkerIds).toContain('alex-hermetic');
+    expect(save.pathFlags['alexandria-purification-path']).toBe('correspondence');
+
+    await page.getByTestId('path-toggle').click();
+    await expect(page.getByTestId('path-panel')).toBeVisible();
+    await expect(page.getByTestId('progress-node-alexandria-choice-correspondence-completed')).toBeVisible();
+    await expect(page.getByTestId('path-active-id')).toContainText('alexandria correspondence');
+  });
 });

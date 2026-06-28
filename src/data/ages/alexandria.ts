@@ -27,8 +27,20 @@ export const ALEXANDRIA_AGE: AgeDefinition = {
   benches: [{ position: [3, 0, -2] }],
   markers: [
     { id: 'alex-library', eventId: 'library-alexandria', position: [0, -6], label: 'Library of Alexandria' },
-    { id: 'alex-hermetic', eventId: 'hermetic-corpus', position: [6, 2], label: 'Hermetic scrolls' },
-    { id: 'alex-plato', eventId: 'platonic-academy-esoteric', position: [-5, 5], label: 'Platonic echoes' },
+    {
+      id: 'alex-hermetic',
+      eventId: 'hermetic-corpus',
+      position: [6, 2],
+      label: 'Hermetic scrolls',
+      hiddenUntilNode: 'alexandria-choice-correspondence',
+    },
+    {
+      id: 'alex-plato',
+      eventId: 'platonic-academy-esoteric',
+      position: [-5, 5],
+      label: 'Platonic echoes',
+      hiddenUntilNode: 'alexandria-choice-silence',
+    },
   ],
   portals: [
     {

@@ -6,7 +6,7 @@ Prioritized content for daily Tree Author and World Builder automations. Mark it
 
 1. [done] **Grove Hermetic fork** — `grove-choice-rational` / `grove-choice-experiential` (vertical slice)
 2. **Grove experiential reveal parity** — `grove-choice-experiential` should reveal hidden `grove-pythagorean` (`pythagorean-mysteries`) in `grove`; tests: Vitest effect/gating + E2E divergent marker visibility (`marker-grove-pythagorean-visible`)
-3. **Alexandria purification branch** — extend `initiation-alexandria` with correspondence vs silence path
+3. [done] **Alexandria purification branch** — extend `initiation-alexandria` with correspondence vs silence path
 4. **Rome ascent branch** — Plotinus inward vs outward dispersion (extend Rome initiation)
 5. **Desert gnostic branch** — authority vs inward revelation (extend Desert initiation)
 6. **Kabbalah path from Grove** — place `zohar` stone behind tradition gate + progress node

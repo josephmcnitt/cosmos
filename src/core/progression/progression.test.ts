@@ -3,11 +3,13 @@ import { evaluateProgress } from './evaluateProgress';
 import { applyProgressEffects } from './applyEffects';
 import {
   createProgressInput,
+  withAlexandriaInitiationComplete,
   withChoice,
   withGroveInitiationComplete,
 } from './testFixtures';
 import { worldRegistry } from '../world/WorldRegistry';
 import { GROVE_AGE } from '../../data/ages/grove';
+import { ALEXANDRIA_AGE } from '../../data/ages/alexandria';
 import { spawnEntitiesForAge } from '../world/WorldRegistry';
 import { migrateSave } from '../save/migrations';
 import { SAVE_VERSION } from '../save/saveSchema';
@@ -39,6 +41,34 @@ describe('evaluateProgress', () => {
     };
     const result = evaluateProgress(input);
     expect(result.allCompletedNodeIds).toContain('grove-choice-experiential');
+  });
+
+  it('completes alexandria-purification-intro after alexandria initiation', () => {
+    const input = withAlexandriaInitiationComplete(createProgressInput());
+    const result = evaluateProgress(input);
+    expect(result.allCompletedNodeIds).toContain('alexandria-purification-intro');
+  });
+
+  it('unlocks alexandria correspondence branch after correspondence choice', () => {
+    let input = withAlexandriaInitiationComplete(createProgressInput());
+    input = withChoice(input, 'initiation-alexandria', 'alexandria-correspondence', 5);
+    input = {
+      ...input,
+      completedProgressNodeIds: ['alexandria-purification-intro'],
+    };
+    const result = evaluateProgress(input);
+    expect(result.allCompletedNodeIds).toContain('alexandria-choice-correspondence');
+  });
+
+  it('unlocks alexandria silence branch after silence choice', () => {
+    let input = withAlexandriaInitiationComplete(createProgressInput());
+    input = withChoice(input, 'initiation-alexandria', 'alexandria-silence', 5);
+    input = {
+      ...input,
+      completedProgressNodeIds: ['alexandria-purification-intro'],
+    };
+    const result = evaluateProgress(input);
+    expect(result.allCompletedNodeIds).toContain('alexandria-choice-silence');
   });
 });
 
@@ -74,6 +104,46 @@ describe('applyProgressEffects', () => {
       ['grove-choice-experiential'],
     );
     expect(applied.pathFlags['grove-experiential-practice']).toBe(true);
+  });
+
+  it('reveals alexandria hermetic marker on correspondence branch', () => {
+    const entities = spawnEntitiesForAge(ALEXANDRIA_AGE);
+    const applied = applyProgressEffects(
+      {
+        pathFlags: {},
+        revealedMarkerIds: [],
+        unlockedWorldIds: ['grove', 'alexandria'],
+        entities,
+        journal: [],
+      },
+      ['alexandria-choice-correspondence'],
+    );
+    expect(applied.revealedMarkerIds).toContain('alex-hermetic');
+    expect(applied.pathFlags['alexandria-purification-path']).toBe('correspondence');
+    expect(applied.activePathId).toBe('alexandria-correspondence');
+    const marker = applied.entities.find((e) => e.id === 'alex-hermetic');
+    expect(marker?.state.progressRevealed).toBe(true);
+    expect(applied.journal[applied.journal.length - 1]?.title).toBe('Purification by correspondence');
+  });
+
+  it('reveals alexandria platonic marker on silence branch', () => {
+    const entities = spawnEntitiesForAge(ALEXANDRIA_AGE);
+    const applied = applyProgressEffects(
+      {
+        pathFlags: {},
+        revealedMarkerIds: [],
+        unlockedWorldIds: ['grove', 'alexandria'],
+        entities,
+        journal: [],
+      },
+      ['alexandria-choice-silence'],
+    );
+    expect(applied.revealedMarkerIds).toContain('alex-plato');
+    expect(applied.pathFlags['alexandria-purification-path']).toBe('silence');
+    expect(applied.activePathId).toBe('alexandria-silence');
+    const marker = applied.entities.find((e) => e.id === 'alex-plato');
+    expect(marker?.state.progressRevealed).toBe(true);
+    expect(applied.journal[applied.journal.length - 1]?.title).toBe('Purification by silence');
   });
 });
 

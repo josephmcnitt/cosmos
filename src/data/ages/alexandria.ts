@@ -9,20 +9,23 @@ export const ALEXANDRIA_AGE: AgeDefinition = {
   simTimeSeconds: ceYear(-300),
   spawn: { position: [0, 4], yaw: Math.PI },
   terrain: {
-    size: 36,
-    segments: 40,
+    size: 72,
+    segments: 64,
     color: '#3a4a38',
-    siteHalfSize: 16,
+    siteHalfSize: 32,
   },
   scenery: {
     buildings: [
       { id: 'alex-library-block', preset: 'library-block', position: [0, 0, -8], scale: 1 },
+      { id: 'alex-library-east-stack', preset: 'library-block', position: [14, 0, -14], rotationY: -Math.PI / 8, scale: 0.85 },
+      { id: 'alex-library-west-stack', preset: 'library-block', position: [-16, 0, -18], rotationY: Math.PI / 6, scale: 0.75 },
       { id: 'alex-columns', preset: 'column-row', position: [-14, 0, 4], rotationY: Math.PI / 4, scale: 0.85 },
     ],
   },
   paths: [
-    { width: 2.5, length: 24, position: [0, 0.03, 2] },
+    { width: 2.5, length: 34, position: [0, 0.03, -3] },
     { width: 1.8, length: 14, position: [-5, 0.03, -3], rotationY: Math.PI / 4 },
+    { width: 1.8, length: 22, position: [7, 0.03, -12], rotationY: Math.PI / 2.7 },
   ],
   benches: [{ position: [3, 0, -2] }],
   markers: [
@@ -52,6 +55,14 @@ export const ALEXANDRIA_AGE: AgeDefinition = {
   ],
   veils: [{ id: 'veil-alex-lighthouse', position: [0, -4], label: 'Veil of Pharos' }],
   esotericLayer: { tradition: 'hermetic', geometry: 'hermetic-spheres' },
+  postInitiationDialogues: [
+    {
+      id: 'alexandria-library-colonnade-after-purification',
+      speaker: 'Keeper of the Serapeum',
+      text: 'When purification is complete, the colonnade becomes a second index: seek the dim stacks where correspondence hides in architecture as much as scroll.',
+      requiresPathFlag: { flag: 'alexandria-purified-library-dialogue', value: true },
+    },
+  ],
   unlock: { requiresPuzzleIds: ['puzzle-hermetic-rings'] },
   astralBuildPalette: ['correspondence-node', 'contemplation-ring'],
 };

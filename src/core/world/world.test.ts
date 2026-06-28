@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { worldRegistry, spawnEntitiesForAge, repairWorldEntities } from './WorldRegistry';
 import { GROVE_AGE } from '../../data/ages/grove';
+import { ALEXANDRIA_AGE } from '../../data/ages/alexandria';
 import { createDefaultSnapshot, migrateSave } from '../save/migrations';
 import { loadSave } from '../save/saveGame';
 import { worldEvents } from './WorldEvents';
@@ -17,6 +18,23 @@ describe('WorldRegistry', () => {
     expect(entities.filter((e) => e.kind === 'marker').length).toBe(6);
     expect(entities.filter((e) => e.kind === 'actor').length).toBe(1);
     expect(entities.some((e) => e.kind === 'portal')).toBe(true);
+  });
+
+  it('validates Alexandria expanded library polish data', () => {
+    expect(ALEXANDRIA_AGE.terrain.siteHalfSize).toBe(32);
+    expect(ALEXANDRIA_AGE.terrain.size).toBeGreaterThanOrEqual(
+      ALEXANDRIA_AGE.terrain.siteHalfSize * 2,
+    );
+    expect(
+      ALEXANDRIA_AGE.scenery?.buildings.filter((b) => b.preset === 'library-block'),
+    ).toHaveLength(3);
+    expect(ALEXANDRIA_AGE.postInitiationDialogues).toContainEqual(
+      expect.objectContaining({
+        id: 'alexandria-library-colonnade-after-purification',
+        requiresPathFlag: { flag: 'alexandria-purified-library-dialogue', value: true },
+      }),
+    );
+    expect(worldRegistry.validate()).toEqual([]);
   });
 
   it('repairWorldEntities adds missing actors without dropping saved marker state', () => {

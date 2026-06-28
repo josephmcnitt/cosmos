@@ -1,10 +1,12 @@
 import { ALEXANDRIA_PURIFICATION_NODES } from './nodes/alexandria-purification';
 import { GROVE_HERMETIC_NODES } from './nodes/grove-hermetic';
+import { ALEXANDRIA_WORLD_POLISH_NODES } from './nodes/alexandria-world-polish';
 import type { ProgressNodeDef } from './types';
 
 export const ALL_PROGRESS_NODES: ProgressNodeDef[] = [
   ...GROVE_HERMETIC_NODES,
   ...ALEXANDRIA_PURIFICATION_NODES,
+  ...ALEXANDRIA_WORLD_POLISH_NODES,
 ];
 
 export function getProgressNodeById(id: string): ProgressNodeDef | undefined {

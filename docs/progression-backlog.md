@@ -5,11 +5,12 @@ Prioritized content for daily Tree Author and World Builder automations. Mark it
 ## Tree arcs (priority order)
 
 1. [done] **Grove Hermetic fork** — `grove-choice-rational` / `grove-choice-experiential` (vertical slice)
-2. **Alexandria purification branch** — extend `initiation-alexandria` with correspondence vs silence path
-3. **Rome ascent branch** — Plotinus inward vs outward dispersion (extend Rome initiation)
-4. **Desert gnostic branch** — authority vs inward revelation (extend Desert initiation)
-5. **Kabbalah path from Grove** — place `zohar` stone behind tradition gate + progress node
-6. **Convergence: Alexandria portal** — tie `grove-hermetic-convergence` to puzzle hint journal entries
+2. **Grove experiential reveal parity** — `grove-choice-experiential` should reveal hidden `grove-pythagorean` (`pythagorean-mysteries`) in `grove`; tests: Vitest effect/gating + E2E divergent marker visibility (`marker-grove-pythagorean-visible`)
+3. **Alexandria purification branch** — extend `initiation-alexandria` with correspondence vs silence path
+4. **Rome ascent branch** — Plotinus inward vs outward dispersion (extend Rome initiation)
+5. **Desert gnostic branch** — authority vs inward revelation (extend Desert initiation)
+6. **Kabbalah path from Grove** — place `zohar` stone behind tradition gate + progress node
+7. **Convergence: Alexandria portal** — tie `grove-hermetic-convergence` to puzzle hint journal entries
 
 ## World polish
 
@@ -17,6 +18,7 @@ Prioritized content for daily Tree Author and World Builder automations. Mark it
 2. **Alexandria** — expand `siteHalfSize` to 32; add `library-block` preset cluster
 3. **Rome** — villa courtyard fountain preset; expand neoplatonic veil geometry
 4. **Desert** — cave mouth scenery depth; anchorite second dialogue after gnostic path flag
+5. **Desert spiritual marker pass** — scope `desert`: wire the "Desert fathers echo" marker to `desert-fathers` without breaking `puzzle-gnostic-era` witness `christianity`; tests: Vitest age registry/event-id validation, E2E only if marker interaction changes
 
 ## New ages / time periods (later)
 

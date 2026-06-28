@@ -84,9 +84,13 @@ export function EmbodiedSite() {
   const entities = useWorldStore((s) => s.entities);
   const discoveredEventIds = useWorldStore((s) => s.discoveredEventIds);
   const initiated = useWorldStore((s) => s.isAgeInitiated(currentWorldId));
+  const initiationStatus = useWorldStore((s) => s.initiationStatus[currentWorldId]);
   const isMarkerVisible = useWorldStore((s) => s.isMarkerVisible);
 
   const age = getActiveAgeDefinition(currentWorldId);
+
+  const showGuideSite =
+    initiated || initiationStatus === 'available' || initiationStatus === 'in_progress';
 
   const actors = entities.filter((e) => e.worldId === currentWorldId && e.kind === 'actor');
   const markers = entities.filter(
@@ -110,7 +114,7 @@ export function EmbodiedSite() {
       />
       {age.scenery && <AgeScenery buildings={age.scenery.buildings} />}
       <InitiationWalkBeacon />
-      {initiated && (
+      {showGuideSite && (
         <>
           {age.paths.map((p, i) => (
             <PathStrip
@@ -124,6 +128,10 @@ export function EmbodiedSite() {
           {actors.map((a) => (
             <NpcAvatar key={a.id} entity={a} />
           ))}
+        </>
+      )}
+      {initiated && (
+        <>
           {showSupernatural &&
             markers
               .filter((m) => isMarkerVisible(m.id))

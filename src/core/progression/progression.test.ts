@@ -103,7 +103,7 @@ describe('applyProgressEffects', () => {
       ['alexandria-library-purification-dialogue'],
     );
     expect(applied.pathFlags['alexandria-purified-library-dialogue']).toBe(true);
-    expect(applied.journal.at(-1)?.title).toBe('Serapeum colonnade');
+    expect(applied.journal[applied.journal.length - 1]?.title).toBe('Serapeum colonnade');
   });
 });
 

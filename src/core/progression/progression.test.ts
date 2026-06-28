@@ -40,6 +40,20 @@ describe('evaluateProgress', () => {
     const result = evaluateProgress(input);
     expect(result.allCompletedNodeIds).toContain('grove-choice-experiential');
   });
+
+  it('unlocks Alexandria post-init dialogue flag after purification', () => {
+    const input = createProgressInput({
+      initiationStatus: {
+        grove: 'completed',
+        alexandria: 'completed',
+        rome: 'locked',
+        desert: 'locked',
+      },
+      visitedWorldIds: ['grove', 'alexandria'],
+    });
+    const result = evaluateProgress(input);
+    expect(result.allCompletedNodeIds).toContain('alexandria-library-purification-dialogue');
+  });
 });
 
 describe('applyProgressEffects', () => {
@@ -74,6 +88,22 @@ describe('applyProgressEffects', () => {
       ['grove-choice-experiential'],
     );
     expect(applied.pathFlags['grove-experiential-practice']).toBe(true);
+  });
+
+  it('sets Alexandria post-init dialogue flag and journal stub', () => {
+    const entities = spawnEntitiesForAge(GROVE_AGE);
+    const applied = applyProgressEffects(
+      {
+        pathFlags: {},
+        revealedMarkerIds: [],
+        unlockedWorldIds: ['grove', 'alexandria'],
+        entities,
+        journal: [],
+      },
+      ['alexandria-library-purification-dialogue'],
+    );
+    expect(applied.pathFlags['alexandria-purified-library-dialogue']).toBe(true);
+    expect(applied.journal.at(-1)?.title).toBe('Serapeum colonnade');
   });
 });
 

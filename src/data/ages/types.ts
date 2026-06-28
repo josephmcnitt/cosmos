@@ -67,6 +67,18 @@ export interface AgeSceneryConfig {
   skyTint?: string;
 }
 
+export interface AgeDialoguePathFlagRequirement {
+  flag: string;
+  value?: string | number | boolean;
+}
+
+export interface AgePostInitiationDialogueDef {
+  id: string;
+  speaker: string;
+  text: string;
+  requiresPathFlag: AgeDialoguePathFlagRequirement;
+}
+
 export interface EsotericLayerPreset {
   tradition: SpiritualTradition;
   geometry: 'torus-knot' | 'hermetic-spheres' | 'neoplatonic-rings' | 'gnostic-dual';
@@ -87,6 +99,7 @@ export interface AgeDefinition {
   veils: AgeVeilDef[];
   esotericLayer: EsotericLayerPreset;
   scenery?: AgeSceneryConfig;
+  postInitiationDialogues?: AgePostInitiationDialogueDef[];
   unlock?: { requiresAgeIds?: string[]; requiresPuzzleIds?: string[] };
   astralBuildPalette?: string[];
 }

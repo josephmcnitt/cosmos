@@ -57,6 +57,18 @@ export class WorldRegistry {
           }
         }
       }
+      const dialogueIds = new Set<string>();
+      for (const dialogue of age.postInitiationDialogues ?? []) {
+        if (dialogueIds.has(dialogue.id)) {
+          errors.push(`Age ${age.id}: duplicate post-init dialogue ${dialogue.id}`);
+        }
+        dialogueIds.add(dialogue.id);
+        if (!progressFlagCanBeSet(dialogue.requiresPathFlag.flag, dialogue.requiresPathFlag.value)) {
+          errors.push(
+            `Age ${age.id}: dialogue ${dialogue.id} requires unset path flag ${dialogue.requiresPathFlag.flag}`,
+          );
+        }
+      }
     }
     for (const actor of ALL_ACTORS) {
       if (!this.ages.has(actor.worldId)) {
@@ -112,6 +124,17 @@ export class WorldRegistry {
 
 function markerInitiallyHidden(marker: { hiddenUntilNode?: string }): boolean {
   return Boolean(marker.hiddenUntilNode);
+}
+
+function progressFlagCanBeSet(flag: string, value?: string | number | boolean): boolean {
+  return ALL_PROGRESS_NODES.some((node) =>
+    node.effects.some(
+      (effect) =>
+        effect.type === 'setPathFlag' &&
+        effect.flag === flag &&
+        (value === undefined || effect.value === value),
+    ),
+  );
 }
 
 export function spawnEntitiesForAge(age: AgeDefinition): EntityInstance[] {

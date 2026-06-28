@@ -123,7 +123,7 @@ describe('applyProgressEffects', () => {
     expect(applied.activePathId).toBe('alexandria-correspondence');
     const marker = applied.entities.find((e) => e.id === 'alex-hermetic');
     expect(marker?.state.progressRevealed).toBe(true);
-    expect(applied.journal.at(-1)?.title).toBe('Purification by correspondence');
+    expect(applied.journal[applied.journal.length - 1]?.title).toBe('Purification by correspondence');
   });
 
   it('reveals alexandria platonic marker on silence branch', () => {
@@ -143,7 +143,7 @@ describe('applyProgressEffects', () => {
     expect(applied.activePathId).toBe('alexandria-silence');
     const marker = applied.entities.find((e) => e.id === 'alex-plato');
     expect(marker?.state.progressRevealed).toBe(true);
-    expect(applied.journal.at(-1)?.title).toBe('Purification by silence');
+    expect(applied.journal[applied.journal.length - 1]?.title).toBe('Purification by silence');
   });
 });
 

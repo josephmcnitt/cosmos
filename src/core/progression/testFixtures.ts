@@ -42,7 +42,7 @@ export function withChoice(
   input: ProgressEvaluationInput,
   initiationId: string,
   choiceId: string,
-  stepIndex = 0,
+  stepIndex = 6,
 ): ProgressEvaluationInput {
   const entry: ChoiceRecord = {
     initiationId,
@@ -54,4 +54,44 @@ export function withChoice(
     ...input,
     choiceHistory: [...input.choiceHistory, entry],
   };
+}
+
+export function withPuzzleCompleted(
+  input: ProgressEvaluationInput,
+  puzzleId: string,
+): ProgressEvaluationInput {
+  if (input.completedPuzzleIds.includes(puzzleId)) return input;
+  return {
+    ...input,
+    completedPuzzleIds: [...input.completedPuzzleIds, puzzleId],
+  };
+}
+
+export function withAgeVisited(
+  input: ProgressEvaluationInput,
+  worldId: string,
+): ProgressEvaluationInput {
+  if (input.visitedWorldIds.includes(worldId)) return input;
+  return {
+    ...input,
+    visitedWorldIds: [...input.visitedWorldIds, worldId],
+  };
+}
+
+/** Grove initiation done + hermetic-rational fork choice recorded. */
+export function rationalPathInput(
+  overrides: Partial<ProgressEvaluationInput> = {},
+): ProgressEvaluationInput {
+  let input = withGroveInitiationComplete(createProgressInput());
+  input = withChoice(input, 'initiation-grove', 'hermetic-rational');
+  return { ...input, ...overrides };
+}
+
+/** Grove initiation done + hermetic-experiential fork choice recorded. */
+export function experientialPathInput(
+  overrides: Partial<ProgressEvaluationInput> = {},
+): ProgressEvaluationInput {
+  let input = withGroveInitiationComplete(createProgressInput());
+  input = withChoice(input, 'initiation-grove', 'hermetic-experiential');
+  return { ...input, ...overrides };
 }

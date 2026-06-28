@@ -87,7 +87,6 @@ export function EmbodiedSite() {
   const isMarkerVisible = useWorldStore((s) => s.isMarkerVisible);
 
   const age = getActiveAgeDefinition(currentWorldId);
-  const layer = worldLayer;
 
   const actors = entities.filter((e) => e.worldId === currentWorldId && e.kind === 'actor');
   const markers = entities.filter(
@@ -99,8 +98,7 @@ export function EmbodiedSite() {
     (e) => e.worldId === currentWorldId && e.kind === 'puzzle-mechanism',
   );
 
-  const showMaterial = layer === 'material';
-  const showEsoteric = layer === 'esoteric';
+  const showEsoteric = worldLayer === 'esoteric';
   const showSupernatural = initiated;
 
   return (
@@ -112,7 +110,7 @@ export function EmbodiedSite() {
       />
       {age.scenery && <AgeScenery buildings={age.scenery.buildings} />}
       <InitiationWalkBeacon />
-      {showMaterial && (
+      {initiated && (
         <>
           {age.paths.map((p, i) => (
             <PathStrip
@@ -130,20 +128,20 @@ export function EmbodiedSite() {
             markers
               .filter((m) => isMarkerVisible(m.id))
               .map((m) => {
-              const event = getEventById(m.defId);
-              const color =
-                event?.track === 'spiritual'
-                  ? MARKER_TRADITION_COLORS[event.tradition]
-                  : '#8899aa';
-              return (
-                <MarkerStone
-                  key={m.id}
-                  position={[m.transform.x, 0, m.transform.z]}
-                  color={color}
-                  discovered={discoveredEventIds.includes(m.defId)}
-                />
-              );
-            })}
+                const event = getEventById(m.defId);
+                const color =
+                  event?.track === 'spiritual'
+                    ? MARKER_TRADITION_COLORS[event.tradition]
+                    : '#8899aa';
+                return (
+                  <MarkerStone
+                    key={m.id}
+                    position={[m.transform.x, 0, m.transform.z]}
+                    color={color}
+                    discovered={discoveredEventIds.includes(m.defId)}
+                  />
+                );
+              })}
           {showSupernatural &&
             portals
               .filter((p) => p.state.unlocked === true)

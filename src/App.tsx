@@ -174,7 +174,6 @@ export default function App() {
       <ProgressionSync />
       <EmbodiedControls />
       <PracticeControls />
-      <AgeInteractionControls />
       <NpcInteractionControls />
       <KeyboardShortcuts />
       <ZoomControls />
@@ -224,14 +223,17 @@ export default function App() {
           <SpatialSlider />
           <EmbodiedOverlay />
           <WalkApproachPrompt />
-          <EmbodiedPrompt />
+          <div className="walk-context-hud">
+            <EmbodiedPrompt />
+            <AgeInteractionControls />
+            <SplitControls />
+          </div>
           <InitiationPanel />
           <PracticeOverlay />
           <LinkPanel />
           <SenseWhisper />
           <JournalPanel />
           <PathPanel />
-          <SplitControls />
           <EventDetailPanel />
           <TimelineLabel />
           <TimeControls />

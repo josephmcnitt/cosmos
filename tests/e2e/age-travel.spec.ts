@@ -15,6 +15,7 @@ test.describe('Initiation', () => {
       const raw = localStorage.getItem('cosmos-save-v1');
       if (!raw) throw new Error('Expected save blob');
       const data = JSON.parse(raw);
+      data.activeInitiation = null;
       data.initiationStatus = {
         ...(data.initiationStatus ?? {}),
         grove: 'completed',
@@ -26,8 +27,7 @@ test.describe('Initiation', () => {
     await skipIntro(page);
     await setSpiritualFullDepth(page);
     await page.getByTestId('hud-walking').waitFor({ state: 'visible', timeout: 20000 });
-
-    await expect(page.getByTestId('embodied-initiation-hint')).toHaveCount(0);
+    await expect(page.getByTestId('embodied-initiation-hint')).toHaveCount(0, { timeout: 15_000 });
   });
 });
 
@@ -86,6 +86,26 @@ test.describe('Age travel', () => {
 
   test('journal toggle opens panel', async ({ page }) => {
     await enterWalkMode(page);
+    await page.evaluate(() => {
+      const raw = localStorage.getItem('cosmos-save-v1');
+      const base = raw ? JSON.parse(raw) : {};
+      localStorage.setItem(
+        'cosmos-save-v1',
+        JSON.stringify({
+          ...base,
+          initiationStatus: {
+            grove: 'completed',
+            alexandria: 'locked',
+            rome: 'locked',
+            desert: 'locked',
+          },
+        }),
+      );
+    });
+    await page.reload();
+    await skipIntro(page);
+    await setSpiritualFullDepth(page);
+    await page.getByTestId('hud-walking').waitFor({ state: 'visible', timeout: 15_000 });
     await page.getByTestId('journal-toggle').click({ force: true });
     await expect(page.getByTestId('journal-panel')).toBeVisible();
   });

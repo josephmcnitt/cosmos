@@ -1,8 +1,24 @@
 import { useState } from 'react';
+import { buildProgressInputFromWorld } from '../core/progression/buildProgressInput';
+import { getPathNextStep } from '../core/progression/pathNextStep';
 import { ALL_PROGRESS_NODES, getProgressNodeById } from '../data/progression/index';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
 import { useWorldStore } from '../core/world/WorldState';
+
+function resolveActiveRouteLabel(
+  activePathId: string | undefined,
+  pathFlags: Record<string, string | number | boolean>,
+): string | null {
+  if (activePathId) return activePathId.replace(/-/g, ' ');
+  const grove = pathFlags['grove-hermetic-path'];
+  if (grove === 'rational') return 'hermetic rational';
+  if (grove === 'experiential') return 'hermetic experiential';
+  const alex = pathFlags['alexandria-purification-path'];
+  if (alex === 'correspondence') return 'alexandria correspondence';
+  if (alex === 'silence') return 'alexandria silence';
+  return null;
+}
 
 export function PathPanel() {
   const [open, setOpen] = useState(false);
@@ -11,6 +27,27 @@ export function PathPanel() {
   const completedProgressNodeIds = useWorldStore((s) => s.completedProgressNodeIds);
   const activePathId = useWorldStore((s) => s.activePathId);
   const pathFlags = useWorldStore((s) => s.pathFlags);
+  const completedPuzzleIds = useWorldStore((s) => s.completedPuzzleIds);
+  const visitedWorldIds = useWorldStore((s) => s.visitedWorldIds);
+  const initiationStatus = useWorldStore((s) => s.initiationStatus);
+  const choiceHistory = useWorldStore((s) => s.choiceHistory);
+  const resonance = useWorldStore((s) => s.resonance);
+  const sessionsCompleted = useWorldStore((s) => s.sessionsCompleted);
+
+  const activeRouteLabel = resolveActiveRouteLabel(activePathId, pathFlags);
+
+  const nextStep = getPathNextStep(
+    buildProgressInputFromWorld({
+      completedProgressNodeIds,
+      choiceHistory,
+      pathFlags,
+      initiationStatus,
+      completedPuzzleIds,
+      visitedWorldIds,
+      resonance,
+      sessionsCompleted,
+    }),
+  );
 
   if (isFlying) return null;
 
@@ -44,9 +81,16 @@ export function PathPanel() {
           Close
         </button>
       </div>
-      {activePathId && (
+      {nextStep && (
+        <section className="path-next-step" data-testid="path-next-step">
+          <h4>Next step</h4>
+          <p className="path-next-step-title">{nextStep.title}</p>
+          <p className="path-next-step-detail">{nextStep.detail}</p>
+        </section>
+      )}
+      {activeRouteLabel && (
         <p className="path-active" data-testid="path-active-id">
-          Active route: {activePathId.replace(/-/g, ' ')}
+          Active route: {activeRouteLabel}
         </p>
       )}
       <section>

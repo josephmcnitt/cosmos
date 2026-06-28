@@ -53,6 +53,15 @@ function parallaxWeight(spatialExponent: number): number {
   return (spatialExponent - lo) / (hi - lo);
 }
 
+/** Fade rush / close stars when pulling back to galaxy scale. */
+function closeLayerFade(spatialExponent: number): number {
+  const start = 15;
+  const end = 20;
+  if (spatialExponent <= start) return 1;
+  if (spatialExponent >= end) return 0;
+  return 1 - (spatialExponent - start) / (end - start);
+}
+
 function FocusDot({ opacity }: { opacity: number }) {
   if (opacity <= 0.01) return null;
 
@@ -127,6 +136,7 @@ export function FlightStarfield() {
   }
 
   const zoomWeight = introComplete ? parallaxWeight(spatialExponent) : 1;
+  const closeFade = introComplete ? closeLayerFade(spatialExponent) : 1;
 
   const dotOpacity =
     introPhase === 'void' || introPhase === 'ignition'
@@ -142,7 +152,10 @@ export function FlightStarfield() {
         zoomWeight > 0.01 &&
         layers.map((layer, i) => {
           if (layer.postIntroOnly && !introComplete) return null;
-          const opacity = layer.opacity * layerScale * zoomWeight;
+          const nearLayer = i >= 2;
+          const opacity =
+            layer.opacity * layerScale * zoomWeight * (nearLayer ? closeFade : 1);
+          if (opacity <= 0.01) return null;
           const sizeBoost = layer.postIntroOnly ? 1.15 : 1;
           return (
             <StarBillboards

@@ -36,6 +36,15 @@ function nodeRequirementsMet(input: ProgressEvaluationInput, node: ProgressNodeD
   return node.requires.every((c) => meetsCondition(input, c));
 }
 
+export function areProgressNodeRequirementsMet(
+  input: ProgressEvaluationInput,
+  nodeId: string,
+): boolean {
+  const node = ALL_PROGRESS_NODES.find((n) => n.id === nodeId);
+  if (!node) return false;
+  return nodeRequirementsMet(input, node);
+}
+
 export function evaluateProgress(input: ProgressEvaluationInput): ProgressEvaluationResult {
   const completed = new Set(input.completedProgressNodeIds);
   const newlyCompleted: string[] = [];

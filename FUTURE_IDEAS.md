@@ -164,6 +164,29 @@ Cosmos can treat knowing as four quadrants (communicable × verifiable):
 
 ---
 
+## Historical Earth view (Phase E — atlas → walk)
+
+**Status:** Planning doc only — see **[docs/historical-earth-view.md](docs/historical-earth-view.md)** for full architecture.
+
+**Idea:** A **rotatable Earth globe** (its own mode — not walk mode) with symbolic country/culture outlines. Scrub the timeline to watch boundaries change; toggle overlays (conflict, religion, governance). **Pick a destination** on the globe, then zoom down through regional scale into the existing site-approach and walk layers for a registered **Age** at that time and place.
+
+**Why backburner:** Large content surface (polity snapshots across time); no georef on Ages yet; embodiment currently requires present-era time. Core Myst/Riven loop (Grove hub, portal puzzles) should stay the focus until map navigation adds clear value.
+
+**If revived (phased):**
+
+| Phase | Scope |
+|-------|--------|
+| **E0** | Rotatable globe — one era, polity outlines, site pins, click → panel |
+| **E1** | Scrub-linked outline interpolation + destination pick (`geoFocus`) |
+| **E2** | Descent from globe → site approach → historical walk entry |
+| **E3+** | Overlays, expanded coverage, correspondence cartography |
+
+**Design principle:** Map is **navigation and context**, not a second game — geometric/symbolic like everything else; portal graph and progression remain authoritative for unlocks.
+
+**First vertical slice (proposed):** Mediterranean ~300 BCE — Alexandria, Rome, Athens/Grove anchors.
+
+---
+
 ## Other candidates (short notes)
 
 | Idea | Note |
@@ -172,6 +195,7 @@ Cosmos can treat knowing as four quadrants (communicable × verifiable):
 | Documentary montage pipeline | Real footage, OpenMontage `documentary-montage` |
 | Batch export (all stones zip) | Creator / marketing tool |
 | Phase 6b+ in plan files | Do not edit plan files; track here instead |
+| Historical Earth view | Full plan in [docs/historical-earth-view.md](docs/historical-earth-view.md) |
 
 ---
 
@@ -188,3 +212,4 @@ Cosmos can treat knowing as four quadrants (communicable × verifiable):
 | 2026-06-25 | **Phases 8.1b–10 MVP shipped:** scrubbable Big Bang replay, correspondence sky, knowledge modes, tradition gates. |
 | 2026-06-25 | **Phase 8.1 shipped:** `CosmicStarfield`, `CosmicSkySync`, `EphemerisSky`, `heavenVisibility` gates; fixed-noon Sun/Moon at Athens. Big Bang scrub replay → 8.1b. |
 | 2026-06-25 | **Phase 8 MVP shipped:** `MaterialHeavens` maps `simTimeSeconds` to cosmic sky phases (dark ages → first light → reionized); fog/ambient/band opacity multipliers on existing `WorldRoot`. |
+| 2026-06-28 | **Historical Earth view** documented as Phase E (atlas → scrub → overlays → descend → walk). Georef Ages, polity snapshot data model, Mediterranean first slice — see [docs/historical-earth-view.md](docs/historical-earth-view.md). |

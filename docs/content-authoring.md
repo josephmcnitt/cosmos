@@ -2,6 +2,8 @@
 
 Conventions for adding progression nodes, world content, and tests in Cosmos.
 
+**Related:** [game-tree.md](./game-tree.md) · [progression-backlog.md](./progression-backlog.md)
+
 ## Progression node checklist
 
 1. Define nodes in `src/data/progression/nodes/<arc>.ts`

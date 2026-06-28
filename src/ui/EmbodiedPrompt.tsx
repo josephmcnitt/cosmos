@@ -3,6 +3,7 @@ import { getPuzzleById } from '../data/ages/index';
 import { getEventById } from '../data/history/index';
 import { getNearestSiteMarker } from '../data/embodied/siteMarkers';
 import { puzzleActionHint } from '../core/puzzles/index';
+import { useSplitReadyForPrompt } from '../input/SplitControls';
 import { useNearbyNpcPrompt } from '../input/NpcInteractionControls';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
@@ -20,6 +21,7 @@ export function EmbodiedPrompt() {
   const entities = useWorldStore((s) => s.entities);
   const [nearbyId, setNearbyId] = useState<string | null>(null);
   const npcPrompt = useNearbyNpcPrompt();
+  const splitReady = useSplitReadyForPrompt();
 
   const nearbyPuzzle = useMemo(() => {
     if (!nearbyId) return null;
@@ -67,7 +69,7 @@ export function EmbodiedPrompt() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [mode, introActive, nearbyId, isAgeInitiated, currentWorldId]);
 
-  if (mode !== 'embodied' || activePractice) return null;
+  if (mode !== 'embodied' || activePractice || splitReady) return null;
 
   if (npcPrompt) {
     return (
@@ -85,24 +87,30 @@ export function EmbodiedPrompt() {
   const event = getEventById(nearbyId);
   if (!event) return null;
 
+  const practiceHint =
+    nearbyPuzzleType === 'threshold-stance'
+      ? 'Hold Q still at stone (~5s)'
+      : 'Hold Q to practice (~12s)';
+  const ringHint =
+    nearbyPuzzleType === 'ring-alignment' && nearbyPuzzle
+      ? puzzleActionHint(nearbyPuzzle.defId)
+      : null;
+
   return (
     <div className="embodied-prompt ui-panel" data-testid="embodied-prompt">
       <div className="embodied-prompt-row" data-testid="embodied-discover">
         <span className="embodied-prompt-key">E</span>
-        <span>Discover: {event.title}</span>
+        <span>{event.title}</span>
       </div>
-      <div className="embodied-prompt-row embodied-prompt-row--secondary" data-testid="embodied-practice">
-        <span className="embodied-prompt-key">Q</span>
-        <span>
-          {nearbyPuzzleType === 'threshold-stance'
-            ? 'Hold Q, then stand still at the stone (~5s)'
-            : 'Hold still · hold Q to practice (~12s)'}
-        </span>
-      </div>
-      {nearbyPuzzleType === 'ring-alignment' && nearbyPuzzle && (
+      {ringHint ? (
         <div className="embodied-prompt-row embodied-prompt-row--secondary" data-testid="embodied-puzzle-r">
           <span className="embodied-prompt-key">R</span>
-          <span>{puzzleActionHint(nearbyPuzzle.defId)}</span>
+          <span>{ringHint}</span>
+        </div>
+      ) : (
+        <div className="embodied-prompt-row embodied-prompt-row--secondary" data-testid="embodied-practice">
+          <span className="embodied-prompt-key">Q</span>
+          <span>{practiceHint}</span>
         </div>
       )}
     </div>

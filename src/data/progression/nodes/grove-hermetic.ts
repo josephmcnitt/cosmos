@@ -27,6 +27,11 @@ export const GROVE_HERMETIC_NODES: ProgressNodeDef[] = [
         title: 'Correspondence in symbol',
         body: 'The Rosicrucian manifestos hint that hidden wisdom may be read in text and emblem — as above, so below, inscribed.',
       },
+      {
+        type: 'journalEntry',
+        title: 'Next: Hermetic rings',
+        body: 'Walk south-west to the teal Hermetic Corpus stone. Golden rings float above it — press R to rotate the sequence and open the Alexandria portal.',
+      },
     ],
   },
   {
@@ -47,6 +52,27 @@ export const GROVE_HERMETIC_NODES: ProgressNodeDef[] = [
         title: 'Correspondence in breath',
         body: 'Practice at the Hermetic stone will answer sooner — the microcosm learns to mirror the macrocosm through stance, not argument alone.',
       },
+      {
+        type: 'journalEntry',
+        title: 'Next: Hermetic rings',
+        body: 'After practice at the teal Hermetic stone, align the floating rings with R. The sequence opens the path to Alexandria.',
+      },
+    ],
+  },
+  {
+    id: 'grove-hermetic-rings',
+    title: 'Hermetic ring sequence',
+    tradition: 'hermetic',
+    requires: [
+      { type: 'pathFlag', flag: 'grove-hermetic-path' },
+      { type: 'puzzleCompleted', puzzleId: 'puzzle-hermetic-rings' },
+    ],
+    effects: [
+      {
+        type: 'journalEntry',
+        title: 'Portal to Alexandria',
+        body: 'The Hermetic correspondence holds. Step through the portal at the Hermetic stone when you are ready to travel.',
+      },
     ],
   },
   {
@@ -54,11 +80,15 @@ export const GROVE_HERMETIC_NODES: ProgressNodeDef[] = [
     title: 'Alexandria correspondence',
     tradition: 'hermetic',
     requires: [
+      { type: 'nodeCompleted', nodeId: 'grove-hermetic-rings' },
+      { type: 'ageVisited', worldId: 'alexandria' },
+    ],
+    effects: [
       {
-        type: 'pathFlag',
-        flag: 'grove-hermetic-path',
+        type: 'journalEntry',
+        title: 'Further paths',
+        body: 'Alexandria answered one correspondence. Return to the Grove for Plotinus (stillness) and Gnostic texts (era witness) — each opens another Age.',
       },
     ],
-    effects: [],
   },
 ];

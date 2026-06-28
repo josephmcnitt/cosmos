@@ -58,6 +58,32 @@ function resolveOnboardingWorldId(data: Partial<PersistedWorldSnapshot>): string
   return 'grove';
 }
 
+function repairLegacyProgression(snapshot: PersistedWorldSnapshot): PersistedWorldSnapshot {
+  const completed = new Set(snapshot.completedProgressNodeIds);
+  const puzzles = new Set(snapshot.completedPuzzleIds);
+  const convergenceWithoutRings =
+    completed.has('grove-hermetic-convergence') && !completed.has('grove-hermetic-rings');
+  const puzzleDoneButNodeMissing =
+    puzzles.has('puzzle-hermetic-rings') && !completed.has('grove-hermetic-rings');
+
+  if (!convergenceWithoutRings && !puzzleDoneButNodeMissing) return snapshot;
+
+  completed.add('grove-hermetic-rings');
+  puzzles.add('puzzle-hermetic-rings');
+
+  return {
+    ...snapshot,
+    completedProgressNodeIds: [...completed],
+    completedPuzzleIds: [...puzzles],
+    entities: snapshot.entities.map((entity) => {
+      if (entity.kind === 'puzzle-mechanism' && entity.defId === 'puzzle-hermetic-rings') {
+        return { ...entity, state: { ...entity.state, completed: true } };
+      }
+      return entity;
+    }),
+  };
+}
+
 export function migrateSave(raw: unknown): PersistedWorldSnapshot {
   if (!raw || typeof raw !== 'object') {
     return createDefaultSnapshot();
@@ -69,7 +95,7 @@ export function migrateSave(raw: unknown): PersistedWorldSnapshot {
   const entities = repairWorldEntities(data.entities);
 
   if (!data.saveVersion || data.saveVersion < 2) {
-    return {
+    return repairLegacyProgression({
       ...defaults,
       ...data,
       saveVersion: SAVE_VERSION,
@@ -80,11 +106,11 @@ export function migrateSave(raw: unknown): PersistedWorldSnapshot {
         data.initiationStatus as Record<string, import('../initiation/types').InitiationStatus> | undefined,
       ),
       ...migrateV2ToV3(data),
-    };
+    } as PersistedWorldSnapshot);
   }
 
   if (data.saveVersion < 3) {
-    return {
+    return repairLegacyProgression({
       ...defaults,
       ...data,
       saveVersion: SAVE_VERSION,
@@ -93,10 +119,10 @@ export function migrateSave(raw: unknown): PersistedWorldSnapshot {
       initiationStatus: migrateInitiationStatus(data.initiationStatus),
       activeInitiation: resetOnboardingWorld ? null : (data.activeInitiation ?? null),
       ...migrateV2ToV3(data),
-    } as PersistedWorldSnapshot;
+    } as PersistedWorldSnapshot);
   }
 
-  return {
+  return repairLegacyProgression({
     ...defaults,
     ...data,
     saveVersion: SAVE_VERSION,
@@ -109,7 +135,7 @@ export function migrateSave(raw: unknown): PersistedWorldSnapshot {
     pathFlags: data.pathFlags ?? {},
     activePathId: data.activePathId,
     revealedMarkerIds: data.revealedMarkerIds ?? [],
-  } as PersistedWorldSnapshot;
+  } as PersistedWorldSnapshot);
 }
 
 export const applySnapshot = migrateSave;

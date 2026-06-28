@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { DepthOfView, HistoryDomain, SpiritualTradition } from '../data/history/types';
+import { useOverlayPanelStore } from './OverlayPanelState';
 
 export type HistoryTrack = 'material' | 'spiritual';
 
@@ -28,8 +29,10 @@ export const useHistoryStore = create<HistoryState>((set) => ({
   depthOfView: 'exoteric',
   isFlying: false,
 
-  selectEvent: (id, track = null) =>
-    set({ selectedEventId: id, selectedTrack: id ? track : null }),
+  selectEvent: (id, track = null) => {
+    if (id) useOverlayPanelStore.getState().closePanel();
+    set({ selectedEventId: id, selectedTrack: id ? track : null });
+  },
 
   setHistoryTrack: (track) => set({ historyTrack: track }),
 

@@ -13,7 +13,7 @@ export interface PathNextStep {
 const PUZZLE_STEP_HINTS: Record<string, { title: string; detail: string }> = {
   'grove-hermetic-rings': {
     title: 'Hermetic ring puzzle',
-    detail: 'Walk to the teal Hermetic stone and press R to rotate the ring sequence.',
+    detail: 'Walk to the Hermetic Corpus stone (south-west path, teal rings) and press R to rotate.',
   },
   'grove-hermetic-convergence': {
     title: 'Alexandria correspondence',
@@ -21,10 +21,20 @@ const PUZZLE_STEP_HINTS: Record<string, { title: string; detail: string }> = {
   },
 };
 
-function isRelevantPathNode(input: ProgressEvaluationInput, node: ProgressNodeDef): boolean {
+function isRelevantPathNode(
+  input: ProgressEvaluationInput,
+  node: ProgressNodeDef,
+  completed: Set<string>,
+): boolean {
   const branch = input.pathFlags['grove-hermetic-path'];
   if (branch === 'rational' && node.id === 'grove-choice-experiential') return false;
   if (branch === 'experiential' && node.id === 'grove-choice-rational') return false;
+  if (node.id === 'grove-hermetic-rings' && completed.has('grove-hermetic-convergence')) {
+    return false;
+  }
+  if (node.id === 'grove-hermetic-rings' && input.completedPuzzleIds.includes('puzzle-hermetic-rings')) {
+    return false;
+  }
   return true;
 }
 
@@ -38,7 +48,7 @@ function stepPresentation(node: ProgressNodeDef): { title: string; detail?: stri
 export function getPathNextStep(input: ProgressEvaluationInput): PathNextStep | null {
   const completed = new Set(input.completedProgressNodeIds);
   const pending = ALL_PROGRESS_NODES.filter(
-    (node) => !completed.has(node.id) && isRelevantPathNode(input, node),
+    (node) => !completed.has(node.id) && isRelevantPathNode(input, node, completed),
   );
   if (pending.length === 0) return null;
 

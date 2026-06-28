@@ -30,4 +30,22 @@ describe('getPathNextStep', () => {
     expect(step?.nodeId).toBe('alexandria-purification-intro');
     expect(step?.ready).toBe(false);
   });
+
+  it('skips ring puzzle hint when convergence was completed on a legacy save', () => {
+    const step = getPathNextStep(
+      createProgressInput({
+        completedProgressNodeIds: [
+          'grove-hermetic-intro',
+          'grove-choice-experiential',
+          'grove-hermetic-convergence',
+        ],
+        pathFlags: {
+          'grove-hermetic-path': 'experiential',
+          'grove-experiential-practice': true,
+        },
+      }),
+    );
+    expect(step?.nodeId).not.toBe('grove-hermetic-rings');
+    expect(step?.nodeId).toBe('alexandria-purification-intro');
+  });
 });

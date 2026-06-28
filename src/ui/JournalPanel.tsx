@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import { useHistoryStore } from '../core/HistoryState';
-import { useObserverStore } from '../core/ObserverState';
-import { useWorldStore } from '../core/world/WorldState';
+import { useOverlayPanelStore } from '../core/OverlayPanelState';
+import { useObserverStore } from '../core/ObserverState';import { useWorldStore } from '../core/world/WorldState';
+import { clearSave } from '../core/save/saveGame';
 import { worldRegistry } from '../core/world/WorldRegistry';
 import { getEventById } from '../data/history/index';
 import { getProgressNodeById } from '../data/progression/index';
@@ -16,7 +16,10 @@ function eventTitle(id: string): string {
 }
 
 export function JournalPanel() {
-  const [open, setOpen] = useState(false);
+  const expandedPanel = useOverlayPanelStore((s) => s.expandedPanel);
+  const openPanel = useOverlayPanelStore((s) => s.openPanel);
+  const closePanel = useOverlayPanelStore((s) => s.closePanel);
+  const selectEvent = useHistoryStore((s) => s.selectEvent);
   const mode = useObserverStore((s) => s.mode);
   const isFlying = useHistoryStore((s) => s.isFlying);
   const journal = useWorldStore((s) => s.journal);
@@ -41,13 +44,20 @@ export function JournalPanel() {
 
   if (embodied && !isAgeInitiated && !hasJournalContent) return null;
 
+  const open = expandedPanel === 'journal';
+
+  const handleOpen = () => {
+    selectEvent(null);
+    openPanel('journal');
+  };
+
   if (!open) {
     return (
       <button
         type="button"
         className={`journal-toggle ui-panel${cosmic ? ' journal-toggle--cosmic' : ''}${embodied ? ' journal-toggle--embodied' : ''}`}
         data-testid="journal-toggle"
-        onClick={() => setOpen(true)}
+        onClick={handleOpen}
       >
         Journal
       </button>
@@ -63,7 +73,7 @@ export function JournalPanel() {
     >
       <div className="journal-header">
         <h3>Journal</h3>
-        <button type="button" onClick={() => setOpen(false)}>
+        <button type="button" onClick={closePanel}>
           Close
         </button>
       </div>
@@ -138,6 +148,27 @@ export function JournalPanel() {
       {journal.length === 0 && (
         <p className="journal-empty">Nothing written yet — discoveries and path choices appear here.</p>
       )}
+
+      <section className="journal-danger-zone">
+        <button
+          type="button"
+          className="journal-start-over"
+          data-testid="start-over"
+          onClick={() => {
+            if (
+              !window.confirm(
+                'Clear all saved progress and start from the beginning? This cannot be undone.',
+              )
+            ) {
+              return;
+            }
+            clearSave();
+            window.location.reload();
+          }}
+        >
+          Start over
+        </button>
+      </section>
     </div>
   );
 }

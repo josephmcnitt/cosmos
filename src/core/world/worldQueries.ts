@@ -1,4 +1,6 @@
 import type { SpiritualTradition } from '../../data/history/types';
+import { getPuzzleById } from '../../data/ages/index';
+import type { PuzzleTemplate } from '../../data/ages/types';
 import { getActiveAgeDefinition } from './WorldRegistry';
 import type { EntityInstance, WorldId, WorldLayer } from './types';
 import { useWorldStore, isAgeUnlocked as isAgeUnlockedFromState } from './WorldState';
@@ -80,6 +82,35 @@ export function getNearestMarker(
 
 export function getMarkerByEventId(eventId: string): SiteMarkerView | undefined {
   return getCurrentAgeMarkers().find((m) => m.eventId === eventId);
+}
+
+export function getNearestPuzzleMechanism(
+  x: number,
+  z: number,
+  opts?: {
+    type?: PuzzleTemplate['type'];
+    maxDistance?: number;
+    includeCompleted?: boolean;
+  },
+): EntityInstance | undefined {
+  const maxDistance = opts?.maxDistance ?? 5;
+  const worldId = getCurrentWorldId();
+  let best: EntityInstance | undefined;
+  let bestDist = maxDistance;
+  for (const entity of useWorldStore.getState().entities) {
+    if (entity.worldId !== worldId || entity.kind !== 'puzzle-mechanism') continue;
+    if (!opts?.includeCompleted && entity.state.completed === true) continue;
+    const template = getPuzzleById(entity.defId);
+    if (opts?.type && template?.type !== opts.type) continue;
+    const dx = entity.transform.x - x;
+    const dz = entity.transform.z - z;
+    const dist = Math.sqrt(dx * dx + dz * dz);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = entity;
+    }
+  }
+  return best;
 }
 
 export function getTerrainConfig(worldId?: WorldId) {

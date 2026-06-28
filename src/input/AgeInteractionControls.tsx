@@ -14,6 +14,7 @@ import { usePracticeStore } from '../core/PracticeState';
 import { useWorldStore } from '../core/world/WorldState';
 import { useIntroActive } from '../core/IntroSkipHandler';
 import { getNearestSiteMarker } from '../data/embodied/siteMarkers';
+import { getNearestPuzzleMechanism } from '../core/world/worldQueries';
 
 export function AgeInteractionControls() {
   const introActive = useIntroActive();
@@ -41,20 +42,28 @@ export function AgeInteractionControls() {
     const onKeyDown = (e: KeyboardEvent) => {
       if (!isAgeInitiated) return;
       if (e.key.toLowerCase() === 'r') {
-        const marker = getNearestSiteMarker(avatarPosition.x, avatarPosition.z, 5);
-        if (!marker) {
-          setHint('No puzzle stone nearby — follow the golden path markers.');
-          return;
-        }
-        const puzzleEntity = entities.find(
-          (ent) =>
-            ent.worldId === currentWorldId &&
-            ent.kind === 'puzzle-mechanism' &&
-            getPuzzleById(ent.defId)?.markerEventId === marker.eventId,
-        );
+        let puzzleEntity = getNearestPuzzleMechanism(avatarPosition.x, avatarPosition.z, {
+          type: 'ring-alignment',
+          maxDistance: 5,
+        });
         if (!puzzleEntity) {
-          setHint('This marker has no ring puzzle — press E to discover its history.');
-          return;
+          const marker = getNearestSiteMarker(avatarPosition.x, avatarPosition.z, 5);
+          if (!marker) {
+            setHint('No puzzle stone nearby — walk to the teal Hermetic Corpus stone on the south-west path.');
+            return;
+          }
+          puzzleEntity = entities.find(
+            (ent) =>
+              ent.worldId === currentWorldId &&
+              ent.kind === 'puzzle-mechanism' &&
+              getPuzzleById(ent.defId)?.markerEventId === marker.eventId,
+          );
+          if (!puzzleEntity) {
+            setHint(
+              `This is ${marker.label} — walk to the Hermetic Corpus stone for the ring puzzle, or press E here.`,
+            );
+            return;
+          }
         }
         const template = getPuzzleById(puzzleEntity.defId);
         if (template?.type !== 'ring-alignment') {

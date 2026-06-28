@@ -11,7 +11,7 @@ import { worldRegistry } from '../world/WorldRegistry';
 import { GROVE_AGE } from '../../data/ages/grove';
 import { ALEXANDRIA_AGE } from '../../data/ages/alexandria';
 import { spawnEntitiesForAge } from '../world/WorldRegistry';
-import { migrateSave } from '../save/migrations';
+import { createDefaultSnapshot, migrateSave } from '../save/migrations';
 import { SAVE_VERSION } from '../save/saveSchema';
 
 describe('evaluateProgress', () => {
@@ -191,5 +191,21 @@ describe('save migration v3', () => {
     expect(migrated.choiceHistory).toEqual([]);
     expect(migrated.completedProgressNodeIds).toEqual([]);
     expect(migrated.revealedMarkerIds).toEqual([]);
+  });
+
+  it('backfills Hermetic rings when convergence was completed on an older save', () => {
+    const migrated = migrateSave({
+      saveVersion: 3,
+      currentWorldId: 'grove',
+      completedProgressNodeIds: [
+        'grove-hermetic-intro',
+        'grove-choice-experiential',
+        'grove-hermetic-convergence',
+      ],
+      completedPuzzleIds: [],
+      entities: createDefaultSnapshot().entities,
+    });
+    expect(migrated.completedProgressNodeIds).toContain('grove-hermetic-rings');
+    expect(migrated.completedPuzzleIds).toContain('puzzle-hermetic-rings');
   });
 });

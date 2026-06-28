@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { getPuzzleById } from '../data/ages/index';
 import { getEventById } from '../data/history/index';
 import { getNearestSiteMarker } from '../data/embodied/siteMarkers';
+import { getNearestPuzzleMechanism } from '../core/world/worldQueries';
 import { puzzleActionHint } from '../core/puzzles/index';
 import { useSplitReadyForPrompt } from '../input/SplitControls';
 import { useNearbyNpcPrompt } from '../input/NpcInteractionControls';
@@ -44,6 +45,15 @@ export function EmbodiedPrompt() {
     }
     if (!isAgeInitiated(currentWorldId)) {
       setNearbyId(null);
+      return;
+    }
+    const ringPuzzle = getNearestPuzzleMechanism(avatarPosition.x, avatarPosition.z, {
+      type: 'ring-alignment',
+      maxDistance: 4.5,
+    });
+    if (ringPuzzle) {
+      const eventId = getPuzzleById(ringPuzzle.defId)?.markerEventId;
+      setNearbyId(eventId ?? null);
       return;
     }
     const marker = getNearestSiteMarker(avatarPosition.x, avatarPosition.z);

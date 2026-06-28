@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useOverlayPanelStore } from '../core/OverlayPanelState';
 import { buildProgressInputFromWorld } from '../core/progression/buildProgressInput';
 import { getPathNextStep } from '../core/progression/pathNextStep';
 import { ALL_PROGRESS_NODES, getProgressNodeById } from '../data/progression/index';
@@ -21,7 +21,10 @@ function resolveActiveRouteLabel(
 }
 
 export function PathPanel() {
-  const [open, setOpen] = useState(false);
+  const expandedPanel = useOverlayPanelStore((s) => s.expandedPanel);
+  const openPanel = useOverlayPanelStore((s) => s.openPanel);
+  const closePanel = useOverlayPanelStore((s) => s.closePanel);
+  const selectEvent = useHistoryStore((s) => s.selectEvent);
   const mode = useObserverStore((s) => s.mode);
   const isFlying = useHistoryStore((s) => s.isFlying);
   const completedProgressNodeIds = useWorldStore((s) => s.completedProgressNodeIds);
@@ -57,13 +60,20 @@ export function PathPanel() {
     .filter(Boolean);
   const nextNodes = ALL_PROGRESS_NODES.filter((n) => !completedProgressNodeIds.includes(n.id));
 
+  const open = expandedPanel === 'path';
+
+  const handleOpen = () => {
+    selectEvent(null);
+    openPanel('path');
+  };
+
   if (!open) {
     return (
       <button
         type="button"
         className={`path-toggle ui-panel${cosmic ? ' path-toggle--cosmic' : ''}`}
         data-testid="path-toggle"
-        onClick={() => setOpen(true)}
+        onClick={handleOpen}
       >
         Path
       </button>
@@ -77,7 +87,7 @@ export function PathPanel() {
     >
       <div className="path-header">
         <h3>Your path</h3>
-        <button type="button" onClick={() => setOpen(false)}>
+        <button type="button" onClick={closePanel}>
           Close
         </button>
       </div>

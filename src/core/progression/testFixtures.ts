@@ -31,6 +31,13 @@ export function withGroveInitiationComplete(input: ProgressEvaluationInput): Pro
   };
 }
 
+export function withAlexandriaInitiationComplete(input: ProgressEvaluationInput): ProgressEvaluationInput {
+  return {
+    ...input,
+    initiationStatus: { ...input.initiationStatus, alexandria: 'completed' as InitiationStatus },
+  };
+}
+
 export function withChoice(
   input: ProgressEvaluationInput,
   initiationId: string,

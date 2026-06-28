@@ -5,7 +5,7 @@ Prioritized content for daily Tree Author and World Builder automations. Mark it
 ## Tree arcs (priority order)
 
 1. [done] **Grove Hermetic fork** — `grove-choice-rational` / `grove-choice-experiential` (vertical slice)
-2. **Alexandria purification branch** — extend `initiation-alexandria` with correspondence vs silence path
+2. [done] **Alexandria purification branch** — extend `initiation-alexandria` with correspondence vs silence path
 3. **Rome ascent branch** — Plotinus inward vs outward dispersion (extend Rome initiation)
 4. **Desert gnostic branch** — authority vs inward revelation (extend Desert initiation)
 5. **Kabbalah path from Grove** — place `zohar` stone behind tradition gate + progress node

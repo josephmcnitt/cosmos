@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { worldRegistry, spawnEntitiesForAge, repairWorldEntities } from './WorldRegistry';
 import { GROVE_AGE } from '../../data/ages/grove';
 import { ALEXANDRIA_AGE } from '../../data/ages/alexandria';
+import { ROME_AGE } from '../../data/ages/rome';
 import { createDefaultSnapshot, migrateSave } from '../save/migrations';
 import { loadSave } from '../save/saveGame';
 import { worldEvents } from './WorldEvents';
@@ -32,6 +33,25 @@ describe('WorldRegistry', () => {
       expect.objectContaining({
         id: 'alexandria-library-colonnade-after-purification',
         requiresPathFlag: { flag: 'alexandria-purified-library-dialogue', value: true },
+      }),
+    );
+    expect(worldRegistry.validate()).toEqual([]);
+  });
+
+  it('validates Rome villa courtyard polish data', () => {
+    expect(ROME_AGE.terrain.siteHalfSize).toBe(19);
+    expect(ROME_AGE.terrain.size).toBeGreaterThanOrEqual(ROME_AGE.terrain.siteHalfSize * 2);
+    expect(ROME_AGE.scenery?.buildings).toContainEqual(
+      expect.objectContaining({
+        id: 'rome-courtyard-fountain',
+        preset: 'villa-fountain',
+      }),
+    );
+    expect(ROME_AGE.veils).toHaveLength(3);
+    expect(ROME_AGE.postInitiationDialogues).toContainEqual(
+      expect.objectContaining({
+        id: 'rome-fountain-after-ascent',
+        requiresPathFlag: { flag: 'rome-villa-courtyard-dialogue', value: true },
       }),
     );
     expect(worldRegistry.validate()).toEqual([]);

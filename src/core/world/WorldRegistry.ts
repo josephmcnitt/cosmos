@@ -36,6 +36,15 @@ export class WorldRegistry {
 
   validate(): string[] {
     const errors: string[] = [];
+    const progressPathFlags = new Set<string>();
+    for (const node of ALL_PROGRESS_NODES) {
+      for (const effect of node.effects) {
+        if (effect.type === 'setPathFlag') {
+          progressPathFlags.add(effect.flag);
+        }
+      }
+    }
+
     for (const age of this.ages.values()) {
       for (const marker of age.markers) {
         if (!getEventById(marker.eventId)) {
@@ -55,6 +64,11 @@ export class WorldRegistry {
           if (!this.puzzleTemplates.has(pid)) {
             errors.push(`Age ${age.id}: unlock references unknown puzzle ${pid}`);
           }
+        }
+      }
+      for (const dialogue of age.postInitiationDialogues ?? []) {
+        if (!progressPathFlags.has(dialogue.requiresPathFlag.flag)) {
+          errors.push(`Age ${age.id}: dialogue ${dialogue.id} references unknown path flag ${dialogue.requiresPathFlag.flag}`);
         }
       }
     }

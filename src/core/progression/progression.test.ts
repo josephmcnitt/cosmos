@@ -6,6 +6,7 @@ import {
   withAlexandriaInitiationComplete,
   withChoice,
   withGroveInitiationComplete,
+  withRomeInitiationComplete,
 } from './testFixtures';
 import { worldRegistry } from '../world/WorldRegistry';
 import { GROVE_AGE } from '../../data/ages/grove';
@@ -83,6 +84,12 @@ describe('evaluateProgress', () => {
     });
     const result = evaluateProgress(input);
     expect(result.allCompletedNodeIds).toContain('alexandria-library-purification-dialogue');
+  });
+
+  it('unlocks Rome post-init dialogue flag after villa ascent', () => {
+    const input = withRomeInitiationComplete(createProgressInput());
+    const result = evaluateProgress(input);
+    expect(result.allCompletedNodeIds).toContain('rome-villa-courtyard-dialogue');
   });
 });
 
@@ -174,6 +181,22 @@ describe('applyProgressEffects', () => {
     );
     expect(applied.pathFlags['alexandria-purified-library-dialogue']).toBe(true);
     expect(applied.journal[applied.journal.length - 1]?.title).toBe('Serapeum colonnade');
+  });
+
+  it('sets Rome post-init dialogue flag and journal stub', () => {
+    const entities = spawnEntitiesForAge(GROVE_AGE);
+    const applied = applyProgressEffects(
+      {
+        pathFlags: {},
+        revealedMarkerIds: [],
+        unlockedWorldIds: ['grove', 'rome'],
+        entities,
+        journal: [],
+      },
+      ['rome-villa-courtyard-dialogue'],
+    );
+    expect(applied.pathFlags['rome-villa-courtyard-dialogue']).toBe(true);
+    expect(applied.journal[applied.journal.length - 1]?.title).toBe('Villa courtyard');
   });
 });
 

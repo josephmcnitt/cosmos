@@ -38,6 +38,13 @@ export function withAlexandriaInitiationComplete(input: ProgressEvaluationInput)
   };
 }
 
+export function withRomeInitiationComplete(input: ProgressEvaluationInput): ProgressEvaluationInput {
+  return {
+    ...input,
+    initiationStatus: { ...input.initiationStatus, rome: 'completed' as InitiationStatus },
+  };
+}
+
 export function withChoice(
   input: ProgressEvaluationInput,
   initiationId: string,

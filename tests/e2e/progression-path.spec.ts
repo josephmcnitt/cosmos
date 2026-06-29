@@ -92,6 +92,28 @@ test.describe('game tree — Hermetic intro', () => {
   });
 });
 
+test.describe('game tree — Rome world polish', () => {
+  test('sets villa courtyard dialogue flag after Rome initiation', async ({ page }) => {
+    await seedSave(page, {
+      currentWorldId: 'rome',
+      unlockedWorldIds: ['grove', 'rome'],
+      visitedWorldIds: ['grove', 'rome'],
+      worldLayers: { grove: 'material', rome: 'material' },
+      initiationStatus: {
+        grove: 'completed',
+        alexandria: 'locked',
+        rome: 'completed',
+        desert: 'locked',
+      },
+    });
+    await waitForProgressNode(page, 'rome-villa-courtyard-dialogue');
+
+    const save = await readSave(page);
+    expect(save.completedProgressNodeIds).toContain('rome-villa-courtyard-dialogue');
+    expect(save.pathFlags['rome-villa-courtyard-dialogue']).toBe(true);
+  });
+});
+
 test.describe('game tree — Hermetic rational path', () => {
   test('rational fork reveals rosicrucian marker and path flags', async ({ page }) => {
     await seedSave(page, {

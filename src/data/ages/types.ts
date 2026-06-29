@@ -49,7 +49,8 @@ export type AgeBuildingPreset =
   | 'olive-tree'
   | 'column-row'
   | 'library-block'
-  | 'desert-cave';
+  | 'desert-cave'
+  | 'villa-fountain';
 
 export interface AgeBuildingDef {
   id: string;

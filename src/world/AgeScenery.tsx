@@ -144,6 +144,30 @@ function DesertCave({ x, z, rotationY = 0, scale = 1 }: { x: number; z: number; 
   );
 }
 
+function VillaFountain({ x, z, rotationY = 0, scale = 1 }: { x: number; z: number; rotationY?: number; scale?: number }) {
+  const y = sampleTerrainHeight(x, z);
+  return (
+    <group position={[x, y, z]} rotation={[0, rotationY, 0]} scale={scale}>
+      <mesh position={[0, 0.16, 0]}>
+        <cylinderGeometry args={[1.45, 1.65, 0.32, 32]} />
+        <meshStandardMaterial color="#918878" roughness={0.86} />
+      </mesh>
+      <mesh position={[0, 0.34, 0]}>
+        <cylinderGeometry args={[1.1, 1.2, 0.08, 32]} />
+        <meshStandardMaterial color="#6f8ca0" roughness={0.55} metalness={0.08} />
+      </mesh>
+      <mesh position={[0, 0.72, 0]}>
+        <cylinderGeometry args={[0.18, 0.28, 0.8, 16]} />
+        <meshStandardMaterial color="#b8ada0" roughness={0.8} />
+      </mesh>
+      <mesh position={[0, 1.18, 0]}>
+        <sphereGeometry args={[0.24, 16, 12]} />
+        <meshStandardMaterial color="#c8b8e8" emissive="#6f62a0" emissiveIntensity={0.12} roughness={0.65} />
+      </mesh>
+    </group>
+  );
+}
+
 function Building({ def }: { def: AgeBuildingDef }) {
   const [x, , z] = def.position;
   const props = { x, z, rotationY: def.rotationY ?? 0, scale: def.scale ?? 1 };
@@ -160,6 +184,8 @@ function Building({ def }: { def: AgeBuildingDef }) {
       return <LibraryBlock {...props} />;
     case 'desert-cave':
       return <DesertCave {...props} />;
+    case 'villa-fountain':
+      return <VillaFountain {...props} />;
     default:
       return null;
   }

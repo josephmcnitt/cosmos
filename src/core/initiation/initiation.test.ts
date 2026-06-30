@@ -141,6 +141,28 @@ describe('WorldStore reevaluateProgress', () => {
     expect(state.completedProgressNodeIds).toContain('grove-choice-rational');
     expect(state.revealedMarkerIds).toContain('grove-rosicrucian');
   });
+
+  it('unlocks experiential branch from save-shaped input', () => {
+    const snap = createDefaultSnapshot();
+    useWorldStore.getState().applySnapshotData({
+      ...snap,
+      initiationStatus: { grove: 'completed', alexandria: 'locked', rome: 'locked', desert: 'locked' },
+      choiceHistory: [
+        {
+          initiationId: 'initiation-grove',
+          stepIndex: 6,
+          choiceId: 'hermetic-experiential',
+          at: Date.now(),
+        },
+      ],
+      completedProgressNodeIds: ['grove-hermetic-intro'],
+    });
+    useWorldStore.getState().reevaluateProgress();
+    const state = useWorldStore.getState();
+    expect(state.completedProgressNodeIds).toContain('grove-choice-experiential');
+    expect(state.revealedMarkerIds).toContain('grove-pythagorean');
+    expect(state.revealedMarkerIds).not.toContain('grove-rosicrucian');
+  });
 });
 
 describe('migrateInitiationStatus', () => {

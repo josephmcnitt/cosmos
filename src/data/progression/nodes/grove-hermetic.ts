@@ -47,10 +47,11 @@ export const GROVE_HERMETIC_NODES: ProgressNodeDef[] = [
       { type: 'setActivePath', pathId: 'hermetic-experiential' },
       { type: 'setPathFlag', flag: 'grove-hermetic-path', value: 'experiential' },
       { type: 'setPathFlag', flag: 'grove-experiential-practice', value: true },
+      { type: 'revealMarker', markerId: 'grove-pythagorean', worldId: 'grove' },
       {
         type: 'journalEntry',
         title: 'Correspondence in breath',
-        body: 'Practice at the Hermetic stone will answer sooner — the microcosm learns to mirror the macrocosm through stance, not argument alone.',
+        body: 'The Pythagorean mysteries answer the experiential path — number, breath, and stance teach the microcosm to mirror the macrocosm.',
       },
       {
         type: 'journalEntry',

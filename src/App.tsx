@@ -157,6 +157,49 @@ function SpatialSlider() {
   );
 }
 
+function VisibleMarkerTestHooks() {
+  const currentWorldId = useWorldStore((s) => s.currentWorldId);
+  const initiated = useWorldStore((s) => s.isAgeInitiated(s.currentWorldId));
+  const entities = useWorldStore((s) => s.entities);
+  const isMarkerVisible = useWorldStore((s) => s.isMarkerVisible);
+
+  if (!initiated) return null;
+
+  const visibleMarkers = entities.filter(
+    (entity) =>
+      entity.worldId === currentWorldId &&
+      entity.kind === 'marker' &&
+      entity.layer === 'material' &&
+      isMarkerVisible(entity.id),
+  );
+
+  if (visibleMarkers.length === 0) return null;
+
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: 'absolute',
+        right: 0,
+        bottom: 0,
+        width: 1,
+        height: 1,
+        overflow: 'hidden',
+        color: 'transparent',
+        fontSize: 1,
+        lineHeight: '1px',
+        pointerEvents: 'none',
+      }}
+    >
+      {visibleMarkers.map((marker) => (
+        <span key={marker.id} data-testid={`marker-${marker.id}-visible`} style={{ display: 'block' }}>
+          {marker.id}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export default function App() {
   const introComplete = useIntroStore((s) => s.phase === 'complete');
   const isFlying = useHistoryStore((s) => s.isFlying);
@@ -237,6 +280,7 @@ export default function App() {
           <EventDetailPanel />
           <TimelineLabel />
           <TimeControls />
+          <VisibleMarkerTestHooks />
         </div>
       )}
     </div>

@@ -39,6 +39,13 @@ export const GROVE_AGE: AgeDefinition = {
     { id: 'grove-plotinus', eventId: 'neoplatonism-plotinus', position: [-2, 7], label: 'Plotinus — The One' },
     { id: 'grove-zohar', eventId: 'zohar', position: [0, -8], label: 'The Zohar' },
     {
+      id: 'grove-pythagorean',
+      eventId: 'pythagorean-mysteries',
+      position: [3, 6],
+      label: 'Pythagorean mysteries',
+      hiddenUntilNode: 'grove-choice-experiential',
+    },
+    {
       id: 'grove-rosicrucian',
       eventId: 'rosicrucian',
       position: [8, 6],

@@ -105,8 +105,12 @@ describe('applyProgressEffects', () => {
     expect(marker?.state.progressRevealed).toBe(true);
   });
 
-  it('sets experiential practice flag', () => {
+  it('reveals pythagorean marker on experiential branch', () => {
     const entities = spawnEntitiesForAge(GROVE_AGE);
+    const hiddenMarker = entities.find((e) => e.id === 'grove-pythagorean');
+    expect(hiddenMarker?.state.progressHidden).toBe(true);
+    expect(hiddenMarker?.state.progressRevealed).toBe(false);
+
     const applied = applyProgressEffects(
       {
         pathFlags: {},
@@ -118,6 +122,11 @@ describe('applyProgressEffects', () => {
       ['grove-choice-experiential'],
     );
     expect(applied.pathFlags['grove-experiential-practice']).toBe(true);
+    expect(applied.pathFlags['grove-hermetic-path']).toBe('experiential');
+    expect(applied.revealedMarkerIds).toContain('grove-pythagorean');
+    expect(applied.revealedMarkerIds).not.toContain('grove-rosicrucian');
+    const marker = applied.entities.find((e) => e.id === 'grove-pythagorean');
+    expect(marker?.state.progressRevealed).toBe(true);
   });
 
   it('reveals alexandria hermetic marker on correspondence branch', () => {

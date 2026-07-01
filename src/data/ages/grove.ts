@@ -1,4 +1,6 @@
 import { UNIVERSE_AGE_SECONDS } from '../../core/TimeSpace';
+import { ceYear, yearsAgo } from '../history/time';
+import { EARTH_SITE_COORDS } from '../earth/siteCoordinates';
 import type { AgeDefinition } from './types';
 
 export const GROVE_AGE: AgeDefinition = {
@@ -72,4 +74,6 @@ export const GROVE_AGE: AgeDefinition = {
   veils: [{ id: 'veil-grove-center', position: [0, 0], label: 'Veil point' }],
   esotericLayer: { tradition: 'hermetic', geometry: 'torus-knot' },
   astralBuildPalette: ['correspondence-node', 'contemplation-ring', 'threshold-cairn', 'veil-anchor'],
+  geoAnchor: EARTH_SITE_COORDS.athens,
+  playableWindow: { start: ceYear(-500), end: yearsAgo(0) },
 };

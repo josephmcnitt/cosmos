@@ -1,4 +1,5 @@
 import { useMemo, type ComponentType } from 'react';
+import type { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import {
   bandEnterScale,
@@ -7,6 +8,8 @@ import {
   SPATIAL_BANDS,
 } from '../core/ScaleSpace';
 import { sampleTerrainHeight } from '../core/embodiment';
+import { isEarthGlobeEnabled } from '../core/earth/feature';
+import { useIntroStore } from '../core/IntroState';
 import { useObserverStore } from '../core/ObserverState';
 
 function UniverseBand({ opacity }: { opacity: number; starSize?: number }) {
@@ -62,12 +65,31 @@ function StellarBand({ opacity, scale = 1 }: { opacity: number; scale?: number }
   );
 }
 
+function openEarthGlobeFromBand(): void {
+  if (!isEarthGlobeEnabled()) return;
+  if (useIntroStore.getState().phase !== 'complete') return;
+  if (useObserverStore.getState().mode !== 'cosmic') return;
+  useObserverStore.getState().enterEarthMode();
+}
+
 function PlanetaryBand({ opacity, scale = 1 }: { opacity: number; scale?: number }) {
   if (opacity <= 0.01) return null;
 
+  const earthClickable = isEarthGlobeEnabled();
+
+  const onPlanetClick = (e: ThreeEvent<MouseEvent>) => {
+    if (!earthClickable) return;
+    e.stopPropagation();
+    openEarthGlobeFromBand();
+  };
+
   return (
     <group scale={scale}>
-      <mesh>
+      <mesh
+        onClick={onPlanetClick}
+        onPointerOver={earthClickable ? () => { document.body.style.cursor = 'pointer'; } : undefined}
+        onPointerOut={earthClickable ? () => { document.body.style.cursor = ''; } : undefined}
+      >
         <sphereGeometry args={[2.5, 48, 48]} />
         <meshStandardMaterial
           color="#3a6ea5"
@@ -78,7 +100,7 @@ function PlanetaryBand({ opacity, scale = 1 }: { opacity: number; scale?: number
           fog={false}
         />
       </mesh>
-      <mesh scale={[1.04, 1.04, 1.04]}>
+      <mesh scale={[1.04, 1.04, 1.04]} onClick={onPlanetClick}>
         <sphereGeometry args={[2.5, 32, 32]} />
         <meshBasicMaterial
           color="#7ec8ff"
@@ -110,9 +132,22 @@ function TerrestrialBand({ opacity, scale = 1 }: { opacity: number; scale?: numb
 
   if (opacity <= 0.01) return null;
 
+  const earthClickable = isEarthGlobeEnabled();
+
+  const onTerrainClick = (e: ThreeEvent<MouseEvent>) => {
+    if (!earthClickable) return;
+    e.stopPropagation();
+    openEarthGlobeFromBand();
+  };
+
   return (
     <group scale={scale}>
-      <mesh geometry={geometry}>
+      <mesh
+        geometry={geometry}
+        onClick={onTerrainClick}
+        onPointerOver={earthClickable ? () => { document.body.style.cursor = 'pointer'; } : undefined}
+        onPointerOut={earthClickable ? () => { document.body.style.cursor = ''; } : undefined}
+      >
         <meshStandardMaterial
           color="#2d5a3d"
           roughness={0.95}

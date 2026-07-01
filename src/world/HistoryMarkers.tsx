@@ -3,6 +3,8 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { getEventsWith3DMarkers, isEventAtVisibleScale } from '../data/history/index';
 import { flyToEvent } from '../core/flyToEvent';
+import { isEarthGlobeEnabled } from '../core/earth/feature';
+import { getSpatialBand } from '../core/ScaleSpace';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
 
@@ -50,12 +52,22 @@ function HistoryPin({
 export function HistoryMarkers() {
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
   const simTimeSeconds = useObserverStore((s) => s.simTimeSeconds);
+  const mode = useObserverStore((s) => s.mode);
   const selectedEventId = useHistoryStore((s) => s.selectedEventId);
 
   const markers = useMemo(() => getEventsWith3DMarkers(), []);
 
   // Skip 3D pins at universe/galaxy scale — keeps the starfield render path light.
   if (spatialExponent >= 22) return null;
+
+  const bandId = getSpatialBand(spatialExponent).id;
+  if (
+    isEarthGlobeEnabled() &&
+    mode === 'cosmic' &&
+    (bandId === 'planetary' || bandId === 'terrestrial')
+  ) {
+    return null;
+  }
 
   return (
     <group>

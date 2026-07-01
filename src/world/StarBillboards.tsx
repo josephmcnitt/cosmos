@@ -1,5 +1,5 @@
 import { useFrame, useThree } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { getStarTexture } from './starPoints';
 
@@ -36,6 +36,11 @@ export function StarBillboards({ positions, color, opacity, pixelSize }: StarBil
     [texture, color],
   );
   const { camera, size } = useThree();
+
+  useLayoutEffect(() => {
+    const mesh = meshRef.current;
+    if (mesh) mesh.raycast = () => {};
+  }, []);
 
   useFrame(() => {
     const mesh = meshRef.current;

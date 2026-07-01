@@ -8,6 +8,79 @@ export interface TimelineState {
   normalized: number;
 }
 
+/** Enable earth globe feature (also works with `?earth=1` on goto). */
+export async function enableEarthGlobe(page: Page): Promise<void> {
+  await page.evaluate(() => localStorage.setItem('cosmos-earth-globe', '1'));
+}
+
+/** Walk-mode E2E opt-out — use `/?earth=0` on navigation; never persist (breaks local playtest). */
+export async function disableEarthGlobe(_page: Page): Promise<void> {
+  /* no-op — URL ?earth=0 is the only opt-out */
+}
+
+export interface ObserverProbeState {
+  mode: string;
+  spatialExponent: number;
+  earthEnabled: boolean;
+}
+
+export async function readObserverState(page: Page): Promise<ObserverProbeState> {
+  const probe = page.getByTestId('observer-state-probe');
+  await probe.waitFor({ state: 'attached', timeout: 15_000 });
+  return {
+    mode: (await probe.getAttribute('data-mode')) ?? '',
+    spatialExponent: parseFloat((await probe.getAttribute('data-spatial-exponent')) ?? 'NaN'),
+    earthEnabled: (await probe.getAttribute('data-earth-enabled')) === '1',
+  };
+}
+
+export async function waitForObserverMode(
+  page: Page,
+  mode: string,
+  timeoutMs = 15_000,
+): Promise<void> {
+  await page.waitForFunction(
+    (expected) =>
+      document.querySelector('[data-testid="observer-state-probe"]')?.getAttribute('data-mode') ===
+      expected,
+    mode,
+    { timeout: timeoutMs },
+  );
+}
+
+export async function clickCanvasCenter(page: Page): Promise<void> {
+  const canvas = page.locator('.canvas canvas');
+  await canvas.waitFor({ state: 'visible' });
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error('Canvas bounding box missing');
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+}
+
+export async function wheelZoomCanvas(page: Page, steps: number, deltaY = 120): Promise<void> {
+  const canvas = page.locator('.canvas canvas');
+  await canvas.waitFor({ state: 'visible' });
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error('Canvas bounding box missing');
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  for (let i = 0; i < steps; i++) {
+    await page.mouse.wheel(0, deltaY);
+    await page.waitForTimeout(40);
+  }
+  await page.waitForTimeout(300);
+}
+
+export async function zoomCanvasUntilEarthMode(page: Page, maxSteps = 48): Promise<void> {
+  for (let i = 0; i < maxSteps; i++) {
+    const mode = await page
+      .getByTestId('observer-state-probe')
+      .getAttribute('data-mode')
+      .catch(() => null);
+    if (mode === 'earth') return;
+    await wheelZoomCanvas(page, 1, 120);
+  }
+  throw new Error(`Earth mode not reached after ${maxSteps} wheel steps`);
+}
+
 export async function skipIntro(page: Page): Promise<void> {
   const overlay = page.getByTestId('intro-overlay');
   await overlay.waitFor({ state: 'visible', timeout: 15_000 });
@@ -20,6 +93,7 @@ export async function skipIntro(page: Page): Promise<void> {
 }
 
 export async function setHumanSpatialScale(page: Page): Promise<void> {
+  await disableEarthGlobe(page);
   const slider = page.getByTestId('spatial-slider');
   await slider.waitFor({ state: 'visible' });
   await slider.fill('4');
@@ -56,7 +130,8 @@ export async function setSpiritualFullDepth(page: Page): Promise<void> {
 }
 
 export async function enterWalkMode(page: Page): Promise<void> {
-  await page.goto('/');
+  await page.goto('/?earth=0');
+  await disableEarthGlobe(page);
   await skipIntro(page);
   await setSpiritualFullDepth(page);
   await page.getByTestId('hud-walking').waitFor({ state: 'visible', timeout: 15_000 });
@@ -90,9 +165,10 @@ export async function clickTimelineAt(page: Page, fraction: number): Promise<voi
   const box = await track.boundingBox();
   if (!box) throw new Error('Scrubber track not found');
   const frac = Math.max(0, Math.min(0.98, fraction));
-  const x = frac <= 0 ? box.x : box.x + box.width * frac;
-  const y = box.y + box.height / 2;
-  await page.mouse.click(x, y);
+  await track.click({
+    position: { x: Math.max(2, box.width * frac), y: box.height / 2 },
+    force: true,
+  });
 }
 
 /** Rightmost scrub — present end of the log timeline. */

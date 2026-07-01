@@ -57,6 +57,21 @@ export class WorldRegistry {
           }
         }
       }
+      if (age.geoAnchor) {
+        const { lat, lng } = age.geoAnchor;
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+          errors.push(`Age ${age.id}: geoAnchor out of range (${lat}, ${lng})`);
+        }
+        if (age.playableWindow) {
+          const { start, end } = age.playableWindow;
+          if (start > end) {
+            errors.push(`Age ${age.id}: playableWindow start after end`);
+          }
+          if (age.simTimeSeconds < start || age.simTimeSeconds > end) {
+            errors.push(`Age ${age.id}: simTimeSeconds outside playableWindow`);
+          }
+        }
+      }
     }
     for (const actor of ALL_ACTORS) {
       if (!this.ages.has(actor.worldId)) {

@@ -40,6 +40,10 @@ Reveal via progress effect `{ type: 'revealMarker', markerId, worldId }`.
 | Pending progress node | `progress-node-<id>-pending` |
 | Active path label | `path-active-id` |
 | Visible walk marker | `marker-<markerId>-visible` |
+| Earth nav prompt | `earth-nav-prompt` |
+| Earth site pin (HTML) | `earth-pin-<siteId>` |
+| Earth detail panel | `earth-detail-panel` |
+| Enter / exit earth mode | `enter-earth-mode` / `exit-earth-mode` |
 | Initiation choice | `initiation-choice-<choiceId>` |
 
 ## Test-after-addition policy

@@ -45,7 +45,7 @@ export function LogarithmicCamera() {
   }, [introPhase]);
 
   useFrame(() => {
-    if (mode === 'embodied') return;
+    if (mode === 'embodied' || mode === 'earth') return;
 
     const introActive = introPhase !== 'complete';
     const introElapsed = performance.now() - introPhaseStart.current;

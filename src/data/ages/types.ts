@@ -102,6 +102,10 @@ export interface AgeDefinition {
   postInitiationDialogues?: AgePostInitiationDialogueDef[];
   unlock?: { requiresAgeIds?: string[]; requiresPuzzleIds?: string[] };
   astralBuildPalette?: string[];
+  /** Map navigation anchor (earth globe). */
+  geoAnchor?: { lat: number; lng: number; label: string };
+  /** Sim-time window when site is enterable from globe (E2). */
+  playableWindow?: { start: number; end: number };
 }
 
 export interface ActorDefinition {

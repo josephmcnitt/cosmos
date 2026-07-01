@@ -25,7 +25,7 @@ export function resolveKeyboardZoomDirection(key: string): KeyboardZoomDirection
 
 export function resolveKeyboardZoomAction(
   shiftKey: boolean,
-  observerMode: 'cosmic' | 'embodied',
+  observerMode: 'cosmic' | 'earth' | 'embodied',
 ): WheelZoomAction {
   return resolveWheelZoomAction({ observerMode, shiftKey });
 }

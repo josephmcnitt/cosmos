@@ -61,6 +61,18 @@ import { CorrespondenceSky } from './world/CorrespondenceSky';
 import { FlightStarfield } from './world/FlightStarfield';
 import { EmbodimentApproachPreview } from './world/EmbodimentApproachPreview';
 import { embodimentApproachWeight } from './core/embodiment';
+import { EarthModeSync } from './core/earth/EarthModeSync';
+import { EarthOrbitCamera } from './camera/EarthOrbitCamera';
+import { EarthGlobe } from './world/earth/EarthGlobe';
+import { ContinentalLandmass } from './world/earth/ContinentalLandmass';
+import { PolityOutlines } from './world/earth/PolityOutlines';
+import { SitePinLayer } from './world/earth/SitePinLayer';
+import { EarthGlobeBackdrop, EarthOrbitControls } from './world/earth/EarthOrbitControls';
+import { CosmicEarthClickTarget } from './world/earth/CosmicEarthClickTarget';
+import { EarthDescentTransition } from './world/earth/EarthDescentTransition';
+import { EarthNavPrompt, EarthDetailPanel, EarthGlobePrompt } from './ui/EarthNavPrompt';
+import { EarthDescentOverlay } from './ui/EarthDescentOverlay';
+import { ObserverStateProbe } from './ui/ObserverStateProbe';
 import { useWorldStore } from './core/world/WorldState';
 import { WorldRoot } from './world/WorldRoot';
 import { onRangeInputWheel } from './ui/rangeInputWheelGuard';
@@ -74,7 +86,10 @@ function Scene() {
   const introComplete = introPhase === 'complete';
   const showWorld = introPhase === 'expansion' || introPhase === 'reveal' || introComplete;
   const embodied = mode === 'embodied' && showWorld;
+  const earthMode = mode === 'earth' && showWorld;
+  const earthDescent = useObserverStore((s) => s.earthPhase === 'descent');
   const approachWeight = embodimentApproachWeight(spatialExponent);
+  const showApproachPreview = !earthMode && introComplete && approachWeight > 0.02;
   const realmActive = liminalWeight > 0.02 || spiritualWeight > 0.02;
   const worldLayer = useWorldStore((s) => s.worldLayers[s.currentWorldId] ?? 'material');
   const fog = fogDistances(embodied, liminalWeight, spiritualWeight);
@@ -84,7 +99,7 @@ function Scene() {
       <color attach="background" args={['#000000']} />
       <fog attach="fog" args={['#030508', fog.near, fog.far]} />
       <ambientLight intensity={embodied ? 0.45 : 0.28} />
-      {embodied ? <EmbodiedCamera /> : <LogarithmicCamera />}
+      {embodied ? <EmbodiedCamera /> : earthMode ? (earthDescent ? null : <EarthOrbitCamera />) : <LogarithmicCamera />}
       <SimulationLoop />
       <BigBangEffect />
       {embodied ? (
@@ -95,13 +110,26 @@ function Scene() {
           {realmActive && <LiminalEffects />}
           {(spiritualWeight > 0.02 || worldLayer === 'esoteric') && <SpiritualRealm />}
         </>
+      ) : earthMode ? (
+        <>
+          <ambientLight intensity={0.55} />
+          <directionalLight position={[10, 8, 6]} intensity={0.9} />
+          <EarthGlobeBackdrop />
+          <EarthGlobe />
+          <ContinentalLandmass />
+          <PolityOutlines />
+          <SitePinLayer />
+          {!earthDescent && <EarthOrbitControls />}
+          <EarthDescentTransition />
+        </>
       ) : (
         <>
           <CosmicSkySync />
           <CosmicStarfield />
           <FlightStarfield />
           {introComplete ? <MaterialHeavens /> : introPhase === 'expansion' || introPhase === 'reveal' ? <WorldRoot /> : null}
-          {introComplete && approachWeight > 0.02 && (
+          <CosmicEarthClickTarget />
+          {showApproachPreview && (
             <EmbodimentApproachPreview weight={approachWeight} />
           )}
           {introComplete && <EphemerisSky />}
@@ -135,7 +163,7 @@ function SpatialSlider() {
   const setSpatialExponent = useObserverStore((s) => s.setSpatialExponent);
   const mode = useObserverStore((s) => s.mode);
 
-  if (mode === 'embodied') return null;
+  if (mode === 'embodied' || mode === 'earth') return null;
 
   return (
     <div className="spatial-slider ui-panel">
@@ -167,6 +195,7 @@ export default function App() {
       <IntroSkipHandler />
       <WorldBootstrap />
       <EmbodimentSync />
+      <EarthModeSync />
       <PracticeSync />
       <RealmTransitionSync />
       <WorldTravelSync />
@@ -223,6 +252,10 @@ export default function App() {
           <SpatialSlider />
           <EmbodiedOverlay />
           <WalkApproachPrompt />
+          <EarthGlobePrompt />
+          <EarthNavPrompt />
+          <EarthDetailPanel />
+          <EarthDescentOverlay />
           <div className="walk-context-hud">
             <EmbodiedPrompt />
             <AgeInteractionControls />
@@ -237,6 +270,7 @@ export default function App() {
           <EventDetailPanel />
           <TimelineLabel />
           <TimeControls />
+          <ObserverStateProbe />
         </div>
       )}
     </div>

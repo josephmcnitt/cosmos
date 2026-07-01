@@ -16,6 +16,7 @@ import {
   formatSimTimeWindowEdge,
   formatTimelineHeader,
   getTemporalBand,
+  normalizedFromSimTimeFull,
   TEMPORAL_MAX,
   TEMPORAL_MIN,
   yearsAgoLogSpan,
@@ -37,6 +38,7 @@ export function TimeControls() {
   const timeViewMaxLog = useObserverStore((s) => s.timeViewMaxLog);
   const simTimeSeconds = useObserverStore((s) => s.simTimeSeconds);
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
+  const mode = useObserverStore((s) => s.mode);
   const setTemporalExponent = useObserverStore((s) => s.setTemporalExponent);
   const isFlying = useHistoryStore((s) => s.isFlying);
 
@@ -50,7 +52,10 @@ export function TimeControls() {
     storedTimeWindowOptions(timeViewMinLog, timeViewMaxLog),
   );
 
-  const normalized = normalizedFromSimTimeWindow(simTimeSeconds, timeWindow);
+  const normalized =
+    mode === 'earth'
+      ? normalizedFromSimTimeFull(simTimeSeconds)
+      : normalizedFromSimTimeWindow(simTimeSeconds, timeWindow);
   const viewLogSpan = yearsAgoLogSpan(timeWindow.viewMinSeconds, timeWindow.viewMaxSeconds);
   const fullLogSpan = bandLogSpan(timeWindow);
   const narrowed = isEffectiveWindowNarrowed(timeWindow);

@@ -38,7 +38,7 @@ test.describe('Age travel', () => {
   });
 
   test('stale save in another age returns to Grove before initiation', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/?earth=0');
     await skipIntro(page);
 
     await page.evaluate(() => {

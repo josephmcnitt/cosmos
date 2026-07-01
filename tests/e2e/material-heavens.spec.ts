@@ -68,6 +68,8 @@ test.describe('Material heavens phase', () => {
   });
 
   test('heaven phase indicator hidden in walk mode', async ({ page }) => {
+    await page.goto('/?earth=0');
+    await skipIntro(page);
     await page.getByTestId('history-track-spiritual').first().click();
     await page.getByTestId('spatial-slider').fill('4');
     const jumpBtn = page.getByTestId('jump-to-present');
@@ -82,7 +84,7 @@ test.describe('Material heavens phase', () => {
 
 test.describe('Ephemeris sky', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/?earth=0');
     await skipIntro(page);
     await jumpToPresentIfNeeded(page);
   });
@@ -98,6 +100,9 @@ test.describe('Ephemeris sky', () => {
   });
 
   test('indicator hidden in walk mode', async ({ page }) => {
+    await page.goto('/?earth=0');
+    await skipIntro(page);
+    await jumpToPresentIfNeeded(page);
     await page.getByTestId('history-track-spiritual').first().click();
     await page.getByTestId('spatial-slider').fill('4');
     await page.getByTestId('hud-walking').waitFor({ state: 'visible', timeout: 15_000 });

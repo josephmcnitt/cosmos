@@ -30,8 +30,10 @@ export function ensureOnboardingEmbodiedWorld(): void {
 }
 
 /** Walk mode is for uncovering hidden spiritual / esoteric history. */
-export function prepareEmbodiedDiscovery(): void {
-  ensureOnboardingEmbodiedWorld();
+export function prepareEmbodiedDiscovery(skipOnboardingRedirect = false): void {
+  if (!skipOnboardingRedirect) {
+    ensureOnboardingEmbodiedWorld();
+  }
   const history = useHistoryStore.getState();
   history.setHistoryTrack('spiritual');
   history.setDepthOfView('full');
@@ -62,6 +64,7 @@ export function shouldEnterEmbodied(
   ctx: EmbodimentContext,
 ): boolean {
   if (state.mode === 'embodied') return false;
+  if (state.mode === 'earth') return false;
   if (!ctx.introComplete || ctx.isFlying) return false;
   if (!isInHumanEra(state.simTimeSeconds)) return false;
   if (!isHumanSpatialBand(state.spatialExponent)) return false;

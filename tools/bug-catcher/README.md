@@ -108,4 +108,5 @@ Analysis extracts Cosmos HUD state from `page.html` (heaven phase, spatial band,
 - Log issues **as soon as** you notice them — debounced canvas capture updates the before-shot after you interact.
 - **HUD blinking during capture?** The old tool polled full-page screenshots every 2.5s; that flashed WebGL and looked like a game bug. Defaults are now canvas-only / on-log. If you still see flicker, use `--capture on-log`.
 - Minimize the panel with **−** if you only need a sliver of screen space.
+- **Timeline hard to see?** Guidance mode injects playtest layout CSS: brighter timeline thumb, highlighted Time zoom slider, extra bottom margin, and the panel cannot be dragged over the timeline stack. Double-click the panel header to snap it back to the top-right.
 - Paste paths from `REPORT.md` or attach the whole issue folder when filing bugs or prompting an agent.

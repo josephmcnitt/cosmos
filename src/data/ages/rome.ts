@@ -1,4 +1,5 @@
-import { ceYear } from '../history/time';
+import { ceYear, yearsAgo } from '../history/time';
+import { EARTH_SITE_COORDS } from '../earth/siteCoordinates';
 import type { AgeDefinition } from './types';
 
 export const ROME_AGE: AgeDefinition = {
@@ -38,4 +39,6 @@ export const ROME_AGE: AgeDefinition = {
   esotericLayer: { tradition: 'neoplatonism', geometry: 'neoplatonic-rings' },
   unlock: { requiresPuzzleIds: ['puzzle-plotinus-stance'] },
   astralBuildPalette: ['contemplation-ring', 'veil-anchor'],
+  geoAnchor: EARTH_SITE_COORDS.rome,
+  playableWindow: { start: ceYear(-500), end: yearsAgo(0) },
 };

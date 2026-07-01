@@ -1,5 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
+import * as THREE from 'three';
 import { useIntroStore } from '../core/IntroState';
 import { useObserverStore } from '../core/ObserverState';
 import { StarBillboards } from './StarBillboards';
@@ -63,10 +64,17 @@ function closeLayerFade(spatialExponent: number): number {
 }
 
 function FocusDot({ opacity }: { opacity: number }) {
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  useLayoutEffect(() => {
+    const mesh = meshRef.current;
+    if (mesh) mesh.raycast = () => {};
+  }, []);
+
   if (opacity <= 0.01) return null;
 
   return (
-    <mesh position={[0, 0, -0.05]}>
+    <mesh ref={meshRef} position={[0, 0, -0.05]}>
       <sphereGeometry args={[0.06, 12, 12]} />
       <meshBasicMaterial color="#fff8e8" transparent opacity={opacity} toneMapped={false} fog={false} />
     </mesh>

@@ -18,6 +18,7 @@ export function ZoomControls() {
   const adjustTemporal = useObserverStore((s) => s.adjustTemporalExponent);
   const panTimeViewAnchor = useObserverStore((s) => s.panTimeViewAnchor);
   const adjustCameraDistance = useObserverStore((s) => s.adjustCameraDistance);
+  const adjustEarthOrbitDistance = useObserverStore((s) => s.adjustEarthOrbitDistance);
   const introComplete = useIntroStore((s) => s.phase === 'complete');
   const isFlying = useHistoryStore((s) => s.isFlying);
 
@@ -45,6 +46,7 @@ export function ZoomControls() {
       }
 
       const adjustment = wheelDeltaToAdjustment(deltaY, action);
+      const observerMode = useObserverStore.getState().mode;
       switch (action) {
         case 'spatial':
           adjustSpatial(adjustment);
@@ -53,7 +55,11 @@ export function ZoomControls() {
           adjustTemporal(adjustment);
           break;
         case 'camera':
-          adjustCameraDistance(adjustment);
+          if (observerMode === 'earth') {
+            adjustEarthOrbitDistance(adjustment);
+          } else {
+            adjustCameraDistance(adjustment);
+          }
           break;
       }
     };
@@ -61,9 +67,12 @@ export function ZoomControls() {
     const onWheel = (e: WheelEvent) => {
       if (useHistoryStore.getState().isFlying) return;
 
+      const observerMode = useObserverStore.getState().mode;
+      if (observerMode === 'earth' && !e.shiftKey) return;
+
       const result = handleWheelZoomEvent(
         { target: e.target, shiftKey: e.shiftKey, deltaY: e.deltaY },
-        useObserverStore.getState().mode,
+        observerMode,
       );
 
       if (result.blocked) return;
@@ -93,7 +102,11 @@ export function ZoomControls() {
           adjustTemporal(result.adjustment);
           break;
         case 'camera':
-          adjustCameraDistance(result.adjustment);
+          if (observerMode === 'earth') {
+            adjustEarthOrbitDistance(result.adjustment);
+          } else {
+            adjustCameraDistance(result.adjustment);
+          }
           break;
       }
     };
@@ -126,6 +139,7 @@ export function ZoomControls() {
     adjustTemporal,
     panTimeViewAnchor,
     adjustCameraDistance,
+    adjustEarthOrbitDistance,
     introComplete,
     isFlying,
     mode,

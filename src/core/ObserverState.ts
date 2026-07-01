@@ -17,6 +17,8 @@ import {
   clampSimTimeToSpatialBand,
   computeEffectiveTimeWindow,
   computeSpatialTimeWindow,
+  HUMAN_ERA_MAX_SECONDS,
+  HUMAN_ERA_MIN_SECONDS,
   isEffectiveWindowNarrowed,
   isInHumanEra,
   isHumanSpatialBand,
@@ -30,12 +32,30 @@ import {
   clampSimTime,
   clampTemporalExponent,
   getTemporalBand,
+  simTimeFromNormalizedFull,
+  normalizedFromSimTimeFull,
   TEMPORAL_MAX,
   UNIVERSE_AGE_SECONDS,
 } from './TimeSpace';
 import { simulationClock } from './SimulationClock';
+import { isEarthGlobeEnabled, isEarthAutoEnterEnabled } from './earth/feature';
+import {
+  clampEarthOrbitDistance,
+  earthEnterPatch,
+  earthExitPatch,
+  shouldEnterEarthMode,
+  shouldExitEarthMode,
+  type EarthPhase,
+  type GeoFocus,
+  type EarthRotation,
+  EARTH_GLOBE_EXIT_EXPONENT,
+  EARTH_ORBIT_DISTANCE_DEFAULT,
+} from './earth/earthMode';
+import { getEarthDescentEligibility } from './earth/descent';
+import { useWorldStore } from './world/WorldState';
 
-export type ObserverMode = 'cosmic' | 'embodied';
+export type ObserverMode = 'cosmic' | 'earth' | 'embodied';
+export type { EarthPhase, GeoFocus, EarthRotation };
 
 export interface ObserverState {
   spatialExponent: number;
@@ -53,6 +73,11 @@ export interface ObserverState {
   cameraDistance: number;
   preEmbodimentExponent: number;
   embodimentTransition: 'none' | 'entering' | 'exiting';
+  earthPhase: EarthPhase;
+  geoFocus: GeoFocus | null;
+  earthRotation: EarthRotation;
+  preEarthExponent: number;
+  earthOrbitDistance: number;
 }
 
 export interface ObserverActions {
@@ -78,10 +103,27 @@ export interface ObserverActions {
   getTemporalBandLabel: () => string;
   getScrubberNormalized: () => number;
   getEffectiveTimeWindow: () => ReturnType<typeof computeEffectiveTimeWindow>;
+  enterEarthMode: () => void;
+  exitEarthMode: () => void;
+  beginEarthDescent: () => boolean;
+  completeEarthDescent: () => void;
+  setGeoFocus: (focus: GeoFocus | null) => void;
+  clearGeoFocus: () => void;
+  setEarthRotation: (yaw: number, pitch: number) => void;
+  adjustEarthOrbitDistance: (delta: number) => void;
 }
 
 const DEFAULT_FOCUS = new Vector3(0, 0, 0);
 const DEFAULT_AVATAR = new Vector3(0, 0, 0);
+
+function clampTimeForObserver(state: ObserverState, seconds: number): number {
+  if (state.mode === 'earth') {
+    return clampSimTime(
+      Math.max(HUMAN_ERA_MIN_SECONDS, Math.min(HUMAN_ERA_MAX_SECONDS, seconds)),
+    );
+  }
+  return clampSimTimeToSpatialBand(seconds, state.spatialExponent);
+}
 
 function applySpatialTimeCoupling(
   spatialExponent: number,
@@ -147,6 +189,55 @@ function applyEmbodimentAfterUpdate(
   return partial;
 }
 
+function buildEarthEnterPatch(state: ObserverState): Partial<ObserverState> {
+  const patch = earthEnterPatch({ spatialExponent: state.spatialExponent });
+  let simTimeSeconds = state.simTimeSeconds;
+  let temporalExponent = state.temporalExponent;
+  if (!isInHumanEra(simTimeSeconds)) {
+    simTimeSeconds = simulationClock.scrubTo(UNIVERSE_AGE_SECONDS);
+    temporalExponent = Math.min(temporalExponent, TEMPORAL_MAX * 0.25);
+  }
+  return { ...patch, simTimeSeconds, temporalExponent };
+}
+
+function applySpatialWithEarth(
+  state: ObserverState,
+  nextExponent: number,
+  snapToHumanEra: boolean,
+): Partial<ObserverState> {
+  const featureOn = isEarthAutoEnterEnabled();
+
+  if (shouldExitEarthMode(state, nextExponent, isEarthGlobeEnabled())) {
+    return {
+      ...earthExitPatch(state),
+      spatialExponent: nextExponent,
+    };
+  }
+
+  if (shouldEnterEarthMode(state, nextExponent, featureOn)) {
+    return buildEarthEnterPatch(state);
+  }
+
+  const coupled = applySpatialTimeCoupling(
+    nextExponent,
+    state.simTimeSeconds,
+    state.temporalExponent,
+    snapToHumanEra,
+  );
+
+  if (state.mode === 'earth') {
+    return {
+      ...coupled,
+      spatialExponent: Math.min(
+        coupled.spatialExponent ?? nextExponent,
+        EARTH_GLOBE_EXIT_EXPONENT,
+      ),
+    };
+  }
+
+  return coupled;
+}
+
 function resolveTimeViewBounds(
   state: Pick<
     ObserverState,
@@ -203,17 +294,17 @@ export const useObserverStore = create<ObserverState & ObserverActions>((set, ge
   cameraDistance: EMBODIED_CAMERA_DEFAULT,
   preEmbodimentExponent: 24,
   embodimentTransition: 'none',
+  earthPhase: 'globe',
+  geoFocus: null,
+  earthRotation: { yaw: 0, pitch: 0.35 },
+  preEarthExponent: 24,
+  earthOrbitDistance: EARTH_ORBIT_DISTANCE_DEFAULT,
 
   setSpatialExponent: (exponent) => {
     const state = get();
     const wasHuman = isHumanSpatialBand(state.spatialExponent);
     const enteringHuman = isHumanSpatialBand(exponent) && !wasHuman;
-    const coupled = applySpatialTimeCoupling(
-      exponent,
-      state.simTimeSeconds,
-      state.temporalExponent,
-      enteringHuman,
-    );
+    const coupled = applySpatialWithEarth(state, exponent, enteringHuman);
     set(applyEmbodimentAfterUpdate(state, coupled));
   },
 
@@ -222,12 +313,7 @@ export const useObserverStore = create<ObserverState & ObserverActions>((set, ge
     const wasHuman = isHumanSpatialBand(state.spatialExponent);
     const next = state.spatialExponent + delta;
     const enteringHuman = isHumanSpatialBand(next) && !wasHuman;
-    const coupled = applySpatialTimeCoupling(
-      next,
-      state.simTimeSeconds,
-      state.temporalExponent,
-      enteringHuman,
-    );
+    const coupled = applySpatialWithEarth(state, next, enteringHuman);
     set(applyEmbodimentAfterUpdate(state, coupled));
   },
 
@@ -277,23 +363,29 @@ export const useObserverStore = create<ObserverState & ObserverActions>((set, ge
 
   setSimTime: (seconds) => {
     const state = get();
-    const clamped = clampSimTimeToSpatialBand(seconds, state.spatialExponent);
+    const clamped = clampTimeForObserver(state, seconds);
     const partial = { simTimeSeconds: simulationClock.scrubTo(clamped) };
     set(applyEmbodimentAfterUpdate(state, partial));
   },
 
   scrubNormalized: (normalized, anchorSimTime) => {
     const state = get();
-    const hasStoredBounds =
-      state.timeViewMinLog != null && state.timeViewMaxLog != null;
-    const window = computeEffectiveTimeWindow(
-      state.spatialExponent,
-      hasStoredBounds ? state.simTimeSeconds : (anchorSimTime ?? state.simTimeSeconds),
-      state.temporalExponent,
-      timeWindowOptions(state),
-    );
-    const seconds = simTimeFromWindowNormalized(normalized, window);
-    const partial = { simTimeSeconds: simulationClock.scrubTo(seconds) };
+    let seconds: number;
+    if (state.mode === 'earth') {
+      seconds = simTimeFromNormalizedFull(normalized);
+    } else {
+      const hasStoredBounds =
+        state.timeViewMinLog != null && state.timeViewMaxLog != null;
+      const window = computeEffectiveTimeWindow(
+        state.spatialExponent,
+        hasStoredBounds ? state.simTimeSeconds : (anchorSimTime ?? state.simTimeSeconds),
+        state.temporalExponent,
+        timeWindowOptions(state),
+      );
+      seconds = simTimeFromWindowNormalized(normalized, window);
+    }
+    const clamped = clampTimeForObserver(state, seconds);
+    const partial = { simTimeSeconds: simulationClock.scrubTo(clamped) };
     set(applyEmbodimentAfterUpdate(state, partial));
   },
 
@@ -394,6 +486,9 @@ export const useObserverStore = create<ObserverState & ObserverActions>((set, ge
 
   getScrubberNormalized: () => {
     const state = get();
+    if (state.mode === 'earth') {
+      return normalizedFromSimTimeFull(state.simTimeSeconds);
+    }
     const window = computeEffectiveTimeWindow(
       state.spatialExponent,
       state.simTimeSeconds,
@@ -412,6 +507,66 @@ export const useObserverStore = create<ObserverState & ObserverActions>((set, ge
       timeWindowOptions(state),
     );
   },
+
+  enterEarthMode: () => {
+    if (!isEarthGlobeEnabled()) return;
+    const state = get();
+    if (state.mode === 'earth') return;
+    set(buildEarthEnterPatch(state));
+  },
+
+  exitEarthMode: () => {
+    const state = get();
+    if (state.mode !== 'earth') return;
+    set({ ...earthExitPatch(state), earthPhase: 'globe' });
+  },
+
+  beginEarthDescent: () => {
+    const state = get();
+    if (state.mode !== 'earth' || state.earthPhase !== 'globe') return false;
+
+    const eligibility = getEarthDescentEligibility(state.geoFocus, state.simTimeSeconds);
+    if (!eligibility.canDescend || !state.geoFocus?.ageId) return false;
+
+    const ageId = state.geoFocus.ageId;
+    if (!useWorldStore.getState().travelToWorld(ageId)) return false;
+
+    prepareEmbodiedDiscovery(true);
+    set({ earthPhase: 'descent', embodimentTransition: 'entering' });
+    return true;
+  },
+
+  completeEarthDescent: () => {
+    const state = get();
+    if (state.mode !== 'earth' || state.earthPhase !== 'descent') return;
+
+    set({
+      mode: 'embodied',
+      earthPhase: 'globe',
+      geoFocus: null,
+      spatialExponent: EMBODIED_ENTER_EXPONENT,
+      preEmbodimentExponent: state.preEarthExponent,
+      cameraDistance: EMBODIED_CAMERA_DEFAULT,
+      embodimentTransition: 'entering',
+    });
+  },
+
+  setGeoFocus: (focus) => set({ geoFocus: focus }),
+
+  clearGeoFocus: () => set({ geoFocus: null }),
+
+  setEarthRotation: (yaw, pitch) =>
+    set({
+      earthRotation: {
+        yaw,
+        pitch: Math.max(-1.2, Math.min(1.2, pitch)),
+      },
+    }),
+
+  adjustEarthOrbitDistance: (delta) =>
+    set((s) => ({
+      earthOrbitDistance: clampEarthOrbitDistance(s.earthOrbitDistance + delta * 12),
+    })),
 }));
 
 export function hasEpochMismatch(state: ObserverState): boolean {
@@ -436,5 +591,10 @@ export function getInitialObserverState(): ObserverState {
     cameraDistance: EMBODIED_CAMERA_DEFAULT,
     preEmbodimentExponent: 24,
     embodimentTransition: 'none',
+    earthPhase: 'globe',
+    geoFocus: null,
+    earthRotation: { yaw: 0, pitch: 0.35 },
+    preEarthExponent: 24,
+    earthOrbitDistance: EARTH_ORBIT_DISTANCE_DEFAULT,
   };
 }

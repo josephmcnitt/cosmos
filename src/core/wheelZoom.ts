@@ -11,12 +11,15 @@ export const WHEEL_SCROLL_BLOCK_SELECTORS = [
 ] as const;
 
 export interface WheelZoomInput {
-  observerMode: 'cosmic' | 'embodied';
+  observerMode: 'cosmic' | 'earth' | 'embodied';
   shiftKey: boolean;
 }
 
 export function resolveWheelZoomAction(input: WheelZoomInput): WheelZoomAction {
   if (input.observerMode === 'embodied') {
+    return input.shiftKey ? 'temporal' : 'camera';
+  }
+  if (input.observerMode === 'earth') {
     return input.shiftKey ? 'temporal' : 'camera';
   }
   return input.shiftKey ? 'temporal' : 'spatial';
@@ -79,7 +82,7 @@ export function prepareWheelTarget(target: EventTarget | null): WheelTargetPrep 
 
 export function handleWheelZoomEvent(
   event: Pick<WheelEvent, 'target' | 'shiftKey' | 'deltaY'>,
-  observerMode: 'cosmic' | 'embodied',
+  observerMode: 'cosmic' | 'earth' | 'embodied',
 ): { blocked: true } | { blocked: false; action: WheelZoomAction; adjustment: number } {
   const prep = prepareWheelTarget(event.target);
   if (prep.blocked) return { blocked: true };

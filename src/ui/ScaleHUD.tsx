@@ -1,6 +1,7 @@
 import { getEventById, getNearestEventForBand } from '../data/history/index';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
+import { isEarthGlobeEnabled } from '../core/earth/feature';
 import { formatPlayheadTime, formatSimTimeShort, formatTimelineHeader, yearsAgoLogSpan } from '../core/TimeSpace';
 import { getSpatialBand, metersFromExponent } from '../core/ScaleSpace';
 import {
@@ -31,6 +32,8 @@ export function ScaleHUD() {
   const spiritualDepth = usePracticeStore((s) => s.spiritualDepth);
   const realmPhase = usePracticeStore((s) => s.realmPhase);
   const sessionsCompleted = useWorldStore((s) => s.sessionsCompleted);
+  const exitEarthMode = useObserverStore((s) => s.exitEarthMode);
+  const earthEnabled = isEarthGlobeEnabled();
 
   const nearest = getNearestEventForBand(simTimeSeconds, spatialExponent);
   const nearLabel =
@@ -101,6 +104,27 @@ export function ScaleHUD() {
     );
   }
 
+  if (mode === 'earth') {
+    return (
+      <div className="hud ui-panel" data-testid="hud-earth">
+        <div className="hud-title">Cosmos</div>
+        <div className="hud-row">
+          <span className="hud-label">Space</span>
+          <span className="hud-value" data-testid="hud-spatial-band" data-band-id="earth">
+            Earth
+          </span>
+        </div>
+        <div className="hud-row hud-muted">
+          <span className="hud-label">Time</span>
+          <span data-testid="hud-time">{timeLabel}</span>
+        </div>
+        <button type="button" className="hud-earth-nav-btn" data-testid="exit-earth-mode" onClick={exitEarthMode}>
+          Cosmos ↑
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="hud ui-panel">
       <div className="hud-title">Cosmos</div>
@@ -154,6 +178,16 @@ export function ScaleHUD() {
           onClick={goToHumanEra}
         >
           Human scale · jump to present →
+        </button>
+      )}
+      {earthEnabled && mode === 'cosmic' && (
+        <button
+          type="button"
+          className="hud-earth-nav-btn"
+          data-testid="enter-earth-mode"
+          onClick={() => useObserverStore.getState().enterEarthMode()}
+        >
+          Earth →
         </button>
       )}
       {showDebugGrid && <div className="hud-debug">Debug grid on (~)</div>}

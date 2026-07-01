@@ -1,4 +1,9 @@
 import type { PanelConfig } from './types';
+import {
+  GUIDANCE_TIPS,
+  PLAYTEST_LAYOUT_CSS,
+  PLAYTEST_TIMELINE_SAFE_PX,
+} from './playtestLayout';
 
 /** In-browser panel injected by Playwright (runs in the app page context). */
 export function buildPanelScript(config: PanelConfig): string {
@@ -10,6 +15,9 @@ export function buildPanelScript(config: PanelConfig): string {
 
   const config = ${configJson};
   const isGuidance = config.mode === 'guidance';
+  const timelineSafePx = ${PLAYTEST_TIMELINE_SAFE_PX};
+  const playtestLayoutCss = ${JSON.stringify(PLAYTEST_LAYOUT_CSS)};
+  const guidanceTips = ${JSON.stringify(GUIDANCE_TIPS)};
 
   const panel = document.createElement('div');
   panel.id = 'bug-catcher-panel';
@@ -69,9 +77,11 @@ export function buildPanelScript(config: PanelConfig): string {
   style.textContent = \`
     #bug-catcher-panel {
       position: fixed;
-      top: 72px;
-      right: 16px;
+      top: 12px;
+      right: 12px;
       width: 340px;
+      max-height: calc(100vh - ${PLAYTEST_TIMELINE_SAFE_PX}px - 16px);
+      overflow: auto;
       z-index: 2147483646;
       font: 13px/1.45 system-ui, -apple-system, Segoe UI, sans-serif;
       color: #f2f2f2;
@@ -169,25 +179,25 @@ export function buildPanelScript(config: PanelConfig): string {
     .hidden { display: none !important; }
   \`;
 
-  const GUIDANCE_TIPS = [
-    'Click anywhere or press a key to skip the opening.',
-    'Mouse wheel or [ ] keys — zoom from universe down to human scale.',
-    'Bottom timeline — scrub history (left = distant past, right = now).',
-    'Shift + wheel or Shift + [ ] — finer timeline scrubbing.',
-    'Zoom to human at present to walk (WASD).',
-    'During initiation, follow the golden ring to the sacred olive tree.',
-    'E to interact, Q (hold) to practice near stones.',
-    'Journal (top-right) tracks discoveries.',
-    'No wrong way to explore — note confusion or delight anytime.',
-  ];
+  function mountPlaytestLayout() {
+    if (!isGuidance || document.getElementById('cosmos-playtest-layout')) return;
+    document.documentElement.classList.add('bug-catcher-playtest-layout');
+    const app = document.querySelector('.app');
+    app?.classList.add('bug-catcher-playtest-layout');
+    const layoutStyle = document.createElement('style');
+    layoutStyle.id = 'cosmos-playtest-layout';
+    layoutStyle.textContent = playtestLayoutCss;
+    document.documentElement.appendChild(layoutStyle);
+  }
 
   function mount() {
     if (document.getElementById('bug-catcher-panel')) return;
     document.documentElement.appendChild(style);
     document.documentElement.appendChild(panel);
+    mountPlaytestLayout();
     if (isGuidance) {
       const tipsList = panel.querySelector('#bug-catcher-tips-list');
-      for (const tip of GUIDANCE_TIPS) {
+      for (const tip of guidanceTips) {
         const li = document.createElement('li');
         li.textContent = tip;
         tipsList.appendChild(li);
@@ -267,6 +277,12 @@ export function buildPanelScript(config: PanelConfig): string {
     if (wrapUpSkip) wrapUpSkip.addEventListener('click', () => finishSession());
     if (wrapUpDone) wrapUpDone.addEventListener('click', () => finishSession(wrapUpText?.value?.trim() || ''));
     minBtn.addEventListener('click', () => panel.classList.toggle('minimized'));
+    header.addEventListener('dblclick', (e) => {
+      if (e.target === minBtn) return;
+      panel.style.top = '12px';
+      panel.style.right = '12px';
+      panel.style.left = 'auto';
+    });
 
     note.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
@@ -288,8 +304,9 @@ export function buildPanelScript(config: PanelConfig): string {
     });
     window.addEventListener('mousemove', (e) => {
       if (!dragging) return;
+      const maxTop = Math.max(8, window.innerHeight - timelineSafePx - panel.offsetHeight);
       panel.style.left = Math.max(8, e.clientX - offsetX) + 'px';
-      panel.style.top = Math.max(8, e.clientY - offsetY) + 'px';
+      panel.style.top = Math.min(maxTop, Math.max(8, e.clientY - offsetY)) + 'px';
       panel.style.right = 'auto';
     });
     window.addEventListener('mouseup', () => { dragging = false; });

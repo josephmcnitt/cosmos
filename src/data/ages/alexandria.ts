@@ -1,4 +1,5 @@
 import { ceYear } from '../history/time';
+import { EARTH_SITE_COORDS } from '../earth/siteCoordinates';
 import type { AgeDefinition } from './types';
 
 export const ALEXANDRIA_AGE: AgeDefinition = {
@@ -65,4 +66,6 @@ export const ALEXANDRIA_AGE: AgeDefinition = {
   ],
   unlock: { requiresPuzzleIds: ['puzzle-hermetic-rings'] },
   astralBuildPalette: ['correspondence-node', 'contemplation-ring'],
+  geoAnchor: EARTH_SITE_COORDS.alexandria,
+  playableWindow: { start: ceYear(-330), end: ceYear(640) },
 };

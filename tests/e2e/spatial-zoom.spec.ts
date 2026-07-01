@@ -61,8 +61,8 @@ test.describe('Spatial zoom bands and visuals', () => {
     expect(stellar.brightness).toBeGreaterThan(MIN_CANVAS_BRIGHTNESS);
 
     const planetary = await captureSpatialLevel(page, 14, 'planetary');
-    expect(planetary.band.label).toBe('Planetary');
-    expect(planetary.band.id).toBe('planetary');
+    expect(planetary.band.label).toBe('Earth');
+    expect(planetary.band.id).toBe('earth');
     expect(planetary.brightness).toBeGreaterThan(MIN_CANVAS_BRIGHTNESS);
 
     expect(buffersDiffer(universe.screenshot, galaxy.screenshot)).toBe(true);

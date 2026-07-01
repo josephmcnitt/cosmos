@@ -1,6 +1,6 @@
 # Historical Earth view (planning)
 
-**Status:** Vision / architecture sketch — not on the near-term roadmap.  
+**Status:** E0–E2 **shipped** — rotatable globe, polity outlines, scrub, site pick, **Descend → walk** (on by default; opt out with `?earth=0`). E3 overlays deferred.
 **Related:** [FUTURE_IDEAS.md](../FUTURE_IDEAS.md) · [game-tree.md](./game-tree.md) · Myst/Riven plan (`.cursor/plans/myst-riven_dual_world_84330404.plan.md`)
 
 ---
@@ -356,3 +356,4 @@ Players might unlock Alexandria via Hermetic rings from the Grove *or* by findin
 |------|----------|
 | 2026-06-28 | Document Earth view vision as phased atlas → descend → walk; georef Ages via optional `geoAnchor`; overlays as interpretive lenses; first slice Mediterranean ~300 BCE. |
 | 2026-06-28 | Clarify Earth globe as **intermediate layer** (rotate, pick destination) distinct from walk mode; propose `mode: 'earth'`, `geoFocus`, intentional descent before site approach. |
+| 2026-06-28 | **E0–E1 shipped:** `mode: 'earth'` rotatable globe, Mediterranean polity outlines, timeline scrub (full human-era in earth mode), site pins + detail panel; on by default (`?earth=0` to opt out). Descent (E2) deferred. |

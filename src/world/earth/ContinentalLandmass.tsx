@@ -1,23 +1,37 @@
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { getContinentalLandPolygons } from '../../core/earth/continentalLand';
 import { buildSpherePolygonGeometry } from '../../core/earth/spherePolygon';
 import { GLOBE_RADIUS } from './EarthGlobe';
 
 const LAND_OFFSET = 1.0015;
 
 export function ContinentalLandmass() {
-  const geometry = useMemo(() => {
-    const parts: THREE.BufferGeometry[] = [];
-    for (const { ring } of getContinentalLandPolygons()) {
-      const geom = buildSpherePolygonGeometry(ring, GLOBE_RADIUS, LAND_OFFSET);
-      if (geom) parts.push(geom);
-    }
-    if (parts.length === 0) return null;
-    const merged = mergeGeometries(parts, false);
-    for (const p of parts) p.dispose();
-    return merged;
+  const [geometry, setGeometry] = useState<THREE.BufferGeometry | null>(null);
+
+  useEffect(() => {
+    let disposed = false;
+    let merged: THREE.BufferGeometry | null = null;
+
+    void import('../../core/earth/continentalLand').then(({ getContinentalLandPolygons }) => {
+      if (disposed) return;
+
+      const parts: THREE.BufferGeometry[] = [];
+      for (const { ring } of getContinentalLandPolygons()) {
+        const geom = buildSpherePolygonGeometry(ring, GLOBE_RADIUS, LAND_OFFSET);
+        if (geom) parts.push(geom);
+      }
+      if (parts.length === 0) return;
+
+      merged = mergeGeometries(parts, false);
+      for (const p of parts) p.dispose();
+      if (merged && !disposed) setGeometry(merged);
+    });
+
+    return () => {
+      disposed = true;
+      merged?.dispose();
+    };
   }, []);
 
   if (!geometry) return null;

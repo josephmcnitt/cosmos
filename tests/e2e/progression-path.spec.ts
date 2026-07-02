@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { skipIntro } from './helpers';
+import { setSpiritualFullDepth, skipIntro } from './helpers';
 
 test.describe.configure({ mode: 'serial', timeout: 90_000 });
 
@@ -50,6 +50,17 @@ async function seedSave(page: import('@playwright/test').Page, patch: Record<str
   await page.reload();
   await skipIntro(page);
   await page.getByTestId('ui-overlay').waitFor({ state: 'visible', timeout: 30_000 });
+}
+
+/** Seed a save, reload, then enter embodied mode so rendered marker probes are available. */
+async function seedWalkSave(page: import('@playwright/test').Page, patch: Record<string, unknown> = {}) {
+  await page.goto('/?earth=0');
+  await skipIntro(page);
+  await injectProgressSave(page, patch);
+  await page.reload();
+  await skipIntro(page);
+  await setSpiritualFullDepth(page);
+  await page.getByTestId('hud-walking').waitFor({ state: 'visible', timeout: 30_000 });
 }
 
 /** Persist a completed puzzle gate in localStorage (unlock logic covered in unit tests). */
@@ -170,7 +181,26 @@ test.describe('game tree — Hermetic experiential path', () => {
     const save = await readSave(page);
     expect(save.pathFlags['grove-experiential-practice']).toBe(true);
     expect(save.pathFlags['grove-hermetic-path']).toBe('experiential');
+    expect(save.revealedMarkerIds).toContain('grove-pythagorean');
     expect(save.revealedMarkerIds ?? []).not.toContain('grove-rosicrucian');
+  });
+
+  test('experiential fork reveals pythagorean marker in walk mode', async ({ page }) => {
+    await seedWalkSave(page, {
+      choiceHistory: [
+        {
+          initiationId: 'initiation-grove',
+          stepIndex: 6,
+          choiceId: 'hermetic-experiential',
+          at: Date.now(),
+        },
+      ],
+      completedProgressNodeIds: ['grove-hermetic-intro'],
+    });
+    await waitForProgressNode(page, 'grove-choice-experiential');
+
+    await expect(page.getByTestId('marker-grove-pythagorean-visible')).toBeVisible();
+    await expect(page.getByTestId('marker-grove-rosicrucian-visible')).toHaveCount(0);
   });
 
   test('path panel shows experiential route and ring next step', async ({ page }) => {

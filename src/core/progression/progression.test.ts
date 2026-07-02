@@ -11,6 +11,8 @@ import { worldRegistry } from '../world/WorldRegistry';
 import { GROVE_AGE } from '../../data/ages/grove';
 import { ALEXANDRIA_AGE } from '../../data/ages/alexandria';
 import { spawnEntitiesForAge } from '../world/WorldRegistry';
+import { getCurrentAgeMarkers } from '../world/worldQueries';
+import { useWorldStore } from '../world/WorldState';
 import { createDefaultSnapshot, migrateSave } from '../save/migrations';
 import { SAVE_VERSION } from '../save/saveSchema';
 
@@ -105,8 +107,12 @@ describe('applyProgressEffects', () => {
     expect(marker?.state.progressRevealed).toBe(true);
   });
 
-  it('sets experiential practice flag', () => {
+  it('reveals pythagorean marker on experiential branch', () => {
     const entities = spawnEntitiesForAge(GROVE_AGE);
+    const hiddenMarker = entities.find((e) => e.id === 'grove-pythagorean');
+    expect(hiddenMarker?.state.progressHidden).toBe(true);
+    expect(hiddenMarker?.state.progressRevealed).toBe(false);
+
     const applied = applyProgressEffects(
       {
         pathFlags: {},
@@ -118,6 +124,10 @@ describe('applyProgressEffects', () => {
       ['grove-choice-experiential'],
     );
     expect(applied.pathFlags['grove-experiential-practice']).toBe(true);
+    expect(applied.revealedMarkerIds).toContain('grove-pythagorean');
+    expect(applied.revealedMarkerIds).not.toContain('grove-rosicrucian');
+    const marker = applied.entities.find((e) => e.id === 'grove-pythagorean');
+    expect(marker?.state.progressRevealed).toBe(true);
   });
 
   it('reveals alexandria hermetic marker on correspondence branch', () => {
@@ -181,6 +191,25 @@ describe('WorldRegistry progression validation', () => {
   it('validates grove hermetic nodes without errors', () => {
     const errors = worldRegistry.validate();
     expect(errors).toEqual([]);
+  });
+});
+
+describe('progress marker gating', () => {
+  it('excludes pythagorean marker from walk queries until revealed', () => {
+    useWorldStore.setState({
+      currentWorldId: 'grove',
+      initiationStatus: { grove: 'completed', alexandria: 'locked', rome: 'locked', desert: 'locked' },
+      entities: spawnEntitiesForAge(GROVE_AGE),
+      revealedMarkerIds: [],
+    });
+
+    expect(useWorldStore.getState().isMarkerVisible('grove-pythagorean')).toBe(false);
+    expect(getCurrentAgeMarkers().map((m) => m.entityId)).not.toContain('grove-pythagorean');
+
+    useWorldStore.setState({ revealedMarkerIds: ['grove-pythagorean'] });
+
+    expect(useWorldStore.getState().isMarkerVisible('grove-pythagorean')).toBe(true);
+    expect(getCurrentAgeMarkers().map((m) => m.entityId)).toContain('grove-pythagorean');
   });
 });
 

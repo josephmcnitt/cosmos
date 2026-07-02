@@ -9,11 +9,23 @@ export function EmbodiedOverlay() {
   const worldLayer = useWorldStore((s) => s.worldLayers[s.currentWorldId] ?? 'material');
   const initiationStatus = useWorldStore((s) => s.initiationStatus[currentWorldId]);
   const isAgeInitiated = useWorldStore((s) => s.isAgeInitiated(currentWorldId));
+  const entities = useWorldStore((s) => s.entities);
+  const revealedMarkerIds = useWorldStore((s) => s.revealedMarkerIds);
   const age = getActiveAgeDefinition(currentWorldId);
 
   if (mode !== 'embodied') return null;
 
   const seekGuide = initiationStatus === 'available' || initiationStatus === 'in_progress';
+  const visibleMarkerIds = isAgeInitiated
+    ? age.markers
+        .filter((marker) => {
+          const entity = entities.find((e) => e.id === marker.id && e.kind === 'marker');
+          if (!entity) return false;
+          if (entity.state.progressHidden !== true) return true;
+          return entity.state.progressRevealed === true || revealedMarkerIds.includes(marker.id);
+        })
+        .map((marker) => marker.id)
+    : [];
 
   return (
     <div className="embodied-overlay ui-panel">
@@ -39,6 +51,16 @@ export function EmbodiedOverlay() {
       <button type="button" className="embodied-exit-btn" onClick={exitEmbodied}>
         Zoom out to cosmos
       </button>
+      {visibleMarkerIds.map((markerId) => (
+        <span
+          key={markerId}
+          data-testid={`marker-${markerId}-visible`}
+          style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden' }}
+          aria-hidden="true"
+        >
+          {markerId}
+        </span>
+      ))}
     </div>
   );
 }

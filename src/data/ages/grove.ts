@@ -47,6 +47,13 @@ export const GROVE_AGE: AgeDefinition = {
       label: 'Rosicrucian manifestos',
       hiddenUntilNode: 'grove-choice-rational',
     },
+    {
+      id: 'grove-pythagorean',
+      eventId: 'pythagorean-mysteries',
+      position: [-8, 5],
+      label: 'Pythagorean mysteries',
+      hiddenUntilNode: 'grove-choice-experiential',
+    },
   ],
   portals: [
     {

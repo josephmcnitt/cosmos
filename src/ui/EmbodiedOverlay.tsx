@@ -9,14 +9,27 @@ export function EmbodiedOverlay() {
   const worldLayer = useWorldStore((s) => s.worldLayers[s.currentWorldId] ?? 'material');
   const initiationStatus = useWorldStore((s) => s.initiationStatus[currentWorldId]);
   const isAgeInitiated = useWorldStore((s) => s.isAgeInitiated(currentWorldId));
+  const isMarkerVisible = useWorldStore((s) => s.isMarkerVisible);
   const age = getActiveAgeDefinition(currentWorldId);
 
   if (mode !== 'embodied') return null;
 
   const seekGuide = initiationStatus === 'available' || initiationStatus === 'in_progress';
+  const visibleMarkerIds = isAgeInitiated
+    ? age.markers.filter((marker) => isMarkerVisible(marker.id)).map((marker) => marker.id)
+    : [];
 
   return (
     <div className="embodied-overlay ui-panel">
+      <div aria-hidden="true" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden' }}>
+        {visibleMarkerIds.map((markerId) => (
+          <span
+            key={markerId}
+            data-testid={`marker-${markerId}-visible`}
+            style={{ display: 'inline-block', width: 1, height: 1 }}
+          />
+        ))}
+      </div>
       <div className="embodied-age-label" data-testid="embodied-age-label">
         {age.title} · {age.eraLabel} · {worldLayer} layer
       </div>

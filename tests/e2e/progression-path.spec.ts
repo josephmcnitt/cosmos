@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { skipIntro } from './helpers';
+import { setSpiritualFullDepth, skipIntro } from './helpers';
 
 test.describe.configure({ mode: 'serial', timeout: 90_000 });
 
@@ -50,6 +50,17 @@ async function seedSave(page: import('@playwright/test').Page, patch: Record<str
   await page.reload();
   await skipIntro(page);
   await page.getByTestId('ui-overlay').waitFor({ state: 'visible', timeout: 30_000 });
+}
+
+async function seedWalkSave(page: import('@playwright/test').Page, patch: Record<string, unknown> = {}) {
+  await page.goto('/?earth=0');
+  await skipIntro(page);
+  await injectProgressSave(page, patch);
+  await page.reload();
+  await skipIntro(page);
+  await page.getByTestId('ui-overlay').waitFor({ state: 'visible', timeout: 30_000 });
+  await setSpiritualFullDepth(page);
+  await page.getByTestId('hud-walking').waitFor({ state: 'visible', timeout: 20_000 });
 }
 
 /** Persist a completed puzzle gate in localStorage (unlock logic covered in unit tests). */
@@ -113,6 +124,24 @@ test.describe('game tree — Hermetic rational path', () => {
     expect(save.activePathId).toBe('hermetic-rational');
   });
 
+  test('rational fork keeps pythagorean marker hidden in walk mode', async ({ page }) => {
+    await seedWalkSave(page, {
+      choiceHistory: [
+        {
+          initiationId: 'initiation-grove',
+          stepIndex: 6,
+          choiceId: 'hermetic-rational',
+          at: Date.now(),
+        },
+      ],
+      completedProgressNodeIds: ['grove-hermetic-intro'],
+    });
+    await waitForProgressNode(page, 'grove-choice-rational');
+
+    await expect(page.getByTestId('marker-grove-rosicrucian-visible')).toHaveCount(1);
+    await expect(page.getByTestId('marker-grove-pythagorean-visible')).toHaveCount(0);
+  });
+
   test('path panel shows rational milestones and next ring step', async ({ page }) => {
     await seedSave(page, {
       completedProgressNodeIds: ['grove-hermetic-intro', 'grove-choice-rational'],
@@ -170,7 +199,26 @@ test.describe('game tree — Hermetic experiential path', () => {
     const save = await readSave(page);
     expect(save.pathFlags['grove-experiential-practice']).toBe(true);
     expect(save.pathFlags['grove-hermetic-path']).toBe('experiential');
+    expect(save.revealedMarkerIds).toContain('grove-pythagorean');
     expect(save.revealedMarkerIds ?? []).not.toContain('grove-rosicrucian');
+  });
+
+  test('experiential fork reveals pythagorean marker in walk mode', async ({ page }) => {
+    await seedWalkSave(page, {
+      choiceHistory: [
+        {
+          initiationId: 'initiation-grove',
+          stepIndex: 6,
+          choiceId: 'hermetic-experiential',
+          at: Date.now(),
+        },
+      ],
+      completedProgressNodeIds: ['grove-hermetic-intro'],
+    });
+    await waitForProgressNode(page, 'grove-choice-experiential');
+
+    await expect(page.getByTestId('marker-grove-pythagorean-visible')).toHaveCount(1);
+    await expect(page.getByTestId('marker-grove-rosicrucian-visible')).toHaveCount(0);
   });
 
   test('path panel shows experiential route and ring next step', async ({ page }) => {

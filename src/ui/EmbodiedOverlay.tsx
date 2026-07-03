@@ -9,17 +9,38 @@ export function EmbodiedOverlay() {
   const worldLayer = useWorldStore((s) => s.worldLayers[s.currentWorldId] ?? 'material');
   const initiationStatus = useWorldStore((s) => s.initiationStatus[currentWorldId]);
   const isAgeInitiated = useWorldStore((s) => s.isAgeInitiated(currentWorldId));
+  const entities = useWorldStore((s) => s.entities);
+  const isMarkerVisible = useWorldStore((s) => s.isMarkerVisible);
   const age = getActiveAgeDefinition(currentWorldId);
 
   if (mode !== 'embodied') return null;
 
   const seekGuide = initiationStatus === 'available' || initiationStatus === 'in_progress';
+  const visibleMarkerIds = isAgeInitiated
+    ? entities
+        .filter(
+          (entity) =>
+            entity.worldId === currentWorldId &&
+            entity.kind === 'marker' &&
+            entity.layer === 'material' &&
+            isMarkerVisible(entity.id),
+        )
+        .map((entity) => entity.id)
+    : [];
 
   return (
     <div className="embodied-overlay ui-panel">
       <div className="embodied-age-label" data-testid="embodied-age-label">
         {age.title} · {age.eraLabel} · {worldLayer} layer
       </div>
+      {visibleMarkerIds.map((markerId) => (
+        <span
+          key={markerId}
+          data-testid={`marker-${markerId}-visible`}
+          aria-hidden
+          style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
+        />
+      ))}
       {seekGuide && !isAgeInitiated && (
         <div className="embodied-initiation-hint" data-testid="embodied-initiation-hint">
           Walk toward the guide on the path — golden ring · Press <strong>T</strong> to speak

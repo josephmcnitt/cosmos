@@ -94,6 +94,11 @@ export async function skipIntro(page: Page): Promise<void> {
 
 export async function setHumanSpatialScale(page: Page): Promise<void> {
   await disableEarthGlobe(page);
+  const exitEarth = page.getByTestId('exit-earth-mode');
+  if (await exitEarth.isVisible().catch(() => false)) {
+    await exitEarth.click();
+    await waitForObserverMode(page, 'cosmic');
+  }
   const slider = page.getByTestId('spatial-slider');
   await slider.waitFor({ state: 'visible' });
   await slider.fill('4');

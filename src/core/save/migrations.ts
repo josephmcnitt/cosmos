@@ -59,6 +59,7 @@ function resolveOnboardingWorldId(data: Partial<PersistedWorldSnapshot>): string
 }
 
 function repairLegacyProgression(snapshot: PersistedWorldSnapshot): PersistedWorldSnapshot {
+  let next = snapshot;
   const completed = new Set(snapshot.completedProgressNodeIds);
   const puzzles = new Set(snapshot.completedPuzzleIds);
   const convergenceWithoutRings =
@@ -66,22 +67,40 @@ function repairLegacyProgression(snapshot: PersistedWorldSnapshot): PersistedWor
   const puzzleDoneButNodeMissing =
     puzzles.has('puzzle-hermetic-rings') && !completed.has('grove-hermetic-rings');
 
-  if (!convergenceWithoutRings && !puzzleDoneButNodeMissing) return snapshot;
+  if (convergenceWithoutRings || puzzleDoneButNodeMissing) {
+    completed.add('grove-hermetic-rings');
+    puzzles.add('puzzle-hermetic-rings');
 
-  completed.add('grove-hermetic-rings');
-  puzzles.add('puzzle-hermetic-rings');
+    next = {
+      ...next,
+      completedProgressNodeIds: [...completed],
+      completedPuzzleIds: [...puzzles],
+      entities: next.entities.map((entity) => {
+        if (entity.kind === 'puzzle-mechanism' && entity.defId === 'puzzle-hermetic-rings') {
+          return { ...entity, state: { ...entity.state, completed: true } };
+        }
+        return entity;
+      }),
+    };
+  }
 
-  return {
-    ...snapshot,
-    completedProgressNodeIds: [...completed],
-    completedPuzzleIds: [...puzzles],
-    entities: snapshot.entities.map((entity) => {
-      if (entity.kind === 'puzzle-mechanism' && entity.defId === 'puzzle-hermetic-rings') {
-        return { ...entity, state: { ...entity.state, completed: true } };
-      }
-      return entity;
-    }),
-  };
+  if (
+    completed.has('grove-choice-experiential') &&
+    !next.revealedMarkerIds.includes('grove-pythagorean')
+  ) {
+    next = {
+      ...next,
+      revealedMarkerIds: [...next.revealedMarkerIds, 'grove-pythagorean'],
+      entities: next.entities.map((entity) => {
+        if (entity.id === 'grove-pythagorean' && entity.worldId === 'grove') {
+          return { ...entity, state: { ...entity.state, progressRevealed: true } };
+        }
+        return entity;
+      }),
+    };
+  }
+
+  return next;
 }
 
 export function migrateSave(raw: unknown): PersistedWorldSnapshot {

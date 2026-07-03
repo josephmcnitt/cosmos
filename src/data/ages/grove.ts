@@ -39,6 +39,13 @@ export const GROVE_AGE: AgeDefinition = {
     { id: 'grove-hermetic', eventId: 'hermetic-corpus', position: [5, -5], label: 'Hermetic Corpus' },
     { id: 'grove-gnostic', eventId: 'gnostic-gospels', position: [-6, -4], label: 'Gnostic texts' },
     { id: 'grove-plotinus', eventId: 'neoplatonism-plotinus', position: [-2, 7], label: 'Plotinus — The One' },
+    {
+      id: 'grove-pythagorean',
+      eventId: 'pythagorean-mysteries',
+      position: [-9, 6],
+      label: 'Pythagorean mysteries',
+      hiddenUntilNode: 'grove-choice-experiential',
+    },
     { id: 'grove-zohar', eventId: 'zohar', position: [0, -8], label: 'The Zohar' },
     {
       id: 'grove-rosicrucian',

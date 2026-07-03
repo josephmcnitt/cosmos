@@ -13,9 +13,13 @@ export async function enableEarthGlobe(page: Page): Promise<void> {
   await page.evaluate(() => localStorage.setItem('cosmos-earth-globe', '1'));
 }
 
-/** Walk-mode E2E opt-out — use `/?earth=0` on navigation; never persist (breaks local playtest). */
-export async function disableEarthGlobe(_page: Page): Promise<void> {
-  /* no-op — URL ?earth=0 is the only opt-out */
+/** Walk-mode E2E opt-out — set `?earth=0` on the current URL; never persist (breaks local playtest). */
+export async function disableEarthGlobe(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('earth', '0');
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+  });
 }
 
 export interface ObserverProbeState {

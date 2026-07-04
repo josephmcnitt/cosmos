@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { worldRegistry, spawnEntitiesForAge, repairWorldEntities } from './WorldRegistry';
+import { getCurrentAgeMarkers } from './worldQueries';
+import { useWorldStore } from './WorldState';
 import { GROVE_AGE } from '../../data/ages/grove';
 import { ALEXANDRIA_AGE } from '../../data/ages/alexandria';
 import { createDefaultSnapshot, migrateSave } from '../save/migrations';
@@ -15,9 +17,12 @@ describe('WorldRegistry', () => {
 
   it('spawns marker and actor entities for grove', () => {
     const entities = spawnEntitiesForAge(GROVE_AGE);
-    expect(entities.filter((e) => e.kind === 'marker').length).toBe(6);
+    expect(entities.filter((e) => e.kind === 'marker').length).toBe(7);
     expect(entities.filter((e) => e.kind === 'actor').length).toBe(1);
     expect(entities.some((e) => e.kind === 'portal')).toBe(true);
+    expect(entities.find((e) => e.id === 'grove-pythagorean')?.state.hiddenUntilNode).toBe(
+      'grove-choice-experiential',
+    );
   });
 
   it('validates Alexandria expanded library polish data', () => {
@@ -45,6 +50,29 @@ describe('WorldRegistry', () => {
     ]);
     expect(repaired.some((e) => e.id === 'academy-guide')).toBe(true);
     expect(repaired.find((e) => e.id === 'grove-plato')?.state.discovered).toBe(true);
+  });
+
+  it('omits hidden Grove markers from marker queries until revealed', () => {
+    const base = createDefaultSnapshot();
+    const initiated = {
+      ...base,
+      initiationStatus: { ...base.initiationStatus, grove: 'completed' as const },
+    };
+
+    useWorldStore.getState().applySnapshotData(initiated);
+    expect(getCurrentAgeMarkers().some((marker) => marker.entityId === 'grove-pythagorean')).toBe(
+      false,
+    );
+
+    useWorldStore.getState().applySnapshotData({
+      ...initiated,
+      revealedMarkerIds: ['grove-pythagorean'],
+    });
+    expect(getCurrentAgeMarkers().some((marker) => marker.entityId === 'grove-pythagorean')).toBe(
+      true,
+    );
+
+    useWorldStore.getState().applySnapshotData(base);
   });
 });
 

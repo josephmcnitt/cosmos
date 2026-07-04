@@ -118,6 +118,10 @@ describe('applyProgressEffects', () => {
       ['grove-choice-experiential'],
     );
     expect(applied.pathFlags['grove-experiential-practice']).toBe(true);
+    expect(applied.revealedMarkerIds).toContain('grove-pythagorean');
+    expect(applied.revealedMarkerIds).not.toContain('grove-rosicrucian');
+    const marker = applied.entities.find((e) => e.id === 'grove-pythagorean');
+    expect(marker?.state.progressRevealed).toBe(true);
   });
 
   it('reveals alexandria hermetic marker on correspondence branch', () => {
@@ -207,5 +211,19 @@ describe('save migration v3', () => {
     });
     expect(migrated.completedProgressNodeIds).toContain('grove-hermetic-rings');
     expect(migrated.completedPuzzleIds).toContain('puzzle-hermetic-rings');
+  });
+
+  it('backfills the Pythagorean marker for older experiential saves', () => {
+    const migrated = migrateSave({
+      saveVersion: 3,
+      currentWorldId: 'grove',
+      completedProgressNodeIds: ['grove-hermetic-intro', 'grove-choice-experiential'],
+      completedPuzzleIds: [],
+      entities: createDefaultSnapshot().entities,
+    });
+    expect(migrated.revealedMarkerIds).toContain('grove-pythagorean');
+    expect(
+      migrated.entities.find((entity) => entity.id === 'grove-pythagorean')?.state.progressRevealed,
+    ).toBe(true);
   });
 });

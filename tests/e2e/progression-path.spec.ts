@@ -109,8 +109,11 @@ test.describe('game tree — Hermetic rational path', () => {
 
     const save = await readSave(page);
     expect(save.revealedMarkerIds).toContain('grove-rosicrucian');
+    expect(save.revealedMarkerIds ?? []).not.toContain('grove-pythagorean');
     expect(save.pathFlags['grove-hermetic-path']).toBe('rational');
     expect(save.activePathId).toBe('hermetic-rational');
+    await page.getByTestId('marker-grove-rosicrucian-visible').waitFor({ state: 'attached' });
+    await expect(page.getByTestId('marker-grove-pythagorean-visible')).toHaveCount(0);
   });
 
   test('path panel shows rational milestones and next ring step', async ({ page }) => {
@@ -170,7 +173,10 @@ test.describe('game tree — Hermetic experiential path', () => {
     const save = await readSave(page);
     expect(save.pathFlags['grove-experiential-practice']).toBe(true);
     expect(save.pathFlags['grove-hermetic-path']).toBe('experiential');
+    expect(save.revealedMarkerIds).toContain('grove-pythagorean');
     expect(save.revealedMarkerIds ?? []).not.toContain('grove-rosicrucian');
+    await page.getByTestId('marker-grove-pythagorean-visible').waitFor({ state: 'attached' });
+    await expect(page.getByTestId('marker-grove-rosicrucian-visible')).toHaveCount(0);
   });
 
   test('path panel shows experiential route and ring next step', async ({ page }) => {

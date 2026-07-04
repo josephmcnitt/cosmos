@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { isEarthGlobeEnabled } from '../core/earth/feature';
 import { useIntroStore } from '../core/IntroState';
 import { useObserverStore } from '../core/ObserverState';
@@ -9,11 +10,20 @@ export function ObserverStateProbe() {
   const mode = useObserverStore((s) => s.mode);
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
   const currentWorldId = useWorldStore((s) => s.currentWorldId);
-  const visibleMarkerIds = useWorldStore((s) =>
-    s.entities
-      .filter((entity) => entity.worldId === s.currentWorldId && entity.kind === 'marker')
-      .filter((entity) => s.isMarkerVisible(entity.id))
-      .map((entity) => entity.id),
+  const entities = useWorldStore((s) => s.entities);
+  const revealedMarkerIds = useWorldStore((s) => s.revealedMarkerIds);
+  const visibleMarkerIds = useMemo(
+    () =>
+      entities
+        .filter((entity) => entity.worldId === currentWorldId && entity.kind === 'marker')
+        .filter(
+          (entity) =>
+            entity.state.progressHidden !== true ||
+            entity.state.progressRevealed === true ||
+            revealedMarkerIds.includes(entity.id),
+        )
+        .map((entity) => entity.id),
+    [currentWorldId, entities, revealedMarkerIds],
   );
 
   if (!introComplete) return null;

@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { buildPanelScript } from '../../tools/bug-catcher/panelScript';
 import { buildPlaytestLayoutInitScript } from '../../tools/bug-catcher/playtestLayout';
-import { disableEarthGlobe, setSpiritualFullDepth, skipIntro } from './helpers';
+import { setSpiritualFullDepth, skipIntro } from './helpers';
 
 test.describe('Playtest tool timeline visibility', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript({ content: buildPlaytestLayoutInitScript() });
     await page.addInitScript({ content: buildPanelScript({ mode: 'guidance' }) });
-    await page.goto('/');
+    await page.goto('/?earth=0');
     await skipIntro(page);
   });
 
@@ -33,7 +33,6 @@ test.describe('Playtest tool timeline visibility', () => {
   });
 
   test('playtest layout keeps timeline visible in walk mode', async ({ page }) => {
-    await disableEarthGlobe(page);
     await setSpiritualFullDepth(page);
     await page.getByTestId('hud-walking').waitFor({ state: 'visible', timeout: 15_000 });
 

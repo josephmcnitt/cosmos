@@ -76,7 +76,7 @@ export async function zoomCanvasUntilEarthMode(page: Page, maxSteps = 48): Promi
       .getAttribute('data-mode')
       .catch(() => null);
     if (mode === 'earth') return;
-    await wheelZoomCanvas(page, 1, 120);
+    await wheelZoomCanvas(page, 1, 600);
   }
   throw new Error(`Earth mode not reached after ${maxSteps} wheel steps`);
 }

@@ -20,7 +20,7 @@ test.describe('Cosmos production smoke', () => {
     await setSpiritualFullDepth(page);
 
     await expect(page.getByTestId('history-track-spiritual').first()).toHaveClass(/active/);
-    await expect(page.locator('[data-testid="depth-toggle-full"].active, [data-testid="hud-walking"]')).toBeVisible();
+    await expect(page.locator('[data-testid="depth-toggle-full"].active, [data-testid="hud-walking"]').first()).toBeVisible();
   });
 
   test('enter walk mode at human scale', async ({ page }) => {

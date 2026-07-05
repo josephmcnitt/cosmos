@@ -9,7 +9,22 @@ export function EmbodiedOverlay() {
   const worldLayer = useWorldStore((s) => s.worldLayers[s.currentWorldId] ?? 'material');
   const initiationStatus = useWorldStore((s) => s.initiationStatus[currentWorldId]);
   const isAgeInitiated = useWorldStore((s) => s.isAgeInitiated(currentWorldId));
+  const entities = useWorldStore((s) => s.entities);
+  const revealedMarkerIds = useWorldStore((s) => s.revealedMarkerIds);
   const age = getActiveAgeDefinition(currentWorldId);
+  const visibleMarkerIds =
+    initiationStatus === 'completed'
+      ? age.markers
+          .filter((marker) => {
+            const entity = entities.find(
+              (e) => e.id === marker.id && e.kind === 'marker' && e.worldId === currentWorldId,
+            );
+            if (!entity) return false;
+            if (entity.state.progressHidden !== true) return true;
+            return entity.state.progressRevealed === true || revealedMarkerIds.includes(marker.id);
+          })
+          .map((marker) => marker.id)
+      : [];
 
   if (mode !== 'embodied') return null;
 
@@ -19,6 +34,26 @@ export function EmbodiedOverlay() {
     <div className="embodied-overlay ui-panel">
       <div className="embodied-age-label" data-testid="embodied-age-label">
         {age.title} · {age.eraLabel} · {worldLayer} layer
+      </div>
+      <div
+        className="embodied-marker-probes"
+        aria-hidden
+        style={{
+          position: 'absolute',
+          width: 1,
+          height: 1,
+          overflow: 'hidden',
+          opacity: 0,
+          pointerEvents: 'none',
+        }}
+      >
+        {visibleMarkerIds.map((markerId) => (
+          <span
+            key={markerId}
+            data-testid={`marker-${markerId}-visible`}
+            style={{ display: 'block', width: 1, height: 1 }}
+          />
+        ))}
       </div>
       {seekGuide && !isAgeInitiated && (
         <div className="embodied-initiation-hint" data-testid="embodied-initiation-hint">

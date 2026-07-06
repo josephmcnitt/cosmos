@@ -61,23 +61,37 @@ function resolveOnboardingWorldId(data: Partial<PersistedWorldSnapshot>): string
 function repairLegacyProgression(snapshot: PersistedWorldSnapshot): PersistedWorldSnapshot {
   const completed = new Set(snapshot.completedProgressNodeIds);
   const puzzles = new Set(snapshot.completedPuzzleIds);
+  const revealedMarkers = new Set(snapshot.revealedMarkerIds);
   const convergenceWithoutRings =
     completed.has('grove-hermetic-convergence') && !completed.has('grove-hermetic-rings');
   const puzzleDoneButNodeMissing =
     puzzles.has('puzzle-hermetic-rings') && !completed.has('grove-hermetic-rings');
+  const experientialWithoutPythagorean =
+    completed.has('grove-choice-experiential') && !revealedMarkers.has('grove-pythagorean');
 
-  if (!convergenceWithoutRings && !puzzleDoneButNodeMissing) return snapshot;
+  if (!convergenceWithoutRings && !puzzleDoneButNodeMissing && !experientialWithoutPythagorean) {
+    return snapshot;
+  }
 
-  completed.add('grove-hermetic-rings');
-  puzzles.add('puzzle-hermetic-rings');
+  if (convergenceWithoutRings || puzzleDoneButNodeMissing) {
+    completed.add('grove-hermetic-rings');
+    puzzles.add('puzzle-hermetic-rings');
+  }
+  if (experientialWithoutPythagorean) {
+    revealedMarkers.add('grove-pythagorean');
+  }
 
   return {
     ...snapshot,
     completedProgressNodeIds: [...completed],
     completedPuzzleIds: [...puzzles],
+    revealedMarkerIds: [...revealedMarkers],
     entities: snapshot.entities.map((entity) => {
       if (entity.kind === 'puzzle-mechanism' && entity.defId === 'puzzle-hermetic-rings') {
         return { ...entity, state: { ...entity.state, completed: true } };
+      }
+      if (experientialWithoutPythagorean && entity.id === 'grove-pythagorean') {
+        return { ...entity, state: { ...entity.state, progressRevealed: true } };
       }
       return entity;
     }),

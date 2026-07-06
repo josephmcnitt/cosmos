@@ -33,6 +33,8 @@ test.describe('Playtest tool timeline visibility', () => {
   });
 
   test('playtest layout keeps timeline visible in walk mode', async ({ page }) => {
+    await page.goto('/?earth=0');
+    await skipIntro(page);
     await disableEarthGlobe(page);
     await setSpiritualFullDepth(page);
     await page.getByTestId('hud-walking').waitFor({ state: 'visible', timeout: 15_000 });

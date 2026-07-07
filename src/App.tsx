@@ -73,6 +73,7 @@ import { EarthDescentTransition } from './world/earth/EarthDescentTransition';
 import { EarthNavPrompt, EarthDetailPanel, EarthGlobePrompt } from './ui/EarthNavPrompt';
 import { EarthDescentOverlay } from './ui/EarthDescentOverlay';
 import { ObserverStateProbe } from './ui/ObserverStateProbe';
+import { VisibleMarkerProbe } from './ui/VisibleMarkerProbe';
 import { useWorldStore } from './core/world/WorldState';
 import { WorldRoot } from './world/WorldRoot';
 import { onRangeInputWheel } from './ui/rangeInputWheelGuard';
@@ -271,6 +272,7 @@ export default function App() {
           <TimelineLabel />
           <TimeControls />
           <ObserverStateProbe />
+          <VisibleMarkerProbe />
         </div>
       )}
     </div>

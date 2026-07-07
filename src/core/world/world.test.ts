@@ -15,9 +15,14 @@ describe('WorldRegistry', () => {
 
   it('spawns marker and actor entities for grove', () => {
     const entities = spawnEntitiesForAge(GROVE_AGE);
-    expect(entities.filter((e) => e.kind === 'marker').length).toBe(6);
+    expect(entities.filter((e) => e.kind === 'marker').length).toBe(7);
     expect(entities.filter((e) => e.kind === 'actor').length).toBe(1);
     expect(entities.some((e) => e.kind === 'portal')).toBe(true);
+    expect(entities.find((e) => e.id === 'grove-pythagorean')?.state).toMatchObject({
+      progressHidden: true,
+      progressRevealed: false,
+      hiddenUntilNode: 'grove-choice-experiential',
+    });
   });
 
   it('validates Alexandria expanded library polish data', () => {

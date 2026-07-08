@@ -45,10 +45,14 @@ export function getCurrentAgeMarkers(): SiteMarkerView[] {
   const worldId = getCurrentWorldId();
   if (!isAgeInitiated(worldId)) return [];
   const age = getActiveAgeDefinition(worldId);
-  return useWorldStore
-    .getState()
-    .entities.filter(
-      (e) => e.worldId === worldId && e.kind === 'marker' && e.layer === 'material',
+  const state = useWorldStore.getState();
+  return state.entities
+    .filter(
+      (e) =>
+        e.worldId === worldId &&
+        e.kind === 'marker' &&
+        e.layer === 'material' &&
+        state.isMarkerVisible(e.id),
     )
     .map((e) => {
       const def = age.markers.find((m) => m.id === e.id);

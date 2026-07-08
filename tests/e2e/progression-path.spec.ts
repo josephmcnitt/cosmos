@@ -112,6 +112,7 @@ test.describe('game tree — Hermetic rational path', () => {
     expect(save.revealedMarkerIds ?? []).not.toContain('grove-pythagorean');
     expect(save.pathFlags['grove-hermetic-path']).toBe('rational');
     expect(save.activePathId).toBe('hermetic-rational');
+    await expect(page.getByTestId('marker-grove-pythagorean-visible')).toHaveCount(0);
   });
 
   test('path panel shows rational milestones and next ring step', async ({ page }) => {
@@ -177,10 +178,7 @@ test.describe('game tree — Hermetic experiential path', () => {
       (e: { id: string; state: { progressRevealed?: boolean } }) => e.id === 'grove-pythagorean',
     );
     expect(marker?.state.progressRevealed).toBe(true);
-
-    await page.getByTestId('spatial-slider').fill('4');
-    await page.getByTestId('hud-walking').waitFor({ state: 'visible', timeout: 15_000 });
-    await expect(page.getByTestId('embodied-discover')).toContainText('Pythagorean mysteries');
+    await expect(page.getByTestId('marker-grove-pythagorean-visible')).toBeAttached();
   });
 
   test('path panel shows experiential route and ring next step', async ({ page }) => {

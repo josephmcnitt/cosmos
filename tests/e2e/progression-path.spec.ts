@@ -44,7 +44,7 @@ async function waitForProgressNode(page: import('@playwright/test').Page, nodeId
 
 /** Boot game, inject save patch, reload, and wait for HUD. */
 async function seedSave(page: import('@playwright/test').Page, patch: Record<string, unknown> = {}) {
-  await page.goto('/');
+  await page.goto('/?earth=0');
   await skipIntro(page);
   await injectProgressSave(page, patch);
   await page.reload();
@@ -109,6 +109,7 @@ test.describe('game tree — Hermetic rational path', () => {
 
     const save = await readSave(page);
     expect(save.revealedMarkerIds).toContain('grove-rosicrucian');
+    expect(save.revealedMarkerIds ?? []).not.toContain('grove-pythagorean');
     expect(save.pathFlags['grove-hermetic-path']).toBe('rational');
     expect(save.activePathId).toBe('hermetic-rational');
   });
@@ -153,7 +154,7 @@ test.describe('game tree — Hermetic rational path', () => {
 });
 
 test.describe('game tree — Hermetic experiential path', () => {
-  test('experiential fork sets practice flag without rosicrucian marker', async ({ page }) => {
+  test('experiential fork reveals pythagorean marker without rosicrucian marker', async ({ page }) => {
     await seedSave(page, {
       choiceHistory: [
         {
@@ -170,7 +171,16 @@ test.describe('game tree — Hermetic experiential path', () => {
     const save = await readSave(page);
     expect(save.pathFlags['grove-experiential-practice']).toBe(true);
     expect(save.pathFlags['grove-hermetic-path']).toBe('experiential');
+    expect(save.revealedMarkerIds).toContain('grove-pythagorean');
     expect(save.revealedMarkerIds ?? []).not.toContain('grove-rosicrucian');
+    const marker = save.entities?.find(
+      (e: { id: string; state: { progressRevealed?: boolean } }) => e.id === 'grove-pythagorean',
+    );
+    expect(marker?.state.progressRevealed).toBe(true);
+
+    await page.getByTestId('spatial-slider').fill('4');
+    await page.getByTestId('hud-walking').waitFor({ state: 'visible', timeout: 15_000 });
+    await expect(page.getByTestId('embodied-discover')).toContainText('Pythagorean mysteries');
   });
 
   test('path panel shows experiential route and ring next step', async ({ page }) => {

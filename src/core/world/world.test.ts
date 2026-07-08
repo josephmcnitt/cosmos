@@ -7,6 +7,8 @@ import { loadSave } from '../save/saveGame';
 import { worldEvents } from './WorldEvents';
 import { simDirector } from './SimDirector';
 import { checkRingAlignment } from '../puzzles/index';
+import { useWorldStore } from './WorldState';
+import { getMarkerByEventId } from './worldQueries';
 
 describe('WorldRegistry', () => {
   it('validates grove age without errors', () => {
@@ -15,9 +17,27 @@ describe('WorldRegistry', () => {
 
   it('spawns marker and actor entities for grove', () => {
     const entities = spawnEntitiesForAge(GROVE_AGE);
-    expect(entities.filter((e) => e.kind === 'marker').length).toBe(6);
+    expect(entities.filter((e) => e.kind === 'marker').length).toBe(7);
     expect(entities.filter((e) => e.kind === 'actor').length).toBe(1);
     expect(entities.some((e) => e.kind === 'portal')).toBe(true);
+  });
+
+  it('hides progression-gated markers from world queries until revealed', () => {
+    const entities = spawnEntitiesForAge(GROVE_AGE);
+    useWorldStore.setState({
+      currentWorldId: 'grove',
+      initiationStatus: { grove: 'completed', alexandria: 'locked', rome: 'locked', desert: 'locked' },
+      entities,
+      revealedMarkerIds: [],
+    });
+
+    expect(getMarkerByEventId('pythagorean-mysteries')).toBeUndefined();
+
+    useWorldStore.setState({
+      revealedMarkerIds: ['grove-pythagorean'],
+    });
+
+    expect(getMarkerByEventId('pythagorean-mysteries')?.entityId).toBe('grove-pythagorean');
   });
 
   it('validates Alexandria expanded library polish data', () => {

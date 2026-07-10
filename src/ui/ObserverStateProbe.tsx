@@ -8,7 +8,7 @@ export function ObserverStateProbe() {
   const introComplete = useIntroStore((s) => s.phase === 'complete');
   const mode = useObserverStore((s) => s.mode);
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
-  const markerEntities = useWorldStore((s) => s.entities.filter((e) => e.kind === 'marker'));
+  const entities = useWorldStore((s) => s.entities);
   const revealedMarkerIds = useWorldStore((s) => s.revealedMarkerIds);
 
   if (!introComplete) return null;
@@ -22,21 +22,23 @@ export function ObserverStateProbe() {
       hidden
       aria-hidden
     >
-      {markerEntities.map((marker) => {
-        const visible =
-          marker.state.progressHidden !== true ||
-          marker.state.progressRevealed === true ||
-          revealedMarkerIds.includes(marker.id);
-        return (
-          <span
-            key={marker.id}
-            data-testid={`marker-${marker.id}-visible`}
-            data-visible={visible ? '1' : '0'}
-          >
-            {visible ? 'true' : 'false'}
-          </span>
-        );
-      })}
+      {entities
+        .filter((entity) => entity.kind === 'marker')
+        .map((marker) => {
+          const visible =
+            marker.state.progressHidden !== true ||
+            marker.state.progressRevealed === true ||
+            revealedMarkerIds.includes(marker.id);
+          return (
+            <span
+              key={marker.id}
+              data-testid={`marker-${marker.id}-visible`}
+              data-visible={visible ? '1' : '0'}
+            >
+              {visible ? 'true' : 'false'}
+            </span>
+          );
+        })}
     </div>
   );
 }

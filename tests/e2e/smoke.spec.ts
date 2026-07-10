@@ -15,7 +15,7 @@ test.describe('Cosmos production smoke', () => {
   });
 
   test('spiritual track and full depth toggles', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/?earth=0');
     await skipIntro(page);
     await setSpiritualFullDepth(page);
 

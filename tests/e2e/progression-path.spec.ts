@@ -42,6 +42,16 @@ async function waitForProgressNode(page: import('@playwright/test').Page, nodeId
   );
 }
 
+async function expectMarkerVisibility(
+  page: import('@playwright/test').Page,
+  markerId: string,
+  visible: boolean,
+) {
+  const probe = page.getByTestId(`marker-${markerId}-visible`);
+  await probe.waitFor({ state: 'attached', timeout: 30_000 });
+  await expect(probe).toHaveAttribute('data-visible', visible ? '1' : '0');
+}
+
 /** Boot game, inject save patch, reload, and wait for HUD. */
 async function seedSave(page: import('@playwright/test').Page, patch: Record<string, unknown> = {}) {
   await page.goto('/');
@@ -109,8 +119,10 @@ test.describe('game tree — Hermetic rational path', () => {
 
     const save = await readSave(page);
     expect(save.revealedMarkerIds).toContain('grove-rosicrucian');
+    expect(save.revealedMarkerIds ?? []).not.toContain('grove-pythagorean');
     expect(save.pathFlags['grove-hermetic-path']).toBe('rational');
     expect(save.activePathId).toBe('hermetic-rational');
+    await expectMarkerVisibility(page, 'grove-pythagorean', false);
   });
 
   test('path panel shows rational milestones and next ring step', async ({ page }) => {
@@ -153,7 +165,7 @@ test.describe('game tree — Hermetic rational path', () => {
 });
 
 test.describe('game tree — Hermetic experiential path', () => {
-  test('experiential fork sets practice flag without rosicrucian marker', async ({ page }) => {
+  test('experiential fork reveals pythagorean marker without rosicrucian marker', async ({ page }) => {
     await seedSave(page, {
       choiceHistory: [
         {
@@ -170,7 +182,9 @@ test.describe('game tree — Hermetic experiential path', () => {
     const save = await readSave(page);
     expect(save.pathFlags['grove-experiential-practice']).toBe(true);
     expect(save.pathFlags['grove-hermetic-path']).toBe('experiential');
+    expect(save.revealedMarkerIds).toContain('grove-pythagorean');
     expect(save.revealedMarkerIds ?? []).not.toContain('grove-rosicrucian');
+    await expectMarkerVisibility(page, 'grove-pythagorean', true);
   });
 
   test('path panel shows experiential route and ring next step', async ({ page }) => {

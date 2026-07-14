@@ -7,7 +7,7 @@ test.describe('Playtest tool timeline visibility', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript({ content: buildPlaytestLayoutInitScript() });
     await page.addInitScript({ content: buildPanelScript({ mode: 'guidance' }) });
-    await page.goto('/');
+    await page.goto('/?earth=0');
     await skipIntro(page);
   });
 

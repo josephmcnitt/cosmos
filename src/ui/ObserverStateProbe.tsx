@@ -1,14 +1,23 @@
 import { isEarthGlobeEnabled } from '../core/earth/feature';
 import { useIntroStore } from '../core/IntroState';
 import { useObserverStore } from '../core/ObserverState';
+import { useWorldStore } from '../core/world/WorldState';
 
 /** Hidden DOM probe for E2E — reflects live observer mode without window store hooks. */
 export function ObserverStateProbe() {
   const introComplete = useIntroStore((s) => s.phase === 'complete');
   const mode = useObserverStore((s) => s.mode);
   const spatialExponent = useObserverStore((s) => s.spatialExponent);
+  const currentWorldId = useWorldStore((s) => s.currentWorldId);
+  const entities = useWorldStore((s) => s.entities);
+  const isMarkerVisible = useWorldStore((s) => s.isMarkerVisible);
 
   if (!introComplete) return null;
+
+  const visibleMarkerIds = entities
+    .filter((entity) => entity.worldId === currentWorldId && entity.kind === 'marker')
+    .filter((entity) => isMarkerVisible(entity.id))
+    .map((entity) => entity.id);
 
   return (
     <div
@@ -18,6 +27,10 @@ export function ObserverStateProbe() {
       data-earth-enabled={isEarthGlobeEnabled() ? '1' : '0'}
       hidden
       aria-hidden
-    />
+    >
+      {visibleMarkerIds.map((markerId) => (
+        <span key={markerId} data-testid={`marker-${markerId}-visible`} />
+      ))}
+    </div>
   );
 }

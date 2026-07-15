@@ -47,10 +47,16 @@ export const GROVE_HERMETIC_NODES: ProgressNodeDef[] = [
       { type: 'setActivePath', pathId: 'hermetic-experiential' },
       { type: 'setPathFlag', flag: 'grove-hermetic-path', value: 'experiential' },
       { type: 'setPathFlag', flag: 'grove-experiential-practice', value: true },
+      { type: 'revealMarker', markerId: 'grove-pythagorean', worldId: 'grove' },
       {
         type: 'journalEntry',
         title: 'Correspondence in breath',
         body: 'Practice at the Hermetic stone will answer sooner — the microcosm learns to mirror the macrocosm through stance, not argument alone.',
+      },
+      {
+        type: 'journalEntry',
+        title: 'Number in harmony',
+        body: 'A Pythagorean stone has appeared north-west of the Grove. Its mystery teaches number as something heard in the body before it is proved by argument.',
       },
       {
         type: 'journalEntry',

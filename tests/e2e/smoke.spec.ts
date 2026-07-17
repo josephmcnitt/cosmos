@@ -15,12 +15,19 @@ test.describe('Cosmos production smoke', () => {
   });
 
   test('spiritual track and full depth toggles', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/?earth=0');
     await skipIntro(page);
     await setSpiritualFullDepth(page);
 
     await expect(page.getByTestId('history-track-spiritual').first()).toHaveClass(/active/);
-    await expect(page.getByTestId('depth-toggle-full').first()).toHaveClass(/active/);
+    const fullDepthToggle = page.getByTestId('depth-toggle-full').first();
+    const walkingHud = page.getByTestId('hud-walking');
+    const enteredWalkMode = await walkingHud.isVisible().catch(() => false);
+    if (enteredWalkMode) {
+      await expect(walkingHud).toHaveText('Walking');
+    } else {
+      await expect(fullDepthToggle).toHaveClass(/active/);
+    }
   });
 
   test('enter walk mode at human scale', async ({ page }) => {

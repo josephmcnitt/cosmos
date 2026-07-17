@@ -15,7 +15,8 @@ describe('WorldRegistry', () => {
 
   it('spawns marker and actor entities for grove', () => {
     const entities = spawnEntitiesForAge(GROVE_AGE);
-    expect(entities.filter((e) => e.kind === 'marker').length).toBe(6);
+    expect(entities.filter((e) => e.kind === 'marker').length).toBe(GROVE_AGE.markers.length);
+    expect(entities.find((e) => e.id === 'grove-pythagorean')?.state.progressHidden).toBe(true);
     expect(entities.filter((e) => e.kind === 'actor').length).toBe(1);
     expect(entities.some((e) => e.kind === 'portal')).toBe(true);
   });

@@ -30,6 +30,7 @@ export const MARKER_TRADITION_COLORS: Record<SpiritualTradition, string> = {
   hindu_mysticism: '#f08858',
   alchemy: '#c87848',
   theosophy: '#88a8f0',
+  via_resonantiae: '#7fd4ff',
   general: '#a0a8b8',
 };
 

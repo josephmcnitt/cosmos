@@ -12,6 +12,7 @@ export type SpiritualTradition =
   | 'hindu_mysticism'
   | 'alchemy'
   | 'theosophy'
+  | 'via_resonantiae'
   | 'general';
 
 export type SpiritualVisibility = 'exoteric' | 'esoteric';
@@ -75,6 +76,7 @@ export const TRADITION_LABELS: Record<SpiritualTradition, string> = {
   hindu_mysticism: 'Hindu',
   alchemy: 'Alchemy',
   theosophy: 'Theosophy',
+  via_resonantiae: 'Via Resonantiae',
   general: 'General',
 };
 

@@ -45,10 +45,16 @@ export function getCurrentAgeMarkers(): SiteMarkerView[] {
   const worldId = getCurrentWorldId();
   if (!isAgeInitiated(worldId)) return [];
   const age = getActiveAgeDefinition(worldId);
-  return useWorldStore
-    .getState()
-    .entities.filter(
-      (e) => e.worldId === worldId && e.kind === 'marker' && e.layer === 'material',
+  const world = useWorldStore.getState();
+  return world.entities
+    .filter(
+      (e) =>
+        e.worldId === worldId &&
+        e.kind === 'marker' &&
+        e.layer === 'material' &&
+        // Progression-hidden stones must not be discoverable, practicable,
+        // or puzzle targets while invisible.
+        world.isMarkerVisible(e.id),
     )
     .map((e) => {
       const def = age.markers.find((m) => m.id === e.id);

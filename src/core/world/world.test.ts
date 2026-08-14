@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { worldRegistry, spawnEntitiesForAge, repairWorldEntities } from './WorldRegistry';
+import {
+  worldRegistry,
+  spawnEntitiesForAge,
+  spawnAllWorldEntities,
+  repairWorldEntities,
+} from './WorldRegistry';
 import { GROVE_AGE } from '../../data/ages/grove';
 import { ALEXANDRIA_AGE } from '../../data/ages/alexandria';
 import { createDefaultSnapshot, migrateSave } from '../save/migrations';
@@ -15,9 +20,43 @@ describe('WorldRegistry', () => {
 
   it('spawns marker and actor entities for grove', () => {
     const entities = spawnEntitiesForAge(GROVE_AGE);
-    expect(entities.filter((e) => e.kind === 'marker').length).toBe(6);
+    expect(entities.filter((e) => e.kind === 'marker').length).toBe(17);
     expect(entities.filter((e) => e.kind === 'actor').length).toBe(1);
     expect(entities.some((e) => e.kind === 'portal')).toBe(true);
+    expect(entities.some((e) => e.id === 'grove-via-silent-gate')).toBe(true);
+    expect(entities.some((e) => e.id === 'grove-via-liber-vi')).toBe(true);
+    expect(entities.some((e) => e.id === 'grove-pythagorean')).toBe(true);
+    expect(entities.some((e) => e.id === 'puzzle-grove-puzzle-hermetic-rings')).toBe(true);
+  });
+
+  it('keeps hermetic ring puzzle on grove after repair across multi-age markers', () => {
+    const fresh = spawnAllWorldEntities();
+    const hermeticPuzzles = fresh.filter(
+      (e) => e.kind === 'puzzle-mechanism' && e.defId === 'puzzle-hermetic-rings',
+    );
+    expect(hermeticPuzzles).toHaveLength(1);
+    expect(hermeticPuzzles[0]?.worldId).toBe('grove');
+
+    // Simulate legacy save where duplicate global puzzle ids collapsed to the last age.
+    const legacyCollapsed = fresh
+      .filter((e) => !(e.kind === 'puzzle-mechanism' && e.defId === 'puzzle-hermetic-rings'))
+      .concat({
+        id: 'puzzle-puzzle-hermetic-rings',
+        kind: 'puzzle-mechanism' as const,
+        defId: 'puzzle-hermetic-rings',
+        worldId: 'cordoba',
+        layer: 'material' as const,
+        transform: { x: 0, z: 0 },
+        state: { completed: false, ringRotations: [1, 0, 0] },
+      });
+
+    const repaired = repairWorldEntities(legacyCollapsed);
+    const grovePuzzle = repaired.find(
+      (e) => e.id === 'puzzle-grove-puzzle-hermetic-rings' && e.worldId === 'grove',
+    );
+    expect(grovePuzzle).toBeTruthy();
+    expect(grovePuzzle?.transform.x).toBe(5);
+    expect(grovePuzzle?.transform.z).toBe(-5);
   });
 
   it('validates Alexandria expanded library polish data', () => {
@@ -35,6 +74,24 @@ describe('WorldRegistry', () => {
       }),
     );
     expect(worldRegistry.validate()).toEqual([]);
+  });
+
+  it('keeps puzzle-less return portals unlocked, including after repair', () => {
+    const alex = spawnEntitiesForAge(ALEXANDRIA_AGE);
+    const returnPortal = alex.find((e) => e.id === 'portal-alex-grove');
+    expect(returnPortal?.state.unlocked).toBe(true);
+    expect(returnPortal?.state.puzzleId).toBeNull();
+
+    const cordobaGate = alex.find((e) => e.id === 'portal-alex-cordoba');
+    expect(cordobaGate?.state.unlocked).toBe(false);
+
+    const repaired = repairWorldEntities([
+      {
+        ...returnPortal!,
+        state: { ...returnPortal!.state, unlocked: false },
+      },
+    ]);
+    expect(repaired.find((e) => e.id === 'portal-alex-grove')?.state.unlocked).toBe(true);
   });
 
   it('repairWorldEntities adds missing actors without dropping saved marker state', () => {
@@ -129,7 +186,7 @@ describe('SimDirector', () => {
 
 describe('puzzles', () => {
   it('checks ring alignment', () => {
-    expect(checkRingAlignment('puzzle-hermetic-rings', [0, 2, 1])).toBe(true);
+    expect(checkRingAlignment('puzzle-hermetic-rings', [2, 2, 1])).toBe(true);
     expect(checkRingAlignment('puzzle-hermetic-rings', [0, 0, 0])).toBe(false);
   });
 });

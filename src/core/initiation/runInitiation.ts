@@ -25,7 +25,19 @@ export interface StepCheckContext {
   avatarMoving: boolean;
   stepStartedAt: number;
   choiceId?: string;
-  keysPressedSinceStep: boolean;
+  /** performance.now() of the most recent gameplay keypress (0 = none). */
+  lastKeyPressedAtMs: number;
+}
+
+/**
+ * Stillness/silence steps measure quiet time since the LATER of step start
+ * and the last keypress — a stray key restarts the timer instead of
+ * permanently blocking the step (walking into a silence step while still
+ * holding W used to soft-lock the initiation).
+ */
+function quietElapsedSec(ctx: StepCheckContext): number {
+  const quietStart = Math.max(ctx.stepStartedAt, ctx.lastKeyPressedAtMs);
+  return (performance.now() - quietStart) / 1000;
 }
 
 export function isStepComplete(step: InitiationStep, ctx: StepCheckContext): boolean {
@@ -37,13 +49,12 @@ export function isStepComplete(step: InitiationStep, ctx: StepCheckContext): boo
     case 'walk-to':
       return distanceXZ(ctx.playerX, ctx.playerZ, step.targetX, step.targetZ) <= (step.radius ?? 3);
     case 'hold-still':
-      if (ctx.avatarMoving || ctx.keysPressedSinceStep) return false;
-      return (performance.now() - ctx.stepStartedAt) / 1000 >= step.durationSec;
+      if (ctx.avatarMoving) return false;
+      return quietElapsedSec(ctx) >= step.durationSec;
     case 'face-direction':
       return yawMatches(ctx.playerYaw, step.targetYaw, step.tolerance ?? 0.5);
     case 'silence':
-      if (ctx.keysPressedSinceStep) return false;
-      return (performance.now() - ctx.stepStartedAt) / 1000 >= step.durationSec;
+      return quietElapsedSec(ctx) >= step.durationSec;
     default:
       return false;
   }

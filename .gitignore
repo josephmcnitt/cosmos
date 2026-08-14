@@ -30,3 +30,7 @@ tests/e2e/screenshots/
 
 # Bug catcher sessions
 bug-sessions/
+
+# Local agent/editor config
+.claude/
+.cursor/

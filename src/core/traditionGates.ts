@@ -26,6 +26,8 @@ export function meetsTraditionGate(ctx: TraditionGateContext): boolean {
       return spiritualDepth >= 0.38 && sessionsCompleted >= 1;
     case 'gnosticism':
       return spiritualDepth >= 0.45 && sessionsCompleted >= 1;
+    case 'via_resonantiae':
+      return spiritualDepth >= 0.5 && sessionsCompleted >= 3;
     case 'alchemy':
       return sessionsCompleted >= 2 && spiritualDepth >= 0.3;
     default:

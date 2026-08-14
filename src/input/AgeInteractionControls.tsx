@@ -1,18 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
-import { ceYear } from '../data/history/time';
-import { getPuzzleById } from '../data/ages/index';
+import { getEventById } from '../data/history/index';
+import { getPuzzleById, PUZZLE_TEMPLATES } from '../data/ages/index';
 import {
   checkEraWitness,
   checkRingAlignment,
   checkThresholdStance,
+  isWithinEraWitnessWindow,
   puzzleActionHint,
   puzzleHintFor,
   rotateRing,
 } from '../core/puzzles/index';
+import { useGematriaStore } from '../core/GematriaState';
 import { useObserverStore } from '../core/ObserverState';
 import { usePracticeStore } from '../core/PracticeState';
 import { useWorldStore } from '../core/world/WorldState';
 import { useIntroActive } from '../core/IntroSkipHandler';
+import { isTypingTarget } from '../core/typingTarget';
 import { getNearestSiteMarker } from '../data/embodied/siteMarkers';
 import { getNearestPuzzleMechanism } from '../core/world/worldQueries';
 
@@ -40,8 +43,19 @@ export function AgeInteractionControls() {
     if (mode !== 'embodied' || introActive) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
+      if (isTypingTarget(e.target)) return;
       if (!isAgeInitiated) return;
       if (e.key.toLowerCase() === 'r') {
+        const gematriaEntity = getNearestPuzzleMechanism(avatarPosition.x, avatarPosition.z, {
+          type: 'gematria',
+          maxDistance: 5,
+          includeCompleted: true,
+        });
+        if (gematriaEntity) {
+          useGematriaStore.getState().openPuzzle(gematriaEntity.defId);
+          setHint(null);
+          return;
+        }
         let puzzleEntity = getNearestPuzzleMechanism(avatarPosition.x, avatarPosition.z, {
           type: 'ring-alignment',
           maxDistance: 5,
@@ -162,19 +176,33 @@ export function AgeInteractionControls() {
   ]);
 
   useEffect(() => {
-    const christianityTime = ceYear(30);
-    if (mode === 'cosmic' && Math.abs(simTimeSeconds - christianityTime) < 5e10) {
-      markEraWitnessed('christianity');
+    const eraWitnessPuzzles = PUZZLE_TEMPLATES.filter(
+      (p) => p.type === 'era-witness' && p.witnessEventId,
+    );
+
+    for (const puzzle of eraWitnessPuzzles) {
+      const witness = getEventById(puzzle.witnessEventId!);
+      if (
+        witness &&
+        mode === 'cosmic' &&
+        isWithinEraWitnessWindow(simTimeSeconds, witness.simTimeSeconds)
+      ) {
+        markEraWitnessed(puzzle.witnessEventId!);
+      }
     }
-    if (
-      checkEraWitness('puzzle-gnostic-era', eraWitnessFlags) &&
-      !isPuzzleCompleted('puzzle-gnostic-era')
-    ) {
-      completePuzzle('puzzle-gnostic-era');
+
+    for (const puzzle of eraWitnessPuzzles) {
+      if (checkEraWitness(puzzle.id, eraWitnessFlags) && !isPuzzleCompleted(puzzle.id)) {
+        completePuzzle(puzzle.id);
+      }
     }
   }, [mode, simTimeSeconds, eraWitnessFlags, markEraWitnessed, completePuzzle, isPuzzleCompleted]);
 
-  if (!hint) return null;
+  useEffect(() => {
+    if (mode !== 'embodied') setHint(null);
+  }, [mode]);
+
+  if (mode !== 'embodied' || !hint) return null;
   return (
     <div className="puzzle-hint ui-panel" data-testid="puzzle-hint">
       {hint}

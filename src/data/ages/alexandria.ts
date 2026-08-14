@@ -53,6 +53,13 @@ export const ALEXANDRIA_AGE: AgeDefinition = {
       targetAgeId: 'grove',
       label: 'Return to the Grove',
     },
+    {
+      id: 'portal-alex-cordoba',
+      markerEventId: 'library-alexandria',
+      targetAgeId: 'cordoba',
+      label: 'West to Córdoba',
+      puzzleId: 'puzzle-cordoba-translation',
+    },
   ],
   veils: [{ id: 'veil-alex-lighthouse', position: [0, -4], label: 'Veil of Pharos' }],
   esotericLayer: { tradition: 'hermetic', geometry: 'hermetic-spheres' },

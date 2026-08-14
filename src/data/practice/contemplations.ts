@@ -36,6 +36,17 @@ export const CONTEMPLATION_LINES: Partial<Record<SpiritualTradition, string[]>> 
     'The Zohar speaks in symbols; listen beneath the words.',
     'Every spark lost in exile waits for tikkun.',
   ],
+  via_resonantiae: [
+    'Maps are not territory; resonance is practiced.',
+    'You are Spark — tend the Well.',
+    'Pass the Veils you are ready for; seal what you open.',
+    'Integrate or stop — the First Dissonance teaches both.',
+    'Silence. What you cannot say, do not fake.',
+    'Without a Well, there is no Point.',
+    'Climb without flood — Point, Line, Plane, Being, Becoming.',
+    'The Overflow, which later tongues call the Bang.',
+    'Keep your Well. Seek the other. Co-create.',
+  ],
 };
 
 export function getContemplationLine(

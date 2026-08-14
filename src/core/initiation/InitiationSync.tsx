@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { getInitiationById, getStep } from '../../data/initiations/index';
 import { isChooseResolved, isStepComplete } from '../initiation/runInitiation';
+import { isTypingTarget } from '../typingTarget';
 import { useObserverStore } from '../ObserverState';
 import { usePracticeStore } from '../PracticeState';
 import { useWorldStore } from '../world/WorldState';
@@ -11,19 +12,18 @@ export function InitiationSync() {
   const avatarPosition = useObserverStore((s) => s.avatarPosition);
   const avatarYaw = useObserverStore((s) => s.avatarYaw);
   const avatarMoving = usePracticeStore((s) => s.avatarMoving);
-  const keysPressed = useRef(false);
+  // Timestamp, not a boolean — quiet steps restart their timer on keypress
+  // (a step-scoped "any key pressed" flag can never clear and soft-locks).
+  const lastKeyMs = useRef(0);
 
   useEffect(() => {
-    const onKey = () => {
-      keysPressed.current = true;
+    const onKey = (e: KeyboardEvent) => {
+      if (isTypingTarget(e.target)) return;
+      lastKeyMs.current = performance.now();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
-
-  useEffect(() => {
-    keysPressed.current = false;
-  }, [activeInitiation?.stepIndex, activeInitiation?.initiationId]);
 
   useEffect(() => {
     if (!activeInitiation) return;
@@ -59,11 +59,10 @@ export function InitiationSync() {
         avatarMoving,
         stepStartedAt: active.stepStartedAt,
         choiceId: active.choiceId,
-        keysPressedSinceStep: keysPressed.current,
+        lastKeyPressedAtMs: lastKeyMs.current,
       });
 
       if (complete) {
-        keysPressed.current = false;
         useWorldStore.getState().advanceInitiationStep();
         return;
       }

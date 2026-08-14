@@ -9,6 +9,7 @@ import { useIntroActive } from '../core/IntroSkipHandler';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
 import { usePracticeStore } from '../core/PracticeState';
+import { isTypingTarget } from '../core/typingTarget';
 
 export function EmbodiedControls() {
   const introActive = useIntroActive();
@@ -21,6 +22,7 @@ export function EmbodiedControls() {
     if (mode !== 'embodied' || introActive) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
+      if (isTypingTarget(e.target)) return;
       keysDown.current.add(e.key.toLowerCase());
     };
     const onKeyUp = (e: KeyboardEvent) => {

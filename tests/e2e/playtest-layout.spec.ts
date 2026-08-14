@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { buildPanelScript } from '../../tools/bug-catcher/panelScript';
 import { buildPlaytestLayoutInitScript } from '../../tools/bug-catcher/playtestLayout';
-import { disableEarthGlobe, setSpiritualFullDepth, skipIntro } from './helpers';
+import { enterWalkMode, skipIntro } from './helpers';
 
 test.describe('Playtest tool timeline visibility', () => {
   test.beforeEach(async ({ page }) => {
@@ -32,22 +32,36 @@ test.describe('Playtest tool timeline visibility', () => {
     expect(playheadBox.y + playheadBox.height).toBeLessThanOrEqual(viewport.height);
   });
 
-  test('playtest layout keeps timeline visible in walk mode', async ({ page }) => {
-    await disableEarthGlobe(page);
-    await setSpiritualFullDepth(page);
-    await page.getByTestId('hud-walking').waitFor({ state: 'visible', timeout: 15_000 });
+  test('playtest layout keeps timeline reachable in walk mode', async ({ page }) => {
+    // Must re-navigate with ?earth=0 — plain '/' sends human-scale zoom into
+    // Earth globe mode instead of walk mode. Init scripts persist across goto.
+    await enterWalkMode(page);
+
+    const viewport = page.viewportSize();
+    if (!viewport) throw new Error('Missing viewport');
+
+    // Walk mode collapses the timeline to a pill so the scene stays readable —
+    // the pill itself must be on-screen, and expanding it must bring the full
+    // timeline stack back fully inside the viewport.
+    const pill = page.getByTestId('time-controls-collapsed');
+    await expect(pill).toBeVisible();
+    const pillBox = await pill.boundingBox();
+    if (!pillBox) throw new Error('Missing collapsed timeline pill');
+    expect(pillBox.y + pillBox.height).toBeLessThanOrEqual(viewport.height);
+
+    await pill.click();
 
     const temporal = page.getByTestId('temporal-zoom');
     const playhead = page.getByTestId('timeline-playhead');
-
     await expect(temporal).toBeVisible();
     await expect(playhead).toBeVisible();
 
-    const viewport = page.viewportSize();
     const temporalBox = await temporal.boundingBox();
-    if (!viewport || !temporalBox) throw new Error('Missing walk-mode timeline layout');
+    const playheadBox = await playhead.boundingBox();
+    if (!temporalBox || !playheadBox) throw new Error('Missing walk-mode timeline layout');
 
     expect(temporalBox.y + temporalBox.height).toBeLessThanOrEqual(viewport.height);
+    expect(playheadBox.y + playheadBox.height).toBeLessThanOrEqual(viewport.height);
   });
 
   test('playtest panel cannot be dragged over the timeline stack', async ({ page }) => {
@@ -70,5 +84,21 @@ test.describe('Playtest tool timeline visibility', () => {
     if (!panelBox) throw new Error('Playtest panel missing after drag');
 
     expect(panelBox.y + panelBox.height).toBeLessThanOrEqual(viewport.height - 240);
+  });
+
+  test('playtest panel starts below Journal toggle', async ({ page }) => {
+    const panel = page.locator('#bug-catcher-panel');
+    await expect(panel).toBeVisible();
+    const panelBox = await panel.boundingBox();
+    if (!panelBox) throw new Error('Playtest panel missing');
+    expect(panelBox.y).toBeGreaterThanOrEqual(80);
+
+    const journal = page.getByTestId('journal-toggle');
+    if (await journal.isVisible()) {
+      const journalBox = await journal.boundingBox();
+      if (journalBox) {
+        expect(journalBox.y + journalBox.height).toBeLessThanOrEqual(panelBox.y + 8);
+      }
+    }
   });
 });

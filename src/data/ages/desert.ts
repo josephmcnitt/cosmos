@@ -1,4 +1,5 @@
 import { ceYear } from '../history/time';
+import { EARTH_SITE_COORDS } from '../earth/siteCoordinates';
 import type { AgeDefinition } from './types';
 
 export const DESERT_AGE: AgeDefinition = {
@@ -24,7 +25,7 @@ export const DESERT_AGE: AgeDefinition = {
   benches: [{ position: [4, 0, -4] }],
   markers: [
     { id: 'desert-gnostic', eventId: 'gnostic-gospels', position: [0, -7], label: 'Gnostic texts' },
-    { id: 'desert-christian', eventId: 'christianity', position: [-6, 2], label: 'Desert fathers echo' },
+    { id: 'desert-fathers-stone', eventId: 'desert-fathers', position: [-6, 2], label: 'Desert fathers echo' },
   ],
   portals: [
     {
@@ -38,4 +39,6 @@ export const DESERT_AGE: AgeDefinition = {
   esotericLayer: { tradition: 'gnosticism', geometry: 'gnostic-dual' },
   unlock: { requiresPuzzleIds: ['puzzle-gnostic-era'] },
   astralBuildPalette: ['threshold-cairn', 'veil-anchor'],
+  geoAnchor: EARTH_SITE_COORDS.scetes,
+  playableWindow: { start: ceYear(150), end: ceYear(600) },
 };

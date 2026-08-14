@@ -172,7 +172,8 @@ export function spawnEntitiesForAge(age: AgeDefinition): EntityInstance[] {
       transform: marker
         ? { x: marker.position[0], z: marker.position[1] }
         : { x: 0, z: 0 },
-      state: { label: p.label, puzzleId: p.puzzleId ?? null, unlocked: false },
+      // Hub / return links have no gate puzzle — open as soon as the age exists.
+      state: { label: p.label, puzzleId: p.puzzleId ?? null, unlocked: !p.puzzleId },
     });
   }
   for (const v of age.veils) {
@@ -187,25 +188,43 @@ export function spawnEntitiesForAge(age: AgeDefinition): EntityInstance[] {
     });
   }
   for (const puzzle of PUZZLE_TEMPLATES) {
-    if (puzzle.markerEventId && age.markers.some((m) => m.eventId === puzzle.markerEventId)) {
-      const marker = age.markers.find((m) => m.eventId === puzzle.markerEventId)!;
-      entities.push({
-        id: `puzzle-${puzzle.id}`,
-        kind: 'puzzle-mechanism',
-        defId: puzzle.id,
-        worldId: age.id,
-        layer: 'material',
-        transform: { x: marker.position[0], z: marker.position[1] },
-        state: {
-          ringRotations: [0, 0, 0],
-          stanceHeld: false,
-          eraWitnessed: false,
-          completed: false,
-        },
-      });
-    }
+    // Only spawn on the age whose portal requires this puzzle — not every age that
+    // reuses the marker event id (hermetic-corpus appears in many ages).
+    if (!age.portals.some((p) => p.puzzleId === puzzle.id)) continue;
+    const marker = age.markers.find((m) => m.eventId === puzzle.markerEventId);
+    if (!marker) continue;
+    entities.push({
+      id: puzzleEntityId(age.id, puzzle.id),
+      kind: 'puzzle-mechanism',
+      defId: puzzle.id,
+      worldId: age.id,
+      layer: 'material',
+      transform: { x: marker.position[0], z: marker.position[1] },
+      state: {
+        ringRotations: [0, 0, 0],
+        stanceHeld: false,
+        eraWitnessed: false,
+        completed: false,
+      },
+    });
   }
   return entities;
+}
+
+export function puzzleEntityId(worldId: string, puzzleId: string): string {
+  return `puzzle-${worldId}-${puzzleId}`;
+}
+
+function entityRepairKey(entity: EntityInstance): string {
+  return `${entity.worldId}:${entity.id}`;
+}
+
+/** Normalize legacy global puzzle ids (`puzzle-<defId>`) to per-world ids. */
+export function normalizeEntityForRepair(entity: EntityInstance): EntityInstance {
+  if (entity.kind !== 'puzzle-mechanism') return entity;
+  const expected = puzzleEntityId(entity.worldId, entity.defId);
+  if (entity.id === expected) return entity;
+  return { ...entity, id: expected };
 }
 
 /** Merge saved entities with the current spawn catalog — adds missing NPCs/markers without wiping progress. */
@@ -213,14 +232,32 @@ export function repairWorldEntities(existing: EntityInstance[] | undefined): Ent
   const fresh = spawnAllWorldEntities();
   if (!existing?.length) return fresh;
 
-  const byId = new Map(existing.map((entity) => [entity.id, entity]));
+  const byKey = new Map(
+    existing.map((entity) => {
+      const normalized = normalizeEntityForRepair(entity);
+      return [entityRepairKey(normalized), normalized] as const;
+    }),
+  );
   return fresh.map((entity) => {
-    const saved = byId.get(entity.id);
+    const saved = byKey.get(entityRepairKey(entity));
     if (!saved) return entity;
     if (entity.kind === 'actor') {
       return { ...saved, transform: entity.transform, state: { ...entity.state, ...saved.state } };
     }
-    return saved;
+    // Prefer fresh transform/id (ages move stones); keep saved interaction state.
+    const merged = {
+      ...entity,
+      state: { ...entity.state, ...saved.state },
+    };
+    // Legacy saves locked return portals (no puzzleId); keep them open.
+    if (
+      merged.kind === 'portal' &&
+      (merged.state.puzzleId == null || merged.state.puzzleId === '') &&
+      entity.state.unlocked === true
+    ) {
+      return { ...merged, state: { ...merged.state, unlocked: true } };
+    }
+    return merged;
   });
 }
 

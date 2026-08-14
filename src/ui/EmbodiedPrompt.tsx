@@ -10,6 +10,7 @@ import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
 import { usePracticeStore } from '../core/PracticeState';
 import { useIntroActive } from '../core/IntroSkipHandler';
+import { isTypingTarget } from '../core/typingTarget';
 import { useWorldStore } from '../core/world/WorldState';
 
 export function EmbodiedPrompt() {
@@ -31,6 +32,7 @@ export function EmbodiedPrompt() {
         (ent) =>
           ent.worldId === currentWorldId &&
           ent.kind === 'puzzle-mechanism' &&
+          ent.state.completed !== true &&
           getPuzzleById(ent.defId)?.markerEventId === nearbyId,
       ) ?? null
     );
@@ -65,6 +67,7 @@ export function EmbodiedPrompt() {
     if (!isAgeInitiated(currentWorldId)) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
+      if (isTypingTarget(e.target)) return;
       if (e.key.toLowerCase() !== 'e') return;
       const event = getEventById(nearbyId);
       if (!event) return;

@@ -119,6 +119,36 @@ export const ESOTERIC_EVENTS: SpiritualEvent[] = [
     sourceUrl: 'https://en.wikipedia.org/wiki/Zohar',
   },
   {
+    id: 'pardes-four-levels',
+    simTimeSeconds: ceYear(1290),
+    track: 'spiritual',
+    tradition: 'kabbalah',
+    visibility: 'esoteric',
+    title: 'PaRDeS — four levels of meaning',
+    summary:
+      'Kabbalists read every verse four ways: Peshat (plain), Remez (hint), Derash (inquiry), Sod (secret). The acronym spells Pardes — the Garden.',
+    body:
+      'In the generation of the Zohar, exegetes formalize a fourfold way of reading: the plain sense on the surface, the allegorical hint beneath it, the interpretive inquiry that unfolds it, and the secret that cannot be read but only entered. Four sages entered the Garden, the Talmud warns, and only Akiva departed in peace — depth is entered with discipline. The same text carries all four at once; the reader chooses how deep to stand.',
+    relatedMaterialIds: ['writing'],
+    ...HUMAN,
+    sourceUrl: 'https://en.wikipedia.org/wiki/Pardes_(exegesis)',
+  },
+  {
+    id: 'agrippa-occult-philosophy',
+    simTimeSeconds: ceYear(1533),
+    track: 'spiritual',
+    tradition: 'hermetic',
+    visibility: 'esoteric',
+    title: 'Agrippa — Three Books of Occult Philosophy',
+    summary:
+      'Heinrich Cornelius Agrippa synthesizes Hermetica, Christian Kabbalah, and natural magic into one system: three worlds joined by correspondence.',
+    body:
+      'De Occulta Philosophia arranges all magic across three worlds — natural (elements and sympathies), celestial (numbers, planets, and their engraved squares), and divine (names and angelic orders). Agrippa carries Reuchlin and Pico\'s Christian Kabbalah into a grand table of correspondences: the magus ascends not by force but by knowing which things answer to which. The planetary squares — Saturn\'s nine chambers counting fifteen along every path — become emblems of number as the joint between worlds.',
+    relatedMaterialIds: ['printing-press'],
+    ...HUMAN,
+    sourceUrl: 'https://en.wikipedia.org/wiki/Three_Books_of_Occult_Philosophy',
+  },
+  {
     id: 'kabbalah-luria',
     simTimeSeconds: ceYear(1570),
     track: 'spiritual',

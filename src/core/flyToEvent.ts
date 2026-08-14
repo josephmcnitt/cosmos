@@ -41,6 +41,13 @@ export async function flyToEvent(event: TimelineEvent): Promise<void> {
 
   if (history.isFlying) return;
 
+  // Walk-mode discovery should open the dossier in place — never eject to cosmos.
+  if (observer.mode === 'embodied') {
+    history.setHistoryTrack(event.track);
+    history.selectEvent(event.id, event.track);
+    return;
+  }
+
   observer.exitEmbodied();
   history.setFlying(true);
   history.selectEvent(event.id, event.track);

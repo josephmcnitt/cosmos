@@ -27,6 +27,10 @@ body,
   --time-controls-reserve: 210px;
 }
 
+.app--timeline-collapsed {
+  --time-controls-reserve: 56px;
+}
+
 .app::after {
   content: '';
   position: absolute;
@@ -172,18 +176,9 @@ body,
   font-size: 11px;
 }
 
+/* Legacy center playhead chip removed — time lives on the timeline / collapsed pill. */
 .timeline-current {
-  position: absolute;
-  bottom: 120px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 6px 14px;
-  background: rgba(8, 12, 20, 0.88);
-  border: 1px solid rgba(120, 140, 180, 0.3);
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #d0dcff;
+  display: none;
 }
 
 .time-controls {
@@ -197,6 +192,44 @@ body,
   border-radius: 12px;
   backdrop-filter: blur(8px);
   z-index: 10;
+}
+
+.time-controls-collapsed {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 10;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: rgba(226, 230, 240, 0.82);
+  background: rgba(12, 16, 28, 0.72);
+  border: 1px solid rgba(120, 130, 160, 0.35);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.time-controls-collapsed:hover {
+  color: #fff;
+  border-color: rgba(160, 175, 210, 0.6);
+}
+
+.time-controls-collapse-btn {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  line-height: 1;
+  font-size: 0.9rem;
+  color: rgba(226, 230, 240, 0.7);
+  background: transparent;
+  border: 1px solid rgba(120, 130, 160, 0.35);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.time-controls-collapse-btn:hover {
+  color: #fff;
+  border-color: rgba(160, 175, 210, 0.6);
 }
 
 .time-controls-header {
@@ -688,6 +721,175 @@ body,
   padding: 12px;
   overflow-y: auto;
   scrollbar-gutter: stable;
+}
+
+/* Gematria panel — weigh-the-letters puzzle. */
+.gematria-panel {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  transform: translateX(-50%);
+  width: min(440px, 88vw);
+  padding: 18px 20px;
+  background: rgba(16, 14, 26, 0.92);
+  border: 1px solid rgba(212, 168, 67, 0.5);
+  border-radius: 10px;
+  z-index: 40;
+  pointer-events: auto;
+}
+
+.gematria-title {
+  font-size: 0.78rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #d4a843;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.gematria-prompt {
+  font-size: 0.87rem;
+  line-height: 1.55;
+  color: rgba(232, 226, 210, 0.92);
+  margin-bottom: 14px;
+}
+
+.gematria-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gematria-option {
+  padding: 9px 12px;
+  text-align: left;
+  font-size: 0.88rem;
+  color: #e8e2d2;
+  background: rgba(52, 44, 70, 0.55);
+  border: 1px solid rgba(150, 130, 90, 0.4);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.gematria-option:hover {
+  border-color: #d4a843;
+  background: rgba(70, 58, 88, 0.65);
+}
+
+.gematria-feedback {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: #d08060;
+}
+
+.gematria-revelation {
+  font-size: 0.87rem;
+  line-height: 1.6;
+  color: #e8dcb8;
+  font-style: italic;
+}
+
+.gematria-close {
+  margin-top: 14px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  color: rgba(226, 230, 240, 0.85);
+  background: transparent;
+  border: 1px solid rgba(140, 140, 170, 0.4);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.gematria-close:hover {
+  color: #fff;
+  border-color: rgba(180, 180, 210, 0.7);
+}
+
+/* Via Resonantiae capstone — shown while the Overflow replays. */
+.overflow-witness {
+  position: absolute;
+  left: 50%;
+  top: 18%;
+  transform: translateX(-50%);
+  max-width: 420px;
+  padding: 18px 22px;
+  text-align: center;
+  background: rgba(14, 12, 24, 0.78);
+  border: 1px solid rgba(212, 178, 96, 0.45);
+  border-radius: 10px;
+  z-index: 30;
+  pointer-events: none;
+  animation: overflow-witness-in 2.4s ease-out;
+}
+
+.overflow-witness-title {
+  font-size: 0.8rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #d4b260;
+  margin-bottom: 10px;
+}
+
+.overflow-witness-body {
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: rgba(232, 226, 210, 0.92);
+}
+
+.overflow-witness-seal {
+  margin-top: 12px;
+  font-size: 0.82rem;
+  font-style: italic;
+  letter-spacing: 0.12em;
+  color: #d4b260;
+}
+
+@keyframes overflow-witness-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Walk mode: History collapses to a pill so the scene stays readable. */
+.event-list-collapsed {
+  align-self: flex-start;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: rgba(226, 230, 240, 0.82);
+  background: rgba(12, 16, 28, 0.72);
+  border: 1px solid rgba(120, 130, 160, 0.35);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.event-list-collapsed:hover {
+  color: #fff;
+  border-color: rgba(160, 175, 210, 0.6);
+}
+
+.event-list-collapse-btn {
+  margin-left: auto;
+  width: 22px;
+  height: 22px;
+  line-height: 1;
+  font-size: 0.9rem;
+  color: rgba(226, 230, 240, 0.7);
+  background: transparent;
+  border: 1px solid rgba(120, 130, 160, 0.35);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.event-list-collapse-btn:hover {
+  color: #fff;
+  border-color: rgba(160, 175, 210, 0.6);
 }
 
 .event-list-section {
@@ -1298,18 +1500,23 @@ body,
 }
 
 .embodied-exit-btn {
-  width: 100%;
-  padding: 8px 12px;
+  position: absolute;
+  bottom: calc(var(--time-controls-reserve) + 8px);
+  right: 16px;
+  z-index: 12;
+  width: auto;
+  padding: 8px 14px;
   font-size: 12px;
-  border-radius: 8px;
+  border-radius: 999px;
   border: 1px solid rgba(120, 180, 140, 0.4);
-  background: rgba(40, 80, 60, 0.35);
+  background: rgba(12, 16, 28, 0.82);
   color: #b8f0d0;
   cursor: pointer;
 }
 
 .embodied-exit-btn:hover {
   background: rgba(50, 100, 70, 0.5);
+  border-color: rgba(160, 210, 180, 0.6);
 }
 
 .embodied-prompt {
@@ -1695,50 +1902,6 @@ body,
   right: 16px;
 }
 
-.path-toggle {
-  position: absolute;
-  top: 56px;
-  right: 16px;
-  z-index: 25;
-}
-
-.path-toggle--cosmic {
-  top: 148px;
-}
-
-.path-toggle--embodied {
-  top: 56px;
-  right: 16px;
-}
-
-.path-panel {
-  position: absolute;
-  top: 56px;
-  right: 16px;
-  z-index: 20;
-  max-width: 320px;
-  max-height: 60vh;
-  overflow-y: auto;
-}
-
-.path-panel--cosmic {
-  top: 148px;
-  max-height: calc(60vh - 92px);
-}
-
-.path-panel--embodied {
-  top: 56px;
-  right: 16px;
-  max-height: 45vh;
-}
-
-.path-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-
 .path-active {
   font-size: 0.9rem;
   opacity: 0.85;
@@ -1763,7 +1926,7 @@ body,
 .journal-panel--embodied {
   top: 16px;
   right: 16px;
-  max-height: 45vh;
+  max-height: 55vh;
 }
 
 .path-next-step {
@@ -1774,8 +1937,8 @@ body,
   border: 1px solid rgba(106, 140, 255, 0.25);
 }
 
-.path-next-step-label {
-  margin: 0 0 2px;
+.path-next-step h4 {
+  margin: 0 0 4px;
   font-size: 11px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1788,9 +1951,48 @@ body,
   color: #e8eef8;
 }
 
-.path-complete {
-  margin: 0 0 12px;
+.path-next-step-detail {
+  margin: 4px 0 0;
   font-size: 12px;
+  line-height: 1.35;
+  color: #b0c0e0;
+}
+
+.advancement-tree {
+  margin-bottom: 14px;
+}
+
+.advancement-tree-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.advancement-tree-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.35;
+  margin: 0 0 6px;
+}
+
+.advancement-tree-mark {
+  flex: 0 0 auto;
+  width: 1em;
+  color: #6a8cff;
+}
+
+.advancement-tree-item--done {
+  color: #c8d0e0;
+}
+
+.advancement-tree-item--next {
+  color: #e8eef8;
+  font-weight: 600;
+}
+
+.advancement-tree-item--ahead {
   color: #8899b0;
 }
 

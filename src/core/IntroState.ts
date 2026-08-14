@@ -6,10 +6,13 @@ interface IntroState {
   phase: IntroPhase;
   startedAt: number | null;
   skipped: boolean;
+  /** True after the post-skip observer jump has been applied (survives component remount/HMR). */
+  skipObserverApplied: boolean;
   start: () => void;
   setPhase: (phase: IntroPhase) => void;
   skip: () => void;
   complete: () => void;
+  markSkipObserverApplied: () => void;
 }
 
 export const INTRO_VOID_MS = 2500;
@@ -21,6 +24,7 @@ export const useIntroStore = create<IntroState>((set) => ({
   phase: 'void',
   startedAt: null,
   skipped: false,
+  skipObserverApplied: false,
 
   start: () =>
     set((s) =>
@@ -34,6 +38,8 @@ export const useIntroStore = create<IntroState>((set) => ({
   skip: () => set({ phase: 'complete', skipped: true }),
 
   complete: () => set({ phase: 'complete' }),
+
+  markSkipObserverApplied: () => set({ skipObserverApplied: true }),
 }));
 
 export function introOverlayOpacity(phase: IntroPhase, elapsedMs: number): number {

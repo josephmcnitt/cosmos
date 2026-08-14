@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getActorForWorld } from '../data/actors/index';
 import { useIntroActive } from '../core/IntroSkipHandler';
+import { isTypingTarget } from '../core/typingTarget';
 import { useObserverStore } from '../core/ObserverState';
 import { getNearestActor } from '../core/world/worldQueries';
 import { useWorldStore } from '../core/world/WorldState';
@@ -28,6 +29,7 @@ export function NpcInteractionControls() {
     if (mode !== 'embodied' || introActive || !nearbyActorId || activeInitiation) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
+      if (isTypingTarget(e.target)) return;
       if (e.key.toLowerCase() !== 't') return;
       const status = getInitiationStatus(currentWorldId);
       if (status !== 'available') return;

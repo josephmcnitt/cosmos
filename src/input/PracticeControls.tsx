@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { getNearestSiteMarker, MARKER_PRACTICE_RADIUS } from '../data/embodied/siteMarkers';
 import { canStartPractice, PRACTICE_CHAIN_COOLDOWN_SEC } from '../core/practice';
 import { useIntroActive } from '../core/IntroSkipHandler';
+import { isTypingTarget } from '../core/typingTarget';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
 import { usePracticeStore } from '../core/PracticeState';
@@ -48,6 +49,7 @@ export function PracticeControls() {
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
+      if (isTypingTarget(e.target)) return;
       if (e.key.toLowerCase() !== 'q' || e.repeat) return;
       qHeld.current = true;
       tryStart();

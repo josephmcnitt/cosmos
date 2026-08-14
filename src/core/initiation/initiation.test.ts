@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { InitiationStep } from './types';
 import {
   defaultInitiationStatus,
@@ -74,9 +74,83 @@ describe('initiation runInitiation', () => {
         playerYaw: 0,
         avatarMoving: false,
         stepStartedAt: performance.now(),
-        keysPressedSinceStep: false,
+        lastKeyPressedAtMs: 0,
       }),
     ).toBe(true);
+  });
+
+  it('silence step completes after quiet time and recovers from keypresses', () => {
+    const step = { type: 'silence', text: '', durationSec: 6 } as InitiationStep;
+    const base = {
+      playerX: 0,
+      playerZ: 0,
+      playerYaw: 0,
+      avatarMoving: false,
+      choiceId: undefined,
+    };
+    const now = 100_000;
+    const nowSpy = vi.spyOn(performance, 'now').mockReturnValue(now);
+    try {
+      // Quiet since step start → complete.
+      expect(
+        isStepComplete(step, { ...base, stepStartedAt: now - 7000, lastKeyPressedAtMs: 0 }),
+      ).toBe(true);
+
+      // A recent keypress restarts the timer — not complete yet…
+      expect(
+        isStepComplete(step, {
+          ...base,
+          stepStartedAt: now - 60_000,
+          lastKeyPressedAtMs: now - 2000,
+        }),
+      ).toBe(false);
+
+      // …but an old keypress must NOT block forever (the walk-in-holding-W soft-lock).
+      expect(
+        isStepComplete(step, {
+          ...base,
+          stepStartedAt: now - 60_000,
+          lastKeyPressedAtMs: now - 7000,
+        }),
+      ).toBe(true);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('hold-still step uses the same recoverable quiet timer', () => {
+    const step = { type: 'hold-still', text: '', durationSec: 8 } as InitiationStep;
+    const base = { playerX: 0, playerZ: 0, playerYaw: 0, choiceId: undefined };
+    const now = 100_000;
+    const nowSpy = vi.spyOn(performance, 'now').mockReturnValue(now);
+    try {
+      expect(
+        isStepComplete(step, {
+          ...base,
+          avatarMoving: false,
+          stepStartedAt: now - 9000,
+          lastKeyPressedAtMs: now - 7000,
+        }),
+      ).toBe(false);
+      expect(
+        isStepComplete(step, {
+          ...base,
+          avatarMoving: false,
+          stepStartedAt: now - 20_000,
+          lastKeyPressedAtMs: now - 9000,
+        }),
+      ).toBe(true);
+      expect(
+        isStepComplete(step, {
+          ...base,
+          avatarMoving: true,
+          stepStartedAt: now - 20_000,
+          lastKeyPressedAtMs: 0,
+        }),
+      ).toBe(false);
+    } finally {
+      nowSpy.mockRestore();
+    }
   });
 
   it('validates choose step', () => {

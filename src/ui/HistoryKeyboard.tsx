@@ -5,6 +5,7 @@ import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
 import { computeEffectiveTimeWindow, storedTimeWindowOptions } from '../core/spatialTimeCoupling';
 import { useIntroActive } from '../core/IntroSkipHandler';
+import { isTypingTarget } from '../core/typingTarget';
 
 export function HistoryKeyboard() {
   const introActive = useIntroActive();
@@ -14,6 +15,7 @@ export function HistoryKeyboard() {
     if (introActive) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
+      if (isTypingTarget(e.target)) return;
       if (useHistoryStore.getState().isFlying) return;
 
       if (e.key === 'Escape') {

@@ -127,11 +127,29 @@ export interface StructureKindDefinition {
   tradition?: SpiritualTradition;
 }
 
+export interface GematriaOption {
+  id: string;
+  /** Display label, e.g. 'אהבה — Ahavah, love'. */
+  label: string;
+  /** Letter-count value shown after answering. */
+  value: number;
+}
+
+export interface GematriaSpec {
+  /** The riddle posed at the stone. */
+  prompt: string;
+  options: GematriaOption[];
+  answerId: string;
+  /** Shown once solved — the hidden meaning made explicit. */
+  revelation: string;
+}
+
 export interface PuzzleTemplate {
   id: string;
-  type: 'ring-alignment' | 'threshold-stance' | 'era-witness';
+  type: 'ring-alignment' | 'threshold-stance' | 'era-witness' | 'gematria';
   targetAgeId?: string;
   markerEventId?: string;
   witnessEventId?: string;
   ringSequence?: number[];
+  gematria?: GematriaSpec;
 }

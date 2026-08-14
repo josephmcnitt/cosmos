@@ -12,7 +12,9 @@ import { InitiationSync } from './core/initiation/InitiationSync';
 import { ProgressionSync } from './core/progression/ProgressionSync';
 import { useRealmDisplayStore } from './core/RealmDisplayState';
 import { fogDistances } from './core/realmTransition';
+import { DevStoreBridge } from './core/DevStoreBridge';
 import { IntroSkipHandler, useIntroActive } from './core/IntroSkipHandler';
+import { isTypingTarget } from './core/typingTarget';
 import { SimulationLoop } from './core/SimulationLoop';
 import { useIntroStore } from './core/IntroState';
 import { useHistoryStore } from './core/HistoryState';
@@ -20,7 +22,7 @@ import { useObserverStore } from './core/ObserverState';
 import { SPATIAL_MAX, SPATIAL_MIN } from './core/ScaleSpace';
 import { EmbodiedControls } from './input/EmbodiedControls';
 import { PracticeControls } from './input/PracticeControls';
-import { EmbodiedOverlay } from './ui/EmbodiedOverlay';
+import { EmbodiedExitButton, EmbodiedOverlay } from './ui/EmbodiedOverlay';
 import { EmbodiedPrompt } from './ui/EmbodiedPrompt';
 import { PracticeOverlay } from './ui/PracticeOverlay';
 import { EmbodimentBanner } from './ui/EmbodimentBanner';
@@ -28,7 +30,7 @@ import { EventDetailPanel } from './ui/EventDetailPanel';
 import { EventListPanel } from './ui/EventListPanel';
 import { HistoryKeyboard } from './ui/HistoryKeyboard';
 import { IntroOverlay } from './ui/IntroOverlay';
-import { ScaleHUD, TimelineLabel } from './ui/ScaleHUD';
+import { ScaleHUD } from './ui/ScaleHUD';
 import { TimeControls } from './ui/TimeControls';
 import { HeavenPhaseIndicator } from './ui/HeavenPhaseIndicator';
 import { EphemerisIndicator } from './ui/EphemerisIndicator';
@@ -40,9 +42,10 @@ import { ZoomControls } from './ui/ZoomControls';
 import { WalkApproachPrompt } from './ui/WalkApproachPrompt';
 import { LinkPanel } from './ui/LinkPanel';
 import { InitiationPanel } from './ui/InitiationPanel';
+import { GematriaPanel } from './ui/GematriaPanel';
 import { SenseWhisper } from './ui/SenseWhisper';
 import { JournalPanel } from './ui/JournalPanel';
-import { PathPanel } from './ui/PathPanel';
+import { OverflowWitness } from './ui/OverflowWitness';
 import { AgeInteractionControls } from './input/AgeInteractionControls';
 import { NpcInteractionControls } from './input/NpcInteractionControls';
 import { SplitControls } from './input/SplitControls';
@@ -149,6 +152,7 @@ function KeyboardShortcuts() {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (introActive) return;
+      if (isTypingTarget(e.target)) return;
       if (e.key === '`' || e.key === '~') toggleDebugGrid();
     };
     window.addEventListener('keydown', onKeyDown);
@@ -201,6 +205,7 @@ export default function App() {
       <WorldTravelSync />
       <InitiationSync />
       <ProgressionSync />
+      <DevStoreBridge />
       <EmbodiedControls />
       <PracticeControls />
       <NpcInteractionControls />
@@ -240,6 +245,7 @@ export default function App() {
           <HeavenPhaseIndicator />
           <StarfieldIndicator />
           <BigBangReplayIndicator />
+          <OverflowWitness />
           <EphemerisIndicator />
           <CorrespondenceIndicator />
           <KnowledgeModeIndicator />
@@ -251,6 +257,7 @@ export default function App() {
           </div>
           <SpatialSlider />
           <EmbodiedOverlay />
+          <EmbodiedExitButton />
           <WalkApproachPrompt />
           <EarthGlobePrompt />
           <EarthNavPrompt />
@@ -262,13 +269,12 @@ export default function App() {
             <SplitControls />
           </div>
           <InitiationPanel />
+          <GematriaPanel />
           <PracticeOverlay />
           <LinkPanel />
           <SenseWhisper />
           <JournalPanel />
-          <PathPanel />
           <EventDetailPanel />
-          <TimelineLabel />
           <TimeControls />
           <ObserverStateProbe />
         </div>

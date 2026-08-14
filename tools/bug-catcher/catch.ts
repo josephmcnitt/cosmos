@@ -338,7 +338,11 @@ async function saveIssue(
   const issueDir = join(session.issuesDir, id);
   mkdirSync(issueDir, { recursive: true });
 
-  const viewport = page.viewportSize() ?? { width: 1280, height: 720 };
+  const viewport =
+    page.viewportSize() ??
+    (await page
+      .evaluate(() => ({ width: window.innerWidth, height: window.innerHeight }))
+      .catch(() => ({ width: 0, height: 0 })));
   if (before) {
     writeFileSync(join(issueDir, 'before.png'), before);
   }
@@ -423,10 +427,13 @@ async function runSession(options: CliOptions): Promise<void> {
   try {
     browser = await chromium.launch({
       headless: false,
-      args: ['--use-gl=angle', '--ignore-gpu-blocklist'],
+      args: ['--use-gl=angle', '--ignore-gpu-blocklist', '--start-maximized'],
     });
+    // viewport: null makes the page track the real window size — a fixed
+    // viewport taller than the window clips the bottom of the app (the
+    // timeline stack) with no way to scroll it into view.
     const context = await browser.newContext({
-      viewport: { width: 1440, height: 900 },
+      viewport: null,
       ignoreHTTPSErrors: true,
     });
     const page = await context.newPage();

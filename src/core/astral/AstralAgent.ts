@@ -162,7 +162,15 @@ export function performSplit(worldId: string, blueprints: { kindId: string; x: n
   });
   world.setWorldLayer(worldId, 'esoteric');
   world.setControlFocus('material');
-  world.addJournalEntry('Quantum split', 'An astral counterpart persists in the esoteric layer.');
+  const silentGate = world.pathFlags['via-resonantiae-silent-gate'];
+  if (silentGate) {
+    world.addJournalEntry(
+      'Silent Gate',
+      'An astral counterpart persists in the esoteric layer — Gnosis without transcript. What you understand, understand.',
+    );
+  } else {
+    world.addJournalEntry('Quantum split', 'An astral counterpart persists in the esoteric layer.');
+  }
   worldEvents.emit({ type: 'split/created', pairId });
 
   simDirector.registerInstance(astralInstance, createAstralTickFn(pairId));

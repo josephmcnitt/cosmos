@@ -34,6 +34,13 @@ export const ROME_AGE: AgeDefinition = {
       targetAgeId: 'grove',
       label: 'Return to the Grove',
     },
+    {
+      id: 'portal-rome-byzantium',
+      markerEventId: 'neoplatonism-plotinus',
+      targetAgeId: 'byzantium',
+      label: 'East to Byzantium',
+      puzzleId: 'puzzle-byzantium-legacy',
+    },
   ],
   veils: [{ id: 'veil-rome-villa', position: [2, -2], label: 'Veil of ascent' }],
   esotericLayer: { tradition: 'neoplatonism', geometry: 'neoplatonic-rings' },

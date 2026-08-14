@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { PLAYBACK_PRESETS } from '../core/SimulationClock';
 import { useHistoryStore } from '../core/HistoryState';
 import { useObserverStore } from '../core/ObserverState';
@@ -41,6 +41,20 @@ export function TimeControls() {
   const mode = useObserverStore((s) => s.mode);
   const setTemporalExponent = useObserverStore((s) => s.setTemporalExponent);
   const isFlying = useHistoryStore((s) => s.isFlying);
+
+  // Walk mode collapses the timeline to a pill — same pattern as History.
+  const embodied = mode === 'embodied';
+  const [expanded, setExpanded] = useState(!embodied);
+  useEffect(() => {
+    if (embodied) setExpanded(false);
+  }, [embodied]);
+
+  useEffect(() => {
+    const app = document.querySelector('.app');
+    if (!app) return;
+    app.classList.toggle('app--timeline-collapsed', !expanded);
+    return () => app.classList.remove('app--timeline-collapsed');
+  }, [expanded]);
 
   const scrubbing = useRef(false);
   const anchorTime = useRef(simTimeSeconds);
@@ -110,8 +124,24 @@ export function TimeControls() {
     e.currentTarget.releasePointerCapture(e.pointerId);
   };
 
+  if (!expanded) {
+    return (
+      <button
+        type="button"
+        className="time-controls-collapsed ui-panel"
+        data-testid="time-controls-collapsed"
+        onClick={() => setExpanded(true)}
+      >
+        {playheadLabel}
+      </button>
+    );
+  }
+
   return (
-    <div className={`time-controls ui-panel${isFlying ? ' time-controls--locked' : ''}`}>
+    <div
+      className={`time-controls ui-panel${isFlying ? ' time-controls--locked' : ''}`}
+      data-testid="time-controls"
+    >
       <div className="time-controls-header">
         <span data-testid="timeline-header">
           Timeline · {temporalBand.label} · {timelineHeader}
@@ -125,6 +155,15 @@ export function TimeControls() {
               ? 'Log scale (years ago) · zoomed in — Shift+scroll to pan time'
               : 'Scroll or [ ] to zoom space · Shift+scroll or Shift+[ ] for time'}
         </span>
+        <button
+          type="button"
+          className="time-controls-collapse-btn"
+          data-testid="time-controls-collapse"
+          title="Collapse timeline"
+          onClick={() => setExpanded(false)}
+        >
+          −
+        </button>
       </div>
 
       <div className="scrubber-wrap">

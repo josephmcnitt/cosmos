@@ -59,6 +59,10 @@ function readAttr(tag: string | null, attr: string): string | undefined {
 }
 
 function readStyleVar(html: string, name: string): string | undefined {
+  // Live values are inline (style="--x: v") — must win over the stylesheet
+  // defaults that dev builds inline as <style> blocks (always 0).
+  const inline = html.match(new RegExp(`style="[^"]*${name}:\\s*([^;"]+)`, 'i'));
+  if (inline) return inline[1]?.trim();
   const re = new RegExp(`${name}:\\s*([^;"]+)`, 'i');
   return html.match(re)?.[1]?.trim();
 }

@@ -57,6 +57,7 @@ Phase 7 stabilizes the discover / practice loop, smooths realm transitions, and 
 npm test              # Vitest — practice, embodiment, spatial coupling, wheel zoom, time zoom
 npm run test:e2e      # Playwright — local preview by default (see below)
 npm run test:e2e:ui   # Headed debug
+.\agent-playtest.cmd  # Autonomous playthrough scenarios (see tools/agent-playtest/README.md)
 ```
 
 Vitest covers wheel routing (`src/core/wheelZoom.test.ts`) and time zoom / years-ago scrub (`src/core/timeZoomBehavior.test.ts`). Playwright includes `tests/e2e/scroll-zoom.spec.ts` and `tests/e2e/time-zoom.spec.ts`.

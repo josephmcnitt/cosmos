@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { isTypingTarget } from '../core/typingTarget';
 import { useHistoryStore } from '../core/HistoryState';
 import { useOverlayPanelStore } from '../core/OverlayPanelState';
 import { getActiveAgeDefinition } from '../core/world/WorldRegistry';
@@ -21,6 +22,7 @@ export function LinkPanel() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (isTypingTarget(e.target)) return;
       if (e.key.toLowerCase() !== 'f') return;
       const unlocked = portals.filter((p) => p.state.unlocked === true);
       if (unlocked.length === 0) return;

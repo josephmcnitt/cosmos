@@ -92,6 +92,7 @@ interface WorldState {
   cancelInitiation: () => void;
   recordChoice: (initiationId: string, stepIndex: number, choiceId: string) => void;
   reevaluateProgress: () => void;
+  setPathFlag: (flag: string, value: string | number | boolean) => void;
   isMarkerVisible: (markerId: string) => boolean;
 }
 
@@ -517,6 +518,13 @@ export const useWorldStore = create<WorldState>((set, get) => ({
         ],
       };
     });
+    get().reevaluateProgress();
+    get().persist();
+  },
+
+  setPathFlag: (flag, value) => {
+    if (get().pathFlags[flag] === value) return;
+    set((s) => ({ pathFlags: { ...s.pathFlags, [flag]: value } }));
     get().reevaluateProgress();
     get().persist();
   },

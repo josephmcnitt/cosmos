@@ -4,7 +4,6 @@ import { useWorldStore } from '../core/world/WorldState';
 
 export function EmbodiedOverlay() {
   const mode = useObserverStore((s) => s.mode);
-  const exitEmbodied = useObserverStore((s) => s.exitEmbodied);
   const currentWorldId = useWorldStore((s) => s.currentWorldId);
   const worldLayer = useWorldStore((s) => s.worldLayers[s.currentWorldId] ?? 'material');
   const initiationStatus = useWorldStore((s) => s.initiationStatus[currentWorldId]);
@@ -36,9 +35,25 @@ export function EmbodiedOverlay() {
           </>
         )}
       </div>
-      <button type="button" className="embodied-exit-btn" onClick={exitEmbodied}>
-        Zoom out to cosmos
-      </button>
     </div>
+  );
+}
+
+/** Exit walk mode — bottom-right so it stays out of the main scene. */
+export function EmbodiedExitButton() {
+  const mode = useObserverStore((s) => s.mode);
+  const exitEmbodied = useObserverStore((s) => s.exitEmbodied);
+
+  if (mode !== 'embodied') return null;
+
+  return (
+    <button
+      type="button"
+      className="embodied-exit-btn ui-panel"
+      data-testid="embodied-exit"
+      onClick={exitEmbodied}
+    >
+      Zoom out to cosmos
+    </button>
   );
 }

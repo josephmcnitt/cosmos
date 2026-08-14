@@ -10,8 +10,8 @@ describe('useOverlayPanelStore', () => {
     const { openPanel } = useOverlayPanelStore.getState();
     openPanel('journal');
     expect(useOverlayPanelStore.getState().expandedPanel).toBe('journal');
-    openPanel('path');
-    expect(useOverlayPanelStore.getState().expandedPanel).toBe('path');
+    openPanel('link', { linkPortalId: 'portal-alexandria' });
+    expect(useOverlayPanelStore.getState().expandedPanel).toBe('link');
   });
 
   it('stores link portal id only for link panel', () => {

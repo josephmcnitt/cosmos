@@ -48,4 +48,29 @@ describe('getPathNextStep', () => {
     expect(step?.nodeId).not.toBe('grove-hermetic-rings');
     expect(step?.nodeId).toBe('alexandria-purification-intro');
   });
+
+  it('skips the unchosen Alexandria purification fork', () => {
+    const step = getPathNextStep(
+      createProgressInput({
+        completedProgressNodeIds: [
+          'grove-hermetic-intro',
+          'grove-choice-experiential',
+          'grove-hermetic-rings',
+          'grove-hermetic-convergence',
+          'alexandria-purification-intro',
+          'alexandria-choice-correspondence',
+          'alexandria-library-purification-dialogue',
+        ],
+        pathFlags: {
+          'grove-hermetic-path': 'experiential',
+          'grove-experiential-practice': true,
+          'alexandria-purification-path': 'correspondence',
+        },
+        completedPuzzleIds: ['puzzle-hermetic-rings'],
+        visitedWorldIds: ['grove', 'alexandria'],
+        initiationStatus: { grove: 'completed', alexandria: 'completed' },
+      }),
+    );
+    expect(step?.nodeId).not.toBe('alexandria-choice-silence');
+  });
 });

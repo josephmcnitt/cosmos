@@ -1,5 +1,6 @@
 import type { WheelZoomAction } from './wheelZoom';
 import { resolveWheelZoomAction } from './wheelZoom';
+import { isTypingTarget } from './typingTarget';
 
 export type KeyboardZoomDirection = 'in' | 'out';
 
@@ -10,11 +11,7 @@ export const KEYBOARD_WHEEL_DELTA: Record<KeyboardZoomDirection, number> = {
 };
 
 export function isKeyboardZoomBlocked(target: EventTarget | null): boolean {
-  if (!(target instanceof Element)) return false;
-  if (target.closest('#bug-catcher-panel')) return true;
-  if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return true;
-  if (target instanceof HTMLSelectElement) return true;
-  return (target as HTMLElement).isContentEditable;
+  return isTypingTarget(target);
 }
 
 export function resolveKeyboardZoomDirection(key: string): KeyboardZoomDirection | null {

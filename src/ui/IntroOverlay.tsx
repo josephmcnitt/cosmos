@@ -8,6 +8,7 @@ import {
   useIntroStore,
 } from '../core/IntroState';
 import { useObserverStore } from '../core/ObserverState';
+import { isTypingTarget } from '../core/typingTarget';
 
 export function IntroOverlay() {
   const phase = useIntroStore((s) => s.phase);
@@ -25,6 +26,9 @@ export function IntroOverlay() {
   const rafRef = useRef<number>(0);
 
   useEffect(() => {
+    // Never clobber a live session on remount/HMR once the intro has finished.
+    const intro = useIntroStore.getState();
+    if (intro.phase === 'complete' || intro.skipped) return;
     start();
     setSimTime(0.001);
     setSpatialExponent(25);
@@ -68,7 +72,8 @@ export function IntroOverlay() {
   }, [phase]);
 
   useEffect(() => {
-    const onKey = () => {
+    const onKey = (e: KeyboardEvent) => {
+      if (isTypingTarget(e.target)) return;
       if (phase !== 'complete') skip();
     };
     const onClick = () => {

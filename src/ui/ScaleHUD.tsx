@@ -195,23 +195,8 @@ export function ScaleHUD() {
   );
 }
 
+/** @deprecated Center chip removed — time is on the collapsed timeline pill / scrubber. */
 export function TimelineLabel() {
-  const simTimeSeconds = useObserverStore((s) => s.simTimeSeconds);
-  const spatialExponent = useObserverStore((s) => s.spatialExponent);
-  const temporalExponent = useObserverStore((s) => s.temporalExponent);
-  const timeViewMinLog = useObserverStore((s) => s.timeViewMinLog);
-  const timeViewMaxLog = useObserverStore((s) => s.timeViewMaxLog);
-  const timeWindow = computeEffectiveTimeWindow(
-    spatialExponent,
-    simTimeSeconds,
-    temporalExponent,
-    storedTimeWindowOptions(timeViewMinLog, timeViewMaxLog),
-  );
-  const viewLogSpan = yearsAgoLogSpan(timeWindow.viewMinSeconds, timeWindow.viewMaxSeconds);
-  return (
-    <div className="timeline-current ui-panel" data-testid="timeline-current">
-      {formatPlayheadTime(simTimeSeconds, viewLogSpan, isInHumanEra(simTimeSeconds))}
-    </div>
-  );
+  return null;
 }
 

@@ -6,6 +6,7 @@ import {
   showSplitPrep,
 } from '../core/splitReadiness';
 import { useIntroActive } from '../core/IntroSkipHandler';
+import { isTypingTarget } from '../core/typingTarget';
 import { useObserverStore } from '../core/ObserverState';
 import { usePracticeStore } from '../core/PracticeState';
 import { useWorldStore } from '../core/world/WorldState';
@@ -68,6 +69,7 @@ export function SplitControls() {
     if (introActive || mode !== 'embodied') return;
 
     const onKeyDown = (e: KeyboardEvent) => {
+      if (isTypingTarget(e.target)) return;
       if (e.key.toLowerCase() !== 'j' || e.repeat) return;
       jHeld.current = true;
       if (canSplit) {
@@ -119,6 +121,7 @@ export function SplitControls() {
   useEffect(() => {
     if (introActive || mode !== 'embodied') return;
     const onKeyDown = (e: KeyboardEvent) => {
+      if (isTypingTarget(e.target)) return;
       if (e.key.toLowerCase() !== 'k') return;
       const pair = entanglements[0];
       if (pair) rejoinSplit(pair.id);

@@ -109,19 +109,21 @@ test.describe('game tree — Hermetic rational path', () => {
 
     const save = await readSave(page);
     expect(save.revealedMarkerIds).toContain('grove-rosicrucian');
+    expect(save.revealedMarkerIds ?? []).not.toContain('grove-pythagorean');
     expect(save.pathFlags['grove-hermetic-path']).toBe('rational');
     expect(save.activePathId).toBe('hermetic-rational');
   });
 
-  test('path panel shows rational milestones and next ring step', async ({ page }) => {
+  test('journal shows rational milestones and next ring step', async ({ page }) => {
     await seedSave(page, {
       completedProgressNodeIds: ['grove-hermetic-intro', 'grove-choice-rational'],
       activePathId: 'hermetic-rational',
       pathFlags: { 'grove-hermetic-path': 'rational' },
     });
 
-    await page.getByTestId('path-toggle').click();
-    await expect(page.getByTestId('path-panel')).toBeVisible();
+    await page.getByTestId('journal-toggle').click();
+    await expect(page.getByTestId('journal-panel')).toBeVisible();
+    await expect(page.getByTestId('advancement-tree')).toBeVisible();
     await expect(page.getByTestId('progress-node-grove-hermetic-intro-completed')).toBeVisible();
     await expect(page.getByTestId('progress-node-grove-choice-rational-completed')).toBeVisible();
     await expect(page.getByTestId('path-active-id')).toContainText('hermetic rational');
@@ -153,7 +155,7 @@ test.describe('game tree — Hermetic rational path', () => {
 });
 
 test.describe('game tree — Hermetic experiential path', () => {
-  test('experiential fork sets practice flag without rosicrucian marker', async ({ page }) => {
+  test('experiential fork reveals pythagorean marker without rosicrucian', async ({ page }) => {
     await seedSave(page, {
       choiceHistory: [
         {
@@ -170,10 +172,11 @@ test.describe('game tree — Hermetic experiential path', () => {
     const save = await readSave(page);
     expect(save.pathFlags['grove-experiential-practice']).toBe(true);
     expect(save.pathFlags['grove-hermetic-path']).toBe('experiential');
+    expect(save.revealedMarkerIds).toContain('grove-pythagorean');
     expect(save.revealedMarkerIds ?? []).not.toContain('grove-rosicrucian');
   });
 
-  test('path panel shows experiential route and ring next step', async ({ page }) => {
+  test('journal shows experiential route and ring next step', async ({ page }) => {
     await seedSave(page, {
       completedProgressNodeIds: ['grove-hermetic-intro', 'grove-choice-experiential'],
       activePathId: 'hermetic-experiential',
@@ -183,7 +186,7 @@ test.describe('game tree — Hermetic experiential path', () => {
       },
     });
 
-    await page.getByTestId('path-toggle').click();
+    await page.getByTestId('journal-toggle').click();
     await expect(page.getByTestId('progress-node-grove-choice-experiential-completed')).toBeVisible();
     await expect(page.getByTestId('path-active-id')).toContainText('hermetic experiential');
     await expect(page.getByTestId('path-next-step')).toContainText('Hermetic ring puzzle');

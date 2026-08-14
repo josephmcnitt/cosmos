@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type OverlayPanelId = 'journal' | 'path' | 'link';
+export type OverlayPanelId = 'journal' | 'link';
 
 interface OverlayPanelState {
   expandedPanel: OverlayPanelId | null;

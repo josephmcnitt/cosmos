@@ -2,6 +2,7 @@ import type { PanelConfig } from './types';
 import {
   GUIDANCE_TIPS,
   PLAYTEST_LAYOUT_CSS,
+  PLAYTEST_PANEL_TOP_OFFSET_PX,
   PLAYTEST_TIMELINE_SAFE_PX,
 } from './playtestLayout';
 
@@ -16,6 +17,7 @@ export function buildPanelScript(config: PanelConfig): string {
   const config = ${configJson};
   const isGuidance = config.mode === 'guidance';
   const timelineSafePx = ${PLAYTEST_TIMELINE_SAFE_PX};
+  const panelTopOffsetPx = ${PLAYTEST_PANEL_TOP_OFFSET_PX};
   const playtestLayoutCss = ${JSON.stringify(PLAYTEST_LAYOUT_CSS)};
   const guidanceTips = ${JSON.stringify(GUIDANCE_TIPS)};
 
@@ -29,8 +31,8 @@ export function buildPanelScript(config: PanelConfig): string {
     </div>
     <div id="bug-catcher-body">
       <p class="bug-catcher-intro">Explore freely. Save a note whenever something stands out — bugs, confusion, ideas, or things you enjoyed.</p>
-      <details class="bug-catcher-tips" open>
-        <summary>Quick guide</summary>
+      <details class="bug-catcher-tips">
+        <summary>Quick guide (timeline is the blue bar at the bottom)</summary>
         <ul id="bug-catcher-tips-list"></ul>
       </details>
       <label class="bug-catcher-label" for="bug-catcher-kind">This note is about</label>
@@ -77,10 +79,10 @@ export function buildPanelScript(config: PanelConfig): string {
   style.textContent = \`
     #bug-catcher-panel {
       position: fixed;
-      top: 12px;
+      top: \${isGuidance ? panelTopOffsetPx : 12}px;
       right: 12px;
-      width: 340px;
-      max-height: calc(100vh - ${PLAYTEST_TIMELINE_SAFE_PX}px - 16px);
+      width: 320px;
+      max-height: calc(100vh - ${PLAYTEST_TIMELINE_SAFE_PX}px - \${isGuidance ? panelTopOffsetPx : 12}px - 8px);
       overflow: auto;
       z-index: 2147483646;
       font: 13px/1.45 system-ui, -apple-system, Segoe UI, sans-serif;
@@ -279,7 +281,7 @@ export function buildPanelScript(config: PanelConfig): string {
     minBtn.addEventListener('click', () => panel.classList.toggle('minimized'));
     header.addEventListener('dblclick', (e) => {
       if (e.target === minBtn) return;
-      panel.style.top = '12px';
+      panel.style.top = (isGuidance ? panelTopOffsetPx : 12) + 'px';
       panel.style.right = '12px';
       panel.style.left = 'auto';
     });

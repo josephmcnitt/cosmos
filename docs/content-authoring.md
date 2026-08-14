@@ -21,6 +21,10 @@ Conventions for adding progression nodes, world content, and tests in Cosmos.
 5. Progress nodes linking initiation + puzzles
 6. E2E travel smoke in `tests/e2e/age-travel.spec.ts`
 
+## Puzzle types
+
+`ring-alignment` (R rotates rings 0→1→2 — targets must pass the reachability test in `puzzleIntegrity.test.ts`), `threshold-stance` (hold still at the stone), `era-witness` (scrub cosmic time near the witness event — window in `core/puzzles`), `gematria` (R opens a weigh-the-letters panel; spec needs `prompt`, `options`, `answerId`, `revelation` — integrity-tested).
+
 ## Hidden markers
 
 Add to age def:

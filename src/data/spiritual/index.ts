@@ -3,8 +3,13 @@ import { getSpatialBand } from '../../core/ScaleSpace';
 import { eventBelongsToSpatialBand } from '../../core/spatialTimeCoupling';
 import { ESOTERIC_EVENTS } from './esoteric';
 import { EXOTERIC_EVENTS } from './exoteric';
+import { VIA_RESONANTIAE_EVENTS } from './viaResonantiae';
 
-export const SPIRITUAL_EVENTS: SpiritualEvent[] = [...EXOTERIC_EVENTS, ...ESOTERIC_EVENTS].sort(
+export const SPIRITUAL_EVENTS: SpiritualEvent[] = [
+  ...EXOTERIC_EVENTS,
+  ...ESOTERIC_EVENTS,
+  ...VIA_RESONANTIAE_EVENTS,
+].sort(
   (a, b) => a.simTimeSeconds - b.simTimeSeconds,
 );
 
@@ -88,4 +93,4 @@ export function getSpiritualEventsInWindow(
   });
 }
 
-export { EXOTERIC_EVENTS, ESOTERIC_EVENTS };
+export { EXOTERIC_EVENTS, ESOTERIC_EVENTS, VIA_RESONANTIAE_EVENTS };

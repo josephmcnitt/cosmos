@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   ALL_TIMELINE_EVENTS,
   getEventsInEffectiveWindow,
@@ -56,6 +57,13 @@ export function EventListPanel() {
   const epochMismatch = atHumanScale && !inHumanEra && mode !== 'embodied';
   const showSpiritual = historyTrack === 'spiritual';
 
+  // Walk mode collapses History to a pill — stones and prompts carry the scene.
+  const embodied = mode === 'embodied';
+  const [walkExpanded, setWalkExpanded] = useState(false);
+  useEffect(() => {
+    if (embodied) setWalkExpanded(false);
+  }, [embodied]);
+
   const timeWindow = computeEffectiveTimeWindow(
     spatialExponent,
     simTimeSeconds,
@@ -86,11 +94,35 @@ export function EventListPanel() {
 
   const hiddenCount = getHiddenEsotericCount(depthOfView);
 
+  if (embodied && !walkExpanded) {
+    return (
+      <button
+        type="button"
+        className="event-list-collapsed ui-panel"
+        data-testid="event-list-collapsed"
+        onClick={() => setWalkExpanded(true)}
+      >
+        History ▸
+      </button>
+    );
+  }
+
   return (
     <div className="event-list ui-panel">
       <div className="event-list-header-row">
         <div className="event-list-header">History</div>
         <HistoryTrackToggle />
+        {embodied && (
+          <button
+            type="button"
+            className="event-list-collapse-btn"
+            data-testid="event-list-collapse"
+            title="Collapse history"
+            onClick={() => setWalkExpanded(false)}
+          >
+            −
+          </button>
+        )}
       </div>
 
       {showSpiritual ? (
